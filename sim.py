@@ -1,11 +1,10 @@
 import streamlit as st
 import streamlit.components.v1 as components
 import json
-import os
-import threading
 import copy
 import math
 import re
+import requests
 import pandas as pd
 import plotly.graph_objects as go
 
@@ -80,11 +79,62 @@ html, body, [class*="css"] {
 """, unsafe_allow_html=True)
 
 # ============================================================
-# PERSISTÊNCIA COMPARTILHADA
+# PERSISTÊNCIA VIA JSONBIN.IO (funciona no Streamlit Cloud)
 # ============================================================
-MODEL_FILE = "modelo_lumina.json"
-file_lock = threading.Lock()
+# Configure nas Secrets do Streamlit:
+#   [jsonbin]
+#   api_key = "$2a$10$..."   (sua chave da jsonbin.io)
+#   bin_id  = "6xxxxxx"      (ID do bin criado)
+#
+# Se não houver secrets configuradas, usa apenas memória de sessão.
 
+def _get_cfg():
+    try:
+        return st.secrets["jsonbin"]["api_key"], st.secrets["jsonbin"]["bin_id"]
+    except Exception:
+        return None, None
+
+
+def load_system():
+    api_key, bin_id = _get_cfg()
+    if api_key and bin_id:
+        try:
+            r = requests.get(
+                f"https://api.jsonbin.io/v3/b/{bin_id}/latest",
+                headers={"X-Master-Key": api_key},
+                timeout=8,
+            )
+            if r.status_code == 200:
+                data = r.json().get("record", {})
+                if "nodes" in data and "links" in data:
+                    return data
+        except Exception as e:
+            st.warning(f"Não foi possível carregar da nuvem: {e}. Usando modelo padrão.")
+    return copy.deepcopy(DEFAULT_SYSTEM)
+
+
+def save_system(system):
+    api_key, bin_id = _get_cfg()
+    if api_key and bin_id:
+        try:
+            requests.put(
+                f"https://api.jsonbin.io/v3/b/{bin_id}",
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Master-Key": api_key,
+                },
+                json=system,
+                timeout=8,
+            )
+        except Exception as e:
+            st.warning(f"Não foi possível salvar na nuvem: {e}")
+    # Também atualiza o session_state para consistência imediata
+    st.session_state.system = system
+
+
+# ============================================================
+# MODELO PADRÃO
+# ============================================================
 DEFAULT_SYSTEM = {
     "nodes": {
         "Rentabilidade": {"cat": "Estado", "val": 0, "expr": "Receita - Custos",
@@ -168,23 +218,6 @@ DEFAULT_SYSTEM = {
 }
 
 
-def load_system():
-    with file_lock:
-        if os.path.exists(MODEL_FILE):
-            try:
-                with open(MODEL_FILE, "r", encoding="utf-8") as f:
-                    return json.load(f)
-            except:
-                pass
-        return copy.deepcopy(DEFAULT_SYSTEM)
-
-
-def save_system(system):
-    with file_lock:
-        with open(MODEL_FILE, "w", encoding="utf-8") as f:
-            json.dump(system, f, ensure_ascii=False, indent=2)
-
-
 # ============================================================
 # AVALIADOR DE EXPRESSÕES (PYTHON)
 # ============================================================
@@ -234,7 +267,7 @@ SYSTEM = st.session_state.system
 
 
 # ============================================================
-# HTML DO SIMULADOR (COM TAG <script> PARA DADOS INICIAIS)
+# HTML DO SIMULADOR
 # ============================================================
 def get_simulator_html():
     return """
@@ -439,6 +472,18 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); font
   transition: all 0.15s;
 }
 .btn-primary:hover { background: var(--accent); }
+.btn-icon {
+  padding: 6px 12px;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--text2);
+  font-family: var(--sans);
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+.btn-icon:hover { background: var(--surface2); color: var(--text); }
 
 .link-hint { background: rgba(232,169,74,0.08); border: 1px solid rgba(232,169,74,0.25); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--gold); margin-bottom: 16px; line-height: 1.6; }
 
@@ -491,7 +536,7 @@ __INITIAL_MODEL__
   </div>
 </div>
 
-<!-- Modals (inalterados) -->
+<!-- Modais -->
 <div class="modal-overlay" id="modal-add-node">
   <div class="modal">
     <div class="modal-title">Novo Nó</div>
@@ -926,7 +971,6 @@ function confirmLink() {
   if (dataElement && dataElement.textContent.trim() !== '') {
     loadModelFromJSON(dataElement.textContent.trim());
   } else {
-    // fallback: modelo vazio
     renderAll();
   }
 })();
@@ -935,7 +979,7 @@ function confirmLink() {
 
 
 # ============================================================
-# ABA 1: DIAGRAMA CLD
+# ABAS
 # ============================================================
 tab_cld, tab_sim, tab_vars = st.tabs(["⬡ Diagrama CLD", "▶ Simulação", "≋ Variáveis"])
 
@@ -961,10 +1005,15 @@ with tab_cld:
     col_btn1, col_btn2 = st.columns([1, 1])
     with col_btn1:
         if st.button("🔄 Atualizar modelo (carregar alterações de outros usuários)"):
-            st.session_state.system = load_system()
+            loaded = load_system()
+            st.session_state.system = loaded
             st.rerun()
     with col_btn2:
-        st.caption("As edições no diagrama são salvas automaticamente.")
+        api_key, bin_id = _get_cfg()
+        if api_key and bin_id:
+            st.caption("✅ Persistência ativa — alterações salvas automaticamente na nuvem.")
+        else:
+            st.caption("⚠️ Sem secrets configuradas — modelo salvo apenas na sessão atual.")
 
 # ============================================================
 # ABA 2: SIMULAÇÃO
