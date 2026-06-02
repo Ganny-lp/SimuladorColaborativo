@@ -256,12 +256,20 @@ st.markdown('<div class="main-header">⬡ LUMINA</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">SIMULADOR DE LAÇOS CAUSAIS · COLABORATIVO</div>', unsafe_allow_html=True)
 
 # Inicialização do estado
-if "system" not in st.session_state:
-    st.session_state.system = load_system()
-    st.session_state.initial_vals = {k: v["val"] for k, v in st.session_state.system["nodes"].items()}
+# DEPOIS - sempre sincroniza do JSONBin, mas preserva sim_cycle e sim_history da sessão
+if "sim_cycle" not in st.session_state:
     st.session_state.sim_cycle = 0
     st.session_state.sim_history = []
     st.session_state.selected_node = None
+    st.session_state.initial_vals = {}
+
+# Sempre carrega o modelo atualizado da nuvem
+st.session_state.system = load_system()
+
+# Preenche initial_vals para nós novos
+for k, v in st.session_state.system["nodes"].items():
+    if k not in st.session_state.initial_vals:
+        st.session_state.initial_vals[k] = v["val"]
 
 SYSTEM = st.session_state.system
 
