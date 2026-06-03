@@ -9,7 +9,7 @@ import pandas as pd
 import plotly.graph_objects as go
 
 # ============================================================
-# CONFIGURAÇÃO DA PÁGINA (otimizada para mobile)
+# CONFIGURAÇÃO DA PÁGINA
 # ============================================================
 st.set_page_config(
     page_title="LUMINA · Simulador de Laços Causais",
@@ -17,14 +17,13 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# CSS responsivo – media queries para telas pequenas
+# CSS responsivo com media queries
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
 html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 .stApp { background-color: #0d0f1a; }
 
-/* cabeçalhos responsivos */
 .main-header { font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: #e8a94a; letter-spacing: 0.5px; }
 .sub-header { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: #5a6290; letter-spacing: 0.5px; }
 .card { background: #1e2340; border: 1px solid rgba(120,130,200,0.15); border-radius: 12px; padding: 1rem; margin-bottom: 0.8rem; }
@@ -40,13 +39,10 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
     .kpi-value { font-size: 1.1rem; }
     .kpi-label { font-size: 0.6rem; }
     .card { padding: 0.6rem; margin-bottom: 0.5rem; }
-    /* Empilhar colunas dos inputs */
     .stColumns { flex-wrap: wrap; }
     .stColumn { flex: 0 0 100% !important; margin-bottom: 0.5rem; }
-    /* Ajuste das abas */
     .stTabs [data-baseweb="tab-list"] { gap: 0.2rem; }
-    .stTabs [data-baseweb="tab"] { font-size: 0.75rem; padding: 0.3rem 0.6rem; }
-    /* Barra de rolagem do iframe (diagrama) */
+    .stTabs [data-baseweb="tab"] { font-size: 0.7rem; padding: 0.3rem 0.5rem; }
     iframe { height: 500px !important; }
 }
 </style>
@@ -204,7 +200,7 @@ SYSTEM = st.session_state.system
 api_key, bin_id = _get_cfg()
 
 # ============================================================
-# HTML DO SIMULADOR COM SUPORTE A TOUCH (MOBILE)
+# HTML DO SIMULADOR - VERSÃO MOBILE (DRAWER LATERAL)
 # ============================================================
 def get_simulator_html(model_json: str, js_api_key, js_bin_id) -> str:
     ak = json.dumps(js_api_key)
@@ -214,8 +210,9 @@ def get_simulator_html(model_json: str, js_api_key, js_bin_id) -> str:
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <style>
+/* ========== CSS BASE ========== */
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
 :root {{
   --bg:#0d0f1a;--bg2:#13162a;--bg3:#1a1e35;--surface:#1e2340;--surface2:#252b4a;
@@ -232,12 +229,12 @@ body{{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:1
 #canvas-wrap::before{{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(120,130,200,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(120,130,200,0.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}}
 #cld-canvas{{position:absolute;inset:0;}}
 #cld-svg{{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}}
-#canvas-toolbar{{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:8px 12px;display:flex;gap:8px;align-items:center;z-index:10;flex-wrap:wrap;justify-content:center;}}
+#canvas-toolbar{{position:absolute;bottom:16px;left:16px;right:16px;background:rgba(19,22,42,0.9);backdrop-filter:blur(12px);border:1px solid var(--border2);border-radius:40px;padding:6px 12px;display:flex;gap:6px;align-items:center;z-index:15;flex-wrap:wrap;justify-content:center;}}
 #save-indicator{{position:absolute;top:12px;right:12px;font-size:11px;font-family:var(--mono);color:var(--text3);background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:4px 10px;z-index:20;transition:all 0.3s;}}
 #save-indicator.saving{{color:var(--gold);border-color:var(--gold);}}
 #save-indicator.saved{{color:var(--green);border-color:var(--green);}}
 #save-indicator.error{{color:var(--coral);border-color:var(--coral);}}
-.tool-btn{{padding:6px 10px;border:1px solid transparent;background:transparent;color:var(--text2);font-size:12px;font-family:var(--sans);cursor:pointer;border-radius:6px;transition:all 0.15s;display:flex;align-items:center;gap:5px;min-height:44px;min-width:44px;}}
+.tool-btn{{padding:6px 10px;border:1px solid transparent;background:transparent;color:var(--text2);font-size:12px;font-family:var(--sans);cursor:pointer;border-radius:6px;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;min-height:44px;min-width:44px;justify-content:center;}}
 .tool-btn:hover{{background:var(--surface);color:var(--text);}}
 .tool-btn.active{{background:var(--surface2);border-color:var(--accent);color:var(--accent);}}
 .tool-sep{{width:1px;height:18px;background:var(--border);}}
@@ -253,7 +250,7 @@ body{{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:1
 .cat-parametro{{background:rgba(20,14,60,0.85);border-color:#6040c0;color:#c0a8ff;}}
 .cat-ambiente{{background:rgba(14,50,40,0.85);border-color:#208060;color:#80ffcc;}}
 .cat-input{{background:rgba(70,30,8,0.85);border-color:#c06020;color:#ffc080;}}
-#right-panel{{width:320px;flex-shrink:0;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}}
+#right-panel{{width:320px;flex-shrink:0;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:transform 0.3s ease;}}
 .panel-header{{padding:14px 16px 10px;border-bottom:1px solid var(--border);font-family:var(--serif);font-size:16px;color:var(--gold);display:flex;justify-content:space-between;align-items:center;}}
 .panel-content{{flex:1;overflow-y:auto;padding:14px 16px;}}
 .node-detail-name{{font-family:var(--serif);font-size:18px;color:var(--text);margin-bottom:4px;}}
@@ -292,38 +289,90 @@ body{{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:1
 .link-hint{{background:rgba(232,169,74,0.08);border:1px solid rgba(232,169,74,0.25);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--gold);margin-bottom:16px;line-height:1.6;}}
 ::-webkit-scrollbar{{width:6px;}}::-webkit-scrollbar-track{{background:transparent;}}::-webkit-scrollbar-thumb{{background:var(--border2);border-radius:3px;}}
 
-/* MOBILE: empilhar painel direito abaixo do canvas */
+/* ========== MOBILE: DRAWER LATERAL ========== */
 @media (max-width: 768px) {{
-    #main {{ flex-direction: column; }}
-    #right-panel {{ width: 100%; border-left: none; border-top: 1px solid var(--border); max-height: 40%; }}
-    #canvas-wrap {{ min-height: 60%; }}
-    .tool-btn {{ padding: 8px 12px; font-size: 13px; }}
-    .node-box {{ font-size: 10px; padding: 6px 10px; min-width: 70px; }}
+  #right-panel {{
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 85%;
+    max-width: 340px;
+    transform: translateX(100%);
+    z-index: 200;
+    border-left: 1px solid var(--border2);
+    border-radius: 16px 0 0 16px;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.5);
+  }}
+  #right-panel.open {{
+    transform: translateX(0);
+  }}
+  .drawer-overlay {{
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 199;
+    display: none;
+  }}
+  .drawer-overlay.open {{
+    display: block;
+  }}
+  .mobile-drawer-btn {{
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--accent2);
+    color: white;
+    border: none;
+    border-radius: 40px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 50;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }}
+  #canvas-toolbar {{
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    transform: none;
+    background: rgba(19,22,42,0.95);
+  }}
+  .tool-btn {{
+    font-size: 11px;
+    padding: 6px 8px;
+    min-height: 40px;
+    min-width: 40px;
+  }}
 }}
 </style>
 </head>
 <body>
 
 <div id="save-indicator">pronto</div>
-
 <div id="main">
   <div id="canvas-wrap">
     <div id="cld-canvas"></div>
     <svg id="cld-svg"></svg>
     <div id="canvas-toolbar">
-      <button class="tool-btn active" id="tool-select" onclick="setTool('select')">⬚ Selecionar</button>
-      <button class="tool-btn" onclick="openAddNodeModal()">➕ Novo Nó</button>
+      <button class="tool-btn active" id="tool-select" onclick="setTool('select')">⬚ Sel</button>
+      <button class="tool-btn" onclick="openAddNodeModal()">➕ Nó</button>
       <div class="tool-sep"></div>
-      <button class="tool-btn" id="tool-link" onclick="setTool('link')">→ Criar Ligação</button>
+      <button class="tool-btn" id="tool-link" onclick="setTool('link')">→ Link</button>
       <div class="tool-sep"></div>
-      <button class="tool-btn" onclick="zoomReset()">◎ Centralizar</button>
-      <button class="tool-btn" onclick="deleteSelected()">✕ Excluir</button>
+      <button class="tool-btn" onclick="zoomReset()">◎ Central</button>
+      <button class="tool-btn" onclick="deleteSelected()">✕ Del</button>
     </div>
   </div>
   <div id="right-panel">
     <div class="panel-header">
       <span>Detalhes</span>
       <span id="panel-mode-badge" style="font-size:11px;font-family:var(--mono);color:var(--text3)">SELECIONAR</span>
+      <button class="tool-btn" onclick="closeDrawer()" style="background:transparent;padding:0;min-width:auto;">✕</button>
     </div>
     <div class="panel-content" id="detail-content">
       <div class="placeholder-text"><div class="icon">⬡</div><p>Clique em um nó para ver seus detalhes.</p></div>
@@ -340,55 +389,17 @@ body{{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:1
     </div>
   </div>
 </div>
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<button class="mobile-drawer-btn" id="mobile-drawer-btn" onclick="openDrawer()" style="display:none;">📋 Detalhes</button>
 
-<!-- Modais (mesmo conteúdo, ajuste para mobile com width:90% e max-width) -->
-<div class="modal-overlay" id="modal-add-node">
-  <div class="modal">
-    <div class="modal-title">Novo Nó</div>
-    <div class="modal-sub">Crie uma nova variável no diagrama</div>
-    <div class="form-row"><label class="form-label">Nome *</label><input class="form-input" id="new-node-name" placeholder="ex: taxa_crescimento"></div>
-    <div class="form-row"><label class="form-label">Categoria *</label><select class="form-select" id="new-node-cat"><option value="Estado">Estado (Estoque)</option><option value="Equação">Equação (Fluxo)</option><option value="Parâmetro">Parâmetro</option><option value="Ambiente">Ambiente (Exógena)</option><option value="Input">Input (Decisão)</option></select></div>
-    <div class="form-row"><label class="form-label">Valor Inicial</label><input class="form-input" id="new-node-val" type="number" value="0"></div>
-    <div class="form-row"><label class="form-label">Equação (opcional)</label><textarea class="form-textarea" id="new-node-eq"></textarea></div>
-    <div class="form-row"><label class="form-label">Descrição</label><textarea class="form-textarea" id="new-node-desc"></textarea></div>
-    <div class="modal-actions"><button class="btn-cancel" onclick="closeModal('modal-add-node')">Cancelar</button><button class="btn-primary" onclick="addNode()">Criar Nó</button></div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="modal-edit-node">
-  <div class="modal">
-    <div class="modal-title">Editar Variável</div>
-    <div class="modal-sub">Altere os atributos e a equação</div>
-    <input type="hidden" id="edit-node-id">
-    <div class="form-row"><label class="form-label">Nome *</label><input class="form-input" id="edit-node-name"></div>
-    <div class="form-row"><label class="form-label">Categoria *</label><select class="form-select" id="edit-node-cat"><option value="Estado">Estado</option><option value="Equação">Equação</option><option value="Parâmetro">Parâmetro</option><option value="Ambiente">Ambiente</option><option value="Input">Input</option></select></div>
-    <div class="form-row"><label class="form-label">Valor Atual</label><input class="form-input" id="edit-node-val" type="number" step="any"></div>
-    <div class="form-row"><label class="form-label">Equação</label><textarea class="form-textarea" id="edit-node-eq"></textarea></div>
-    <div class="form-row"><label class="form-label">Descrição</label><textarea class="form-textarea" id="edit-node-desc"></textarea></div>
-    <div class="modal-actions"><button class="btn-cancel" onclick="closeModal('modal-edit-node')">Cancelar</button><button class="btn-primary" onclick="saveEditNode()">Salvar</button></div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="modal-add-link">
-  <div class="modal">
-    <div class="modal-title">Nova Ligação Causal</div>
-    <div class="modal-sub">Defina como as variáveis se relacionam</div>
-    <div class="link-hint" id="link-hint-text">Selecione a variável de destino ou escolha abaixo.</div>
-    <div class="form-row"><label class="form-label">De (Origem)</label><input class="form-input" id="link-from" readonly></div>
-    <div class="form-row"><label class="form-label">Para (Destino)</label><select class="form-select" id="link-to"></select></div>
-    <div class="form-row"><label class="form-label">Tipo de Relação</label><select class="form-select" id="link-sign"><option value="+">+ Positiva</option><option value="-">− Negativa</option></select></div>
-    <div class="form-row"><label class="form-label">Descrição</label><textarea class="form-textarea" id="link-desc"></textarea></div>
-    <div class="modal-actions"><button class="btn-cancel" onclick="closeModal('modal-add-link')">Cancelar</button><button class="btn-primary" onclick="confirmLink()">Criar Ligação</button></div>
-  </div>
-</div>
+<!-- Modais (mesmo conteúdo) -->
+<div class="modal-overlay" id="modal-add-node"><div class="modal"><div class="modal-title">Novo Nó</div><div class="modal-sub">Crie uma nova variável</div><div class="form-row"><label class="form-label">Nome *</label><input class="form-input" id="new-node-name"></div><div class="form-row"><label class="form-label">Categoria</label><select class="form-select" id="new-node-cat"><option value="Estado">Estado</option><option value="Equação">Equação</option><option value="Parâmetro">Parâmetro</option><option value="Ambiente">Ambiente</option><option value="Input">Input</option></select></div><div class="form-row"><label class="form-label">Valor Inicial</label><input class="form-input" id="new-node-val" type="number" value="0"></div><div class="form-row"><label class="form-label">Equação</label><textarea class="form-textarea" id="new-node-eq"></textarea></div><div class="form-row"><label class="form-label">Descrição</label><textarea class="form-textarea" id="new-node-desc"></textarea></div><div class="modal-actions"><button class="btn-cancel" onclick="closeModal('modal-add-node')">Cancelar</button><button class="btn-primary" onclick="addNode()">Criar</button></div></div></div>
+<div class="modal-overlay" id="modal-edit-node"><div class="modal"><div class="modal-title">Editar Variável</div><div class="modal-sub">Altere os atributos</div><input type="hidden" id="edit-node-id"><div class="form-row"><label class="form-label">Nome</label><input class="form-input" id="edit-node-name"></div><div class="form-row"><label class="form-label">Categoria</label><select class="form-select" id="edit-node-cat"><option value="Estado">Estado</option><option value="Equação">Equação</option><option value="Parâmetro">Parâmetro</option><option value="Ambiente">Ambiente</option><option value="Input">Input</option></select></div><div class="form-row"><label class="form-label">Valor Atual</label><input class="form-input" id="edit-node-val" type="number" step="any"></div><div class="form-row"><label class="form-label">Equação</label><textarea class="form-textarea" id="edit-node-eq"></textarea></div><div class="form-row"><label class="form-label">Descrição</label><textarea class="form-textarea" id="edit-node-desc"></textarea></div><div class="modal-actions"><button class="btn-cancel" onclick="closeModal('modal-edit-node')">Cancelar</button><button class="btn-primary" onclick="saveEditNode()">Salvar</button></div></div></div>
+<div class="modal-overlay" id="modal-add-link"><div class="modal"><div class="modal-title">Nova Ligação</div><div class="modal-sub">Defina a relação causal</div><div class="link-hint" id="link-hint-text"></div><div class="form-row"><label class="form-label">De</label><input class="form-input" id="link-from" readonly></div><div class="form-row"><label class="form-label">Para</label><select class="form-select" id="link-to"></select></div><div class="form-row"><label class="form-label">Sinal</label><select class="form-select" id="link-sign"><option value="+">+ Positiva</option><option value="-">− Negativa</option></select></div><div class="form-row"><label class="form-label">Descrição</label><textarea class="form-textarea" id="link-desc"></textarea></div><div class="modal-actions"><button class="btn-cancel" onclick="closeModal('modal-add-link')">Cancelar</button><button class="btn-primary" onclick="confirmLink()">Criar</button></div></div></div>
 
 <script>
-// ============================================================
-// CREDENCIAIS — injetadas pelo Python
-// ============================================================
 const JSONBIN_API_KEY = {ak};
 const JSONBIN_BIN_ID  = {bi};
-
 let SYSTEM = {model_json};
 
 let selectedNode = null, linkSource = null, currentTool = 'select';
@@ -397,14 +408,29 @@ let panX = 40, panY = 60, isPanning = false, panStartX = 0, panStartY = 0, scale
 let saveTimer = null;
 const catCC = {{Estado:"cat-estado",Equação:"cat-equacao",Parâmetro:"cat-parametro",Ambiente:"cat-ambiente",Input:"cat-input"}};
 
-// ============================================================
-// PERSISTÊNCIA DIRETA JS → JSONBin
-// ============================================================
+// Drawer functions (mobile)
+function openDrawer() {{
+  document.getElementById('right-panel').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('open');
+}}
+function closeDrawer() {{
+  document.getElementById('right-panel').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+}}
+function checkMobile() {{
+  const isMobile = window.innerWidth <= 768;
+  const btn = document.getElementById('mobile-drawer-btn');
+  if(isMobile) btn.style.display = 'flex';
+  else btn.style.display = 'none';
+}}
+window.addEventListener('resize', checkMobile);
+checkMobile();
+
+// Persistência
 function setIndicator(cls, msg) {{
   const el = document.getElementById('save-indicator');
   el.className = cls; el.textContent = msg;
 }}
-
 async function persistToCloud() {{
   if (!JSONBIN_API_KEY || !JSONBIN_BIN_ID) {{ setIndicator('', 'sem credenciais'); return; }}
   setIndicator('saving', '⏳ salvando...');
@@ -424,15 +450,12 @@ async function persistToCloud() {{
     setIndicator('error', '✗ sem conexão');
   }}
 }}
-
 function scheduleSave() {{
   clearTimeout(saveTimer);
   saveTimer = setTimeout(persistToCloud, 700);
 }}
 
-// ============================================================
-// RENDER (idêntico ao original, mas com touch events)
-// ============================================================
+// Renderização
 function renderAll() {{
   const canvas = document.getElementById('cld-canvas');
   canvas.innerHTML = '';
@@ -443,7 +466,6 @@ function renderAll() {{
     el.className = 'cld-node'; el.id = 'node-' + id;
     el.style.left = node.x + 'px'; el.style.top = node.y + 'px';
     el.innerHTML = `<div class="node-box ${{catCC[node.cat]||'cat-estado'}}">${{id}}</div>`;
-    // Eventos mouse + touch
     el.addEventListener('mousedown', e => onNodeMousedown(e, id));
     el.addEventListener('click', e => onNodeClick(e, id));
     el.addEventListener('touchstart', e => {{ e.preventDefault(); onNodeMousedown(e, id); }});
@@ -452,21 +474,13 @@ function renderAll() {{
   }}
   renderEdges();
 }}
-
 function renderEdges() {{
   const svg = document.getElementById('cld-svg');
   const wrap = document.getElementById('canvas-wrap');
   const W = wrap.clientWidth, H = wrap.clientHeight;
   svg.setAttribute('viewBox', `0 0 ${{W}} ${{H}}`);
   svg.setAttribute('width', W); svg.setAttribute('height', H);
-  svg.innerHTML = `<defs>
-    <marker id="arr-pos" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M1 1L9 5L1 9" fill="none" stroke="#52c97a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </marker>
-    <marker id="arr-neg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M1 1L9 5L1 9" fill="none" stroke="#e06060" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </marker>
-  </defs>`;
+  svg.innerHTML = `<defs><marker id="arr-pos" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9" fill="none" stroke="#52c97a" stroke-width="1.5"/></marker><marker id="arr-neg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9" fill="none" stroke="#e06060" stroke-width="1.5"/></marker></defs>`;
   for (const link of SYSTEM.links) {{
     const fn=SYSTEM.nodes[link.from], tn=SYSTEM.nodes[link.to];
     if (!fn||!tn) continue;
@@ -496,25 +510,17 @@ function renderEdges() {{
   }}
 }}
 
-// ============================================================
-// EVENTOS DE NÓ (MOUSE + TOUCH)
-// ============================================================
+// Interações
 function onNodeMousedown(e, id) {{
   if (currentTool!=='select') return;
   e.stopPropagation(); isDragging=false; dragNode=id;
   let clientX, clientY;
-  if (e.touches) {{
-    clientX = e.touches[0].clientX;
-    clientY = e.touches[0].clientY;
-  }} else {{
-    clientX = e.clientX;
-    clientY = e.clientY;
-  }}
+  if (e.touches) {{ clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; }}
+  else {{ clientX = e.clientX; clientY = e.clientY; }}
   const rect=document.getElementById('canvas-wrap').getBoundingClientRect();
   dragOffX=(clientX-rect.left-panX)/scale-SYSTEM.nodes[id].x;
   dragOffY=(clientY-rect.top-panY)/scale-SYSTEM.nodes[id].y;
 }}
-
 function onNodeClick(e, id) {{
   if (isDragging) return;
   e.stopPropagation();
@@ -525,7 +531,7 @@ function onNodeClick(e, id) {{
       document.getElementById('link-hint-text').textContent=`Origem: "${{id}}" — clique no destino.`;
       document.getElementById('link-from').value=id;
       document.getElementById('link-to').innerHTML=Object.keys(SYSTEM.nodes).filter(n=>n!==id).map(n=>`<option value="${{n}}">${{n}}</option>`).join('');
-      document.getElementById('modal-add-link').classList.add('open');
+      openModal('modal-add-link');
     }} else if (linkSource!==id) {{
       document.getElementById('link-to').value=id;
       confirmLink();
@@ -533,120 +539,33 @@ function onNodeClick(e, id) {{
     return;
   }}
   selectNode(id);
+  if(window.innerWidth<=768) openDrawer();
 }}
-
 function selectNode(id) {{
   document.querySelectorAll('.cld-node').forEach(el=>el.classList.remove('selected'));
   selectedNode=id;
   document.getElementById('node-'+id)?.classList.add('selected');
   renderDetailPanel(id);
 }}
-
 function renderDetailPanel(id) {{
   const node=SYSTEM.nodes[id];
   const out=SYSTEM.links.filter(l=>l.from===id);
   const inc=SYSTEM.links.filter(l=>l.to===id);
   const catColor={{Estado:'#6a8aff',Equação:'#ff9090',Parâmetro:'#c090ff',Ambiente:'#60ffa0',Input:'#ffb060'}};
-  let h=`<div class="node-detail-name">${{id}}</div>`;
-  h+=`<div class="node-detail-cat" style="color:${{catColor[node.cat]||'#aaa'}}">${{node.cat}}</div>`;
-  h+=`<div class="detail-label">Descrição</div><div class="detail-desc">${{node.desc}}</div>`;
+  let h=`<div class="node-detail-name">${{id}}</div><div class="node-detail-cat" style="color:${{catColor[node.cat]||'#aaa'}}">${{node.cat}}</div>`;
+  h+=`<div class="detail-label">Descrição</div><div class="detail-desc">${{node.desc||''}}</div>`;
   h+=`<div class="detail-label">Valor Atual</div><div class="detail-desc" style="font-family:var(--mono);color:var(--gold)">${{node.val}}</div>`;
   if (node.expr) h+=`<div class="detail-label">Equação</div><div class="detail-eq">${{node.expr}}</div>`;
   if (inc.length) {{
-    h+=`<div class="detail-label">Causas (entrada)</div>`;
-    inc.forEach(l=>h+=`<div class="relation-item"><span class="rel-sign ${{l.sign==='+'?'rel-pos':'rel-neg'}}">${{l.sign}}</span><span style="color:var(--text2)">${{l.from}}</span></div>`);
+    h+=`<div class="detail-label">Causas</div>`;
+    inc.forEach(l=>h+=`<div class="relation-item"><span class="rel-sign ${{l.sign==='+'?'rel-pos':'rel-neg'}}">${{l.sign}}</span><span>${{l.from}}</span></div>`);
   }}
   if (out.length) {{
-    h+=`<div class="detail-label">Efeitos (saída)</div>`;
-    out.forEach(l=>h+=`<div class="relation-item"><span class="rel-sign ${{l.sign==='+'?'rel-pos':'rel-neg'}}">${{l.sign}}</span><span style="color:var(--text2)">${{l.to}}</span></div>`);
+    h+=`<div class="detail-label">Efeitos</div>`;
+    out.forEach(l=>h+=`<div class="relation-item"><span class="rel-sign ${{l.sign==='+'?'rel-pos':'rel-neg'}}">${{l.sign}}</span><span>${{l.to}}</span></div>`);
   }}
-  h+=`<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
-    <button class="btn-icon" onclick="openEditNodeModal('${{id}}')">✎ Editar</button>
-    <button class="btn-icon" onclick="openLinkFromSelected()">+ Ligação</button>
-    <button class="btn-icon" style="color:var(--coral)" onclick="deleteNode('${{id}}')">✕ Excluir</button>
-  </div>`;
+  h+=`<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;"><button class="btn-icon" onclick="openEditNodeModal('${{id}}')">✎ Editar</button><button class="btn-icon" onclick="openLinkFromSelected()">+ Ligação</button><button class="btn-icon" style="color:var(--coral)" onclick="deleteNode('${{id}}')">✕ Excluir</button></div>`;
   document.getElementById('detail-content').innerHTML=h;
-}}
-
-// ============================================================
-// PAN / ZOOM com suporte a touch
-// ============================================================
-const wrap = document.getElementById('canvas-wrap');
-wrap.addEventListener('mousedown', e => {{
-  if (e.target===wrap||e.target===document.getElementById('cld-svg')) {{
-    isPanning=true; panStartX=e.clientX-panX; panStartY=e.clientY-panY;
-    selectedNode=null;
-    document.querySelectorAll('.cld-node').forEach(el=>el.classList.remove('selected'));
-    document.getElementById('detail-content').innerHTML='<div class="placeholder-text"><div class="icon">⬡</div><p>Clique em um nó para ver seus detalhes.</p></div>';
-  }}
-}});
-
-wrap.addEventListener('touchstart', e => {{
-  if (e.target===wrap||e.target===document.getElementById('cld-svg')) {{
-    e.preventDefault();
-    const touch = e.touches[0];
-    isPanning=true; panStartX=touch.clientX-panX; panStartY=touch.clientY-panY;
-    selectedNode=null;
-    document.querySelectorAll('.cld-node').forEach(el=>el.classList.remove('selected'));
-    document.getElementById('detail-content').innerHTML='<div class="placeholder-text"><div class="icon">⬡</div><p>Clique em um nó para ver seus detalhes.</p></div>';
-  }}
-}});
-
-function onGlobalMove(e) {{
-  let clientX, clientY;
-  if (e.touches) {{
-    clientX = e.touches[0].clientX;
-    clientY = e.touches[0].clientY;
-  }} else {{
-    clientX = e.clientX;
-    clientY = e.clientY;
-  }}
-  if (dragNode) {{
-    const rect=wrap.getBoundingClientRect();
-    SYSTEM.nodes[dragNode].x=(clientX-rect.left-panX)/scale-dragOffX;
-    SYSTEM.nodes[dragNode].y=(clientY-rect.top-panY)/scale-dragOffY;
-    isDragging=true; renderAll();
-  }} else if (isPanning) {{
-    panX=clientX-panStartX; panY=clientY-panStartY;
-    document.getElementById('cld-canvas').style.transform=`translate(${{panX}}px,${{panY}}px) scale(${{scale}})`;
-    renderEdges();
-  }}
-}}
-
-function onGlobalUp() {{
-  if (dragNode) scheduleSave();
-  dragNode=null; isPanning=false;
-  setTimeout(()=>{{isDragging=false;}},50);
-}}
-
-document.addEventListener('mousemove', onGlobalMove);
-document.addEventListener('mouseup', onGlobalUp);
-document.addEventListener('touchmove', (e) => {{ e.preventDefault(); onGlobalMove(e); }}, {{ passive: false }});
-document.addEventListener('touchend', onGlobalUp);
-
-wrap.addEventListener('wheel', e => {{
-  e.preventDefault();
-  const rect=wrap.getBoundingClientRect();
-  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
-  const ns=Math.max(0.3,Math.min(2.5,scale*(e.deltaY>0?0.9:1.1)));
-  panX=mx-(mx-panX)*(ns/scale); panY=my-(my-panY)*(ns/scale); scale=ns;
-  document.getElementById('cld-canvas').style.transform=`translate(${{panX}}px,${{panY}}px) scale(${{scale}})`;
-  renderEdges();
-}}, {{passive:false}});
-
-// ============================================================
-// TOOLS & MODAIS (mesmas funções)
-// ============================================================
-function setTool(t) {{
-  currentTool=t; linkSource=null;
-  document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tool-'+t)?.classList.add('active');
-  document.getElementById('panel-mode-badge').textContent=t==='select'?'SELECIONAR':'CRIAR LIGAÇÃO';
-  if (t==='link') {{
-    document.getElementById('link-from').value='';
-    document.getElementById('link-to').innerHTML=Object.keys(SYSTEM.nodes).map(n=>`<option>${{n}}</option>`).join('');
-    document.getElementById('modal-add-link').classList.add('open');
-  }}
 }}
 
 function openLinkFromSelected() {{
@@ -654,33 +573,79 @@ function openLinkFromSelected() {{
   linkSource=selectedNode;
   document.getElementById('link-from').value=selectedNode;
   document.getElementById('link-to').innerHTML=Object.keys(SYSTEM.nodes).filter(n=>n!==selectedNode).map(n=>`<option value="${{n}}">${{n}}</option>`).join('');
-  document.getElementById('modal-add-link').classList.add('open');
+  openModal('modal-add-link');
 }}
 
-function zoomReset() {{ scale=0.75; panX=60; panY=60; renderAll(); }}
-function deleteSelected() {{ if (selectedNode) deleteNode(selectedNode); }}
+// Movimento (pan/zoom)
+const wrap = document.getElementById('canvas-wrap');
+wrap.addEventListener('mousedown', e => {{
+  if(e.target===wrap||e.target===document.getElementById('cld-svg')) {{
+    isPanning=true; panStartX=e.clientX-panX; panStartY=e.clientY-panY;
+    selectedNode=null;
+    document.querySelectorAll('.cld-node').forEach(el=>el.classList.remove('selected'));
+    document.getElementById('detail-content').innerHTML='<div class="placeholder-text"><div class="icon">⬡</div><p>Clique em um nó</p></div>';
+    if(window.innerWidth<=768) closeDrawer();
+  }}
+}});
+wrap.addEventListener('touchstart', e => {{
+  if(e.target===wrap||e.target===document.getElementById('cld-svg')) {{
+    e.preventDefault();
+    const touch=e.touches[0];
+    isPanning=true; panStartX=touch.clientX-panX; panStartY=touch.clientY-panY;
+    selectedNode=null;
+    document.querySelectorAll('.cld-node').forEach(el=>el.classList.remove('selected'));
+    document.getElementById('detail-content').innerHTML='<div class="placeholder-text"><div class="icon">⬡</div><p>Clique em um nó</p></div>';
+    if(window.innerWidth<=768) closeDrawer();
+  }}
+}});
+function onGlobalMove(e) {{
+  let cx,cy;
+  if(e.touches){{ cx=e.touches[0].clientX; cy=e.touches[0].clientY; }}
+  else{{ cx=e.clientX; cy=e.clientY; }}
+  if(dragNode){{
+    const rect=wrap.getBoundingClientRect();
+    SYSTEM.nodes[dragNode].x=(cx-rect.left-panX)/scale-dragOffX;
+    SYSTEM.nodes[dragNode].y=(cy-rect.top-panY)/scale-dragOffY;
+    isDragging=true; renderAll();
+  }} else if(isPanning){{
+    panX=cx-panStartX; panY=cy-panStartY;
+    document.getElementById('cld-canvas').style.transform=`translate(${{panX}}px,${{panY}}px) scale(${{scale}})`;
+    renderEdges();
+  }}
+}}
+function onGlobalUp(){{ if(dragNode) scheduleSave(); dragNode=null; isPanning=false; setTimeout(()=>{{isDragging=false;}},50); }}
+document.addEventListener('mousemove',onGlobalMove); document.addEventListener('mouseup',onGlobalUp);
+document.addEventListener('touchmove',e=>{{ e.preventDefault(); onGlobalMove(e); }},{passive:false}); document.addEventListener('touchend',onGlobalUp);
+wrap.addEventListener('wheel',e=>{{
+  e.preventDefault();
+  const rect=wrap.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  const ns=Math.max(0.3,Math.min(2.5,scale*(e.deltaY>0?0.9:1.1)));
+  panX=mx-(mx-panX)*(ns/scale); panY=my-(my-panY)*(ns/scale); scale=ns;
+  document.getElementById('cld-canvas').style.transform=`translate(${{panX}}px,${{panY}}px) scale(${{scale}})`;
+  renderEdges();
+}},{passive:false});
 
-function deleteNode(id) {{
+// Tools e modais
+function setTool(t){{ currentTool=t; linkSource=null; document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active')); document.getElementById('tool-'+t)?.classList.add('active'); document.getElementById('panel-mode-badge').textContent=t==='select'?'SELECIONAR':'CRIAR LIGAÇÃO'; if(t==='link'){{ document.getElementById('link-from').value=''; document.getElementById('link-to').innerHTML=Object.keys(SYSTEM.nodes).map(n=>`<option>${{n}}</option>`).join(''); openModal('modal-add-link'); }}}}
+function zoomReset(){{ scale=0.75; panX=60; panY=60; renderAll(); }}
+function deleteSelected(){{ if(selectedNode) deleteNode(selectedNode); }}
+function deleteNode(id){{
   delete SYSTEM.nodes[id];
   SYSTEM.links=SYSTEM.links.filter(l=>l.from!==id&&l.to!==id);
   selectedNode=null;
   document.getElementById('detail-content').innerHTML='<div class="placeholder-text"><div class="icon">⬡</div><p>Nó excluído.</p></div>';
   scheduleSave(); renderAll();
+  if(window.innerWidth<=768) closeDrawer();
 }}
-
-function openAddNodeModal() {{ document.getElementById('modal-add-node').classList.add('open'); }}
-function closeModal(id) {{
-  document.getElementById(id).classList.remove('open');
-  if (id==='modal-add-link') {{ linkSource=null; setTool('select'); }}
-}}
-document.querySelectorAll('.modal-overlay').forEach(o => {{
-  o.addEventListener('click', e => {{ if(e.target===o) closeModal(o.id); }});
-}});
-
-function addNode() {{
+function openModal(id){{ document.getElementById(id).classList.add('open'); }}
+function closeModal(id){{ document.getElementById(id).classList.remove('open'); if(id==='modal-add-link'){{ linkSource=null; setTool('select'); }}}}
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{{if(e.target===o) closeModal(o.id);}}));
+function openAddNodeModal(){{ openModal('modal-add-node'); }}
+function addNode(){{
   const name=document.getElementById('new-node-name').value.trim();
-  if (!name) return alert('Nome obrigatório.');
-  if (SYSTEM.nodes[name]) return alert('Já existe.');
+  if(!name) return alert('Nome obrigatório.');
+  if(SYSTEM.nodes[name]) return alert('Já existe.');
   SYSTEM.nodes[name]={{
     cat:document.getElementById('new-node-cat').value,
     val:parseFloat(document.getElementById('new-node-val').value)||0,
@@ -693,8 +658,7 @@ function addNode() {{
   document.getElementById('new-node-val').value='0';
   scheduleSave(); renderAll();
 }}
-
-function openEditNodeModal(id) {{
+function openEditNodeModal(id){{
   const node=SYSTEM.nodes[id];
   document.getElementById('edit-node-id').value=id;
   document.getElementById('edit-node-name').value=id;
@@ -702,37 +666,35 @@ function openEditNodeModal(id) {{
   document.getElementById('edit-node-val').value=node.val;
   document.getElementById('edit-node-eq').value=node.expr||'';
   document.getElementById('edit-node-desc').value=node.desc||'';
-  document.getElementById('modal-edit-node').classList.add('open');
+  openModal('modal-edit-node');
 }}
-
-function saveEditNode() {{
+function saveEditNode(){{
   const oldId=document.getElementById('edit-node-id').value;
   const newName=document.getElementById('edit-node-name').value.trim();
-  if (!newName) return alert('Nome obrigatório.');
-  if (newName!==oldId&&SYSTEM.nodes[newName]) return alert('Nome já existe.');
+  if(!newName) return alert('Nome obrigatório.');
+  if(newName!==oldId&&SYSTEM.nodes[newName]) return alert('Nome já existe.');
   const node=SYSTEM.nodes[oldId];
   node.cat=document.getElementById('edit-node-cat').value;
   node.val=parseFloat(document.getElementById('edit-node-val').value)||0;
   node.expr=document.getElementById('edit-node-eq').value.trim();
   node.desc=document.getElementById('edit-node-desc').value.trim()||'Sem descrição.';
-  if (newName!==oldId) {{
+  if(newName!==oldId){{
     SYSTEM.nodes[newName]=node; delete SYSTEM.nodes[oldId];
-    SYSTEM.links.forEach(l=>{{if(l.from===oldId)l.from=newName;if(l.to===oldId)l.to=newName;}});
+    SYSTEM.links.forEach(l=>{{if(l.from===oldId)l.from=newName; if(l.to===oldId)l.to=newName;}});
     selectedNode=newName;
   }}
   closeModal('modal-edit-node');
   scheduleSave(); renderAll();
-  if (selectedNode) renderDetailPanel(selectedNode);
+  if(selectedNode) renderDetailPanel(selectedNode);
 }}
-
-function confirmLink() {{
+function confirmLink(){{
   const from=document.getElementById('link-from').value||linkSource;
   const to=document.getElementById('link-to').value;
   const sign=document.getElementById('link-sign').value;
   const desc=document.getElementById('link-desc').value.trim()||`${{from}} ${{sign==='+'?'reforça':'reduz'}} ${{to}}`;
-  if (!from||!to||from===to) return alert('Selecione origem e destino diferentes.');
+  if(!from||!to||from===to) return alert('Selecione origem e destino diferentes.');
   const ex=SYSTEM.links.find(l=>l.from===from&&l.to===to);
-  if (ex){{ex.sign=sign;ex.desc=desc;}} else SYSTEM.links.push({{from,to,sign,desc}});
+  if(ex){{ex.sign=sign;ex.desc=desc;}} else SYSTEM.links.push({{from,to,sign,desc}});
   document.getElementById('link-desc').value='';
   closeModal('modal-add-link'); linkSource=null; setTool('select');
   scheduleSave(); renderAll();
@@ -744,14 +706,11 @@ renderAll();
 </html>"""
 
 # ============================================================
-# CABEÇALHO
+# LAYOUT STREAMLIT (cabeçalho, abas)
 # ============================================================
 st.markdown('<div class="main-header">⬡ LUMINA</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">SIMULADOR DE LAÇOS CAUSAIS · COLABORATIVO</div>', unsafe_allow_html=True)
 
-# ============================================================
-# ABAS
-# ============================================================
 tab_cld, tab_sim, tab_vars = st.tabs(["⬡ Diagrama CLD", "▶ Simulação", "≋ Variáveis"])
 
 with tab_cld:
@@ -764,7 +723,6 @@ with tab_cld:
         height=700,
         scrolling=False,
     )
-
     col1, col2 = st.columns([1, 1])
     with col1:
         if st.button("🔄 Recarregar modelo da nuvem"):
@@ -778,19 +736,13 @@ with tab_cld:
         else:
             st.caption("⚠️ Configure [jsonbin] api_key e bin_id nas Secrets do Streamlit.")
 
-# ============================================================
-# ABA 2: SIMULAÇÃO (com KPIs em cards responsivos)
-# ============================================================
 with tab_sim:
     st.markdown("## Simulação por Ciclos")
-
-    # KPIs em grade responsiva (no celular, as colunas empilham)
     col_kpi1, col_kpi2, col_kpi3, col_kpi4 = st.columns(4)
     rent    = SYSTEM["nodes"].get("Rentabilidade", {}).get("val", 0)
     receita = SYSTEM["nodes"].get("Receita", {}).get("val", 0)
     qt      = SYSTEM["nodes"].get("Qt", {}).get("val", 0)
     st_mk   = SYSTEM["nodes"].get("St", {}).get("val", 0)
-
     with col_kpi1:
         st.markdown(f'<div class="card"><div class="kpi-label">Rentabilidade</div><div class="kpi-value">R$ {rent/1000:.1f}k</div></div>', unsafe_allow_html=True)
     with col_kpi2:
@@ -802,7 +754,6 @@ with tab_sim:
 
     st.markdown("### Inputs de Decisão")
     input_keys = ['Pt', 'budget_update', 'budget_training', 'budget_infra', 'budget_promo', 'Nc']
-    # Em telas pequenas, cada input ocupa a largura total (CSS já força coluna 100%)
     cols = st.columns(6)
     for i, key in enumerate(input_keys):
         if key in SYSTEM["nodes"]:
@@ -835,7 +786,6 @@ with tab_sim:
             })
             save_system(SYSTEM)
             st.rerun()
-
     with col_res:
         if st.button("↺ Reiniciar", use_container_width=True):
             for k, v in st.session_state.initial_vals.items():
@@ -845,57 +795,34 @@ with tab_sim:
             st.session_state.sim_history = []
             save_system(SYSTEM)
             st.rerun()
-
     st.markdown(f"Ciclo atual: **{st.session_state.sim_cycle}**")
-
     if st.session_state.sim_history:
         hist = st.session_state.sim_history
         cycles = [h["cycle"] for h in hist]
         rent_vals = [h["rentabilidade"] for h in hist]
         profit_vals = [h["profit"] for h in hist]
-
         fig1 = go.Figure()
-        fig1.add_trace(go.Bar(x=cycles, y=rent_vals,
-                              marker_color=['#4a6aee' if v >= 0 else '#e06060' for v in rent_vals]))
-        fig1.update_layout(title="Rentabilidade Acumulada", template="plotly_dark", height=250,
-                           margin=dict(l=20, r=20, t=40, b=20))
+        fig1.add_trace(go.Bar(x=cycles, y=rent_vals, marker_color=['#4a6aee' if v >= 0 else '#e06060' for v in rent_vals]))
+        fig1.update_layout(title="Rentabilidade Acumulada", template="plotly_dark", height=250, margin=dict(l=20, r=20, t=40, b=20))
         st.plotly_chart(fig1, use_container_width=True)
-
         fig2 = go.Figure()
-        fig2.add_trace(go.Bar(x=cycles, y=profit_vals,
-                              marker_color=['#52c97a' if v >= 0 else '#e06060' for v in profit_vals]))
-        fig2.update_layout(title="Lucro Líquido por Ciclo", template="plotly_dark", height=250,
-                           margin=dict(l=20, r=20, t=40, b=20))
+        fig2.add_trace(go.Bar(x=cycles, y=profit_vals, marker_color=['#52c97a' if v >= 0 else '#e06060' for v in profit_vals]))
+        fig2.update_layout(title="Lucro Líquido por Ciclo", template="plotly_dark", height=250, margin=dict(l=20, r=20, t=40, b=20))
         st.plotly_chart(fig2, use_container_width=True)
     else:
         st.info("Avance alguns ciclos para visualizar os gráficos.")
 
-# ============================================================
-# ABA 3: VARIÁVEIS (tabela responsiva)
-# ============================================================
 with tab_vars:
     st.markdown("## Variáveis do Sistema")
     data = []
     for nid, node in SYSTEM["nodes"].items():
-        data.append({
-            "Variável": nid,
-            "Categoria": node["cat"],
-            "Valor Atual": node["val"],
-            "Equação": node.get("expr", "—"),
-            "Descrição": node.get("desc", "")[:80],
-        })
+        data.append({"Variável": nid, "Categoria": node["cat"], "Valor Atual": node["val"], "Equação": node.get("expr", "—"), "Descrição": node.get("desc", "")[:80]})
     df = pd.DataFrame(data)
-    st.dataframe(df, use_container_width=True, hide_index=True,
-                 column_config={
-                     "Variável": st.column_config.TextColumn("Variável", width="medium"),
-                     "Categoria": st.column_config.TextColumn("Categoria", width="small"),
-                     "Valor Atual": st.column_config.NumberColumn("Valor Atual", format="%.4g"),
-                     "Equação": st.column_config.TextColumn("Equação", width="large"),
-                 })
+    st.dataframe(df, use_container_width=True, hide_index=True, column_config={"Variável": st.column_config.TextColumn("Variável", width="medium"), "Categoria": st.column_config.TextColumn("Categoria", width="small"), "Valor Atual": st.column_config.NumberColumn("Valor Atual", format="%.4g"), "Equação": st.column_config.TextColumn("Equação", width="large")})
     selected_var = st.selectbox("Ir para variável:", options=[""] + list(SYSTEM["nodes"].keys()))
     if selected_var:
         st.session_state.selected_node = selected_var
         st.info(f"Variável '{selected_var}' selecionada. Volte para a aba Diagrama para editá-la.")
 
 st.markdown("---")
-st.caption("LUMINA · Simulador de Laços Causais · Versão Streamlit Colaborativa · Totalmente responsivo para celular")
+st.caption("LUMINA · Simulador de Laços Causais · Versão Streamlit Colaborativa")
