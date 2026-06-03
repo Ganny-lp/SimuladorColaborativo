@@ -212,7 +212,7 @@ def get_simulator_html(model_json: str, js_api_key, js_bin_id) -> str:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <style>
-/* ========== CSS BASE ========== */
+/* ========== CSS BASE (mesmo conteúdo anterior) ========== */
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
 :root {{
   --bg:#0d0f1a;--bg2:#13162a;--bg3:#1a1e35;--surface:#1e2340;--surface2:#252b4a;
@@ -615,7 +615,7 @@ function onGlobalMove(e) {{
 }}
 function onGlobalUp(){{ if(dragNode) scheduleSave(); dragNode=null; isPanning=false; setTimeout(()=>{{isDragging=false;}},50); }}
 document.addEventListener('mousemove',onGlobalMove); document.addEventListener('mouseup',onGlobalUp);
-document.addEventListener('touchmove',e=>{{ e.preventDefault(); onGlobalMove(e); }},{passive:false}); document.addEventListener('touchend',onGlobalUp);
+document.addEventListener('touchmove',e=>{{ e.preventDefault(); onGlobalMove(e); }},{{passive:false}}); document.addEventListener('touchend',onGlobalUp);
 wrap.addEventListener('wheel',e=>{{
   e.preventDefault();
   const rect=wrap.getBoundingClientRect();
@@ -624,7 +624,7 @@ wrap.addEventListener('wheel',e=>{{
   panX=mx-(mx-panX)*(ns/scale); panY=my-(my-panY)*(ns/scale); scale=ns;
   document.getElementById('cld-canvas').style.transform=`translate(${{panX}}px,${{panY}}px) scale(${{scale}})`;
   renderEdges();
-}},{passive:false});
+}},{{passive:false}});
 
 // Tools e modais
 function setTool(t){{ currentTool=t; linkSource=null; document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active')); document.getElementById('tool-'+t)?.classList.add('active'); document.getElementById('panel-mode-badge').textContent=t==='select'?'SELECIONAR':'CRIAR LIGAÇÃO'; if(t==='link'){{ document.getElementById('link-from').value=''; document.getElementById('link-to').innerHTML=Object.keys(SYSTEM.nodes).map(n=>`<option>${{n}}</option>`).join(''); openModal('modal-add-link'); }}}}
