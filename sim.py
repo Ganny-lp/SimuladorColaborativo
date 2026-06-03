@@ -9,7 +9,7 @@ import pandas as pd
 import plotly.graph_objects as go
 
 # ============================================================
-# CONFIGURAÇÃO DA PÁGINA
+# CONFIGURAÇÃO DA PÁGINA (otimizada para mobile)
 # ============================================================
 st.set_page_config(
     page_title="LUMINA · Simulador de Laços Causais",
@@ -17,11 +17,14 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+# CSS responsivo – media queries para telas pequenas
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
 html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 .stApp { background-color: #0d0f1a; }
+
+/* cabeçalhos responsivos */
 .main-header { font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: #e8a94a; letter-spacing: 0.5px; }
 .sub-header { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: #5a6290; letter-spacing: 0.5px; }
 .card { background: #1e2340; border: 1px solid rgba(120,130,200,0.15); border-radius: 12px; padding: 1rem; margin-bottom: 0.8rem; }
@@ -29,6 +32,23 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 .kpi-label { font-size: 0.7rem; color: #5a6290; text-transform: uppercase; letter-spacing: 0.5px; }
 .stButton>button { background: #4a6aee; color: white; border: none; border-radius: 8px; font-weight: 500; }
 .stButton>button:hover { background: #6c8fff; }
+
+/* MEDIA QUERIES PARA MOBILE */
+@media (max-width: 768px) {
+    .main-header { font-size: 1.3rem; }
+    .sub-header { font-size: 0.6rem; }
+    .kpi-value { font-size: 1.1rem; }
+    .kpi-label { font-size: 0.6rem; }
+    .card { padding: 0.6rem; margin-bottom: 0.5rem; }
+    /* Empilhar colunas dos inputs */
+    .stColumns { flex-wrap: wrap; }
+    .stColumn { flex: 0 0 100% !important; margin-bottom: 0.5rem; }
+    /* Ajuste das abas */
+    .stTabs [data-baseweb="tab-list"] { gap: 0.2rem; }
+    .stTabs [data-baseweb="tab"] { font-size: 0.75rem; padding: 0.3rem 0.6rem; }
+    /* Barra de rolagem do iframe (diagrama) */
+    iframe { height: 500px !important; }
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -172,7 +192,6 @@ def safe_eval(expr: str, nodes: dict, snapshot: dict = None):
 
 # ============================================================
 # INICIALIZAÇÃO DO SESSION STATE
-# Carrega do JSONBin UMA VEZ por sessão — nunca sobrescreve depois
 # ============================================================
 if "system" not in st.session_state:
     st.session_state.system = load_system()
@@ -184,21 +203,18 @@ if "system" not in st.session_state:
 SYSTEM = st.session_state.system
 api_key, bin_id = _get_cfg()
 
-
 # ============================================================
-# HTML DO SIMULADOR
-# A CHAVE da arquitetura: o JS salva DIRETO no JSONBin via fetch.
-# Não depende mais do round-trip Streamlit (setComponentValue).
-# Python injeta model_json + credenciais como literais JS.
+# HTML DO SIMULADOR COM SUPORTE A TOUCH (MOBILE)
 # ============================================================
 def get_simulator_html(model_json: str, js_api_key, js_bin_id) -> str:
-    ak = json.dumps(js_api_key)   # None → "null" | str → '"..."'
+    ak = json.dumps(js_api_key)
     bi = json.dumps(js_bin_id)
 
     return f"""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
 :root {{
@@ -211,17 +227,17 @@ def get_simulator_html(model_json: str, js_api_key, js_bin_id) -> str:
 }}
 *{{box-sizing:border-box;margin:0;padding:0;}}
 body{{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;overflow:hidden;height:100vh;display:flex;flex-direction:column;margin:0;}}
-#main{{display:flex;flex:1;overflow:hidden;height:100%;}}
+#main{{display:flex;flex:1;overflow:hidden;height:100%;flex-direction:row;}}
 #canvas-wrap{{flex:1;position:relative;overflow:hidden;background:var(--bg);background-image:radial-gradient(circle at 50% 50%,rgba(108,143,255,0.03) 0%,transparent 70%);}}
 #canvas-wrap::before{{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(120,130,200,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(120,130,200,0.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}}
 #cld-canvas{{position:absolute;inset:0;}}
 #cld-svg{{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}}
-#canvas-toolbar{{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:8px 12px;display:flex;gap:8px;align-items:center;z-index:10;}}
+#canvas-toolbar{{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:8px 12px;display:flex;gap:8px;align-items:center;z-index:10;flex-wrap:wrap;justify-content:center;}}
 #save-indicator{{position:absolute;top:12px;right:12px;font-size:11px;font-family:var(--mono);color:var(--text3);background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:4px 10px;z-index:20;transition:all 0.3s;}}
 #save-indicator.saving{{color:var(--gold);border-color:var(--gold);}}
 #save-indicator.saved{{color:var(--green);border-color:var(--green);}}
 #save-indicator.error{{color:var(--coral);border-color:var(--coral);}}
-.tool-btn{{padding:6px 10px;border:1px solid transparent;background:transparent;color:var(--text2);font-size:12px;font-family:var(--sans);cursor:pointer;border-radius:6px;transition:all 0.15s;display:flex;align-items:center;gap:5px;}}
+.tool-btn{{padding:6px 10px;border:1px solid transparent;background:transparent;color:var(--text2);font-size:12px;font-family:var(--sans);cursor:pointer;border-radius:6px;transition:all 0.15s;display:flex;align-items:center;gap:5px;min-height:44px;min-width:44px;}}
 .tool-btn:hover{{background:var(--surface);color:var(--text);}}
 .tool-btn.active{{background:var(--surface2);border-color:var(--accent);color:var(--accent);}}
 .tool-sep{{width:1px;height:18px;background:var(--border);}}
@@ -258,7 +274,7 @@ body{{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:1
 .legend-dot{{width:10px;height:10px;border-radius:3px;border:1.5px solid;flex-shrink:0;}}
 .modal-overlay{{display:none;position:fixed;inset:0;background:rgba(5,7,20,0.85);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(4px);}}
 .modal-overlay.open{{display:flex;}}
-.modal{{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:520px;max-height:85vh;overflow-y:auto;padding:24px;}}
+.modal{{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:90%;max-width:520px;max-height:85vh;overflow-y:auto;padding:24px;margin:16px;}}
 .modal-title{{font-family:var(--serif);font-size:22px;color:var(--gold);margin-bottom:4px;}}
 .modal-sub{{font-size:12px;color:var(--text3);margin-bottom:20px;}}
 .form-row{{margin-bottom:14px;}}
@@ -266,15 +282,24 @@ body{{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:1
 .form-input,.form-select,.form-textarea{{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:var(--sans);font-size:13px;padding:8px 10px;outline:none;transition:border 0.15s;}}
 .form-input:focus,.form-select:focus,.form-textarea:focus{{border-color:var(--accent);}}
 .form-textarea{{resize:vertical;min-height:60px;font-family:var(--mono);}}
-.modal-actions{{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}}
-.btn-cancel{{padding:8px 16px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:var(--sans);font-size:13px;cursor:pointer;border-radius:7px;}}
+.modal-actions{{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap;}}
+.btn-cancel{{padding:8px 16px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:var(--sans);font-size:13px;cursor:pointer;border-radius:7px;min-height:44px;}}
 .btn-cancel:hover{{background:var(--surface);}}
-.btn-primary{{padding:6px 14px;border:none;background:var(--accent2);color:#fff;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;border-radius:6px;}}
+.btn-primary{{padding:6px 14px;border:none;background:var(--accent2);color:#fff;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;border-radius:6px;min-height:44px;}}
 .btn-primary:hover{{background:var(--accent);}}
-.btn-icon{{padding:6px 12px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-family:var(--sans);font-size:12px;cursor:pointer;border-radius:6px;}}
+.btn-icon{{padding:6px 12px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-family:var(--sans);font-size:12px;cursor:pointer;border-radius:6px;min-height:44px;}}
 .btn-icon:hover{{background:var(--surface2);color:var(--text);}}
 .link-hint{{background:rgba(232,169,74,0.08);border:1px solid rgba(232,169,74,0.25);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--gold);margin-bottom:16px;line-height:1.6;}}
 ::-webkit-scrollbar{{width:6px;}}::-webkit-scrollbar-track{{background:transparent;}}::-webkit-scrollbar-thumb{{background:var(--border2);border-radius:3px;}}
+
+/* MOBILE: empilhar painel direito abaixo do canvas */
+@media (max-width: 768px) {{
+    #main {{ flex-direction: column; }}
+    #right-panel {{ width: 100%; border-left: none; border-top: 1px solid var(--border); max-height: 40%; }}
+    #canvas-wrap {{ min-height: 60%; }}
+    .tool-btn {{ padding: 8px 12px; font-size: 13px; }}
+    .node-box {{ font-size: 10px; padding: 6px 10px; min-width: 70px; }}
+}}
 </style>
 </head>
 <body>
@@ -316,7 +341,7 @@ body{{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:1
   </div>
 </div>
 
-<!-- Modais -->
+<!-- Modais (mesmo conteúdo, ajuste para mobile com width:90% e max-width) -->
 <div class="modal-overlay" id="modal-add-node">
   <div class="modal">
     <div class="modal-title">Novo Nó</div>
@@ -359,12 +384,11 @@ body{{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:1
 
 <script>
 // ============================================================
-// CREDENCIAIS — injetadas pelo Python, nunca expostas em repositório
+// CREDENCIAIS — injetadas pelo Python
 // ============================================================
 const JSONBIN_API_KEY = {ak};
 const JSONBIN_BIN_ID  = {bi};
 
-// Modelo inicial injetado pelo Python
 let SYSTEM = {model_json};
 
 let selectedNode = null, linkSource = null, currentTool = 'select';
@@ -374,7 +398,7 @@ let saveTimer = null;
 const catCC = {{Estado:"cat-estado",Equação:"cat-equacao",Parâmetro:"cat-parametro",Ambiente:"cat-ambiente",Input:"cat-input"}};
 
 // ============================================================
-// PERSISTÊNCIA DIRETA JS → JSONBin (elimina o problema de timing)
+// PERSISTÊNCIA DIRETA JS → JSONBin
 // ============================================================
 function setIndicator(cls, msg) {{
   const el = document.getElementById('save-indicator');
@@ -407,7 +431,7 @@ function scheduleSave() {{
 }}
 
 // ============================================================
-// RENDER
+// RENDER (idêntico ao original, mas com touch events)
 // ============================================================
 function renderAll() {{
   const canvas = document.getElementById('cld-canvas');
@@ -419,8 +443,11 @@ function renderAll() {{
     el.className = 'cld-node'; el.id = 'node-' + id;
     el.style.left = node.x + 'px'; el.style.top = node.y + 'px';
     el.innerHTML = `<div class="node-box ${{catCC[node.cat]||'cat-estado'}}">${{id}}</div>`;
+    // Eventos mouse + touch
     el.addEventListener('mousedown', e => onNodeMousedown(e, id));
     el.addEventListener('click', e => onNodeClick(e, id));
+    el.addEventListener('touchstart', e => {{ e.preventDefault(); onNodeMousedown(e, id); }});
+    el.addEventListener('touchend', e => {{ e.preventDefault(); onNodeClick(e, id); }});
     canvas.appendChild(el);
   }}
   renderEdges();
@@ -470,14 +497,22 @@ function renderEdges() {{
 }}
 
 // ============================================================
-// NODE INTERACTION
+// EVENTOS DE NÓ (MOUSE + TOUCH)
 // ============================================================
 function onNodeMousedown(e, id) {{
   if (currentTool!=='select') return;
   e.stopPropagation(); isDragging=false; dragNode=id;
+  let clientX, clientY;
+  if (e.touches) {{
+    clientX = e.touches[0].clientX;
+    clientY = e.touches[0].clientY;
+  }} else {{
+    clientX = e.clientX;
+    clientY = e.clientY;
+  }}
   const rect=document.getElementById('canvas-wrap').getBoundingClientRect();
-  dragOffX=(e.clientX-rect.left-panX)/scale-SYSTEM.nodes[id].x;
-  dragOffY=(e.clientY-rect.top-panY)/scale-SYSTEM.nodes[id].y;
+  dragOffX=(clientX-rect.left-panX)/scale-SYSTEM.nodes[id].x;
+  dragOffY=(clientY-rect.top-panY)/scale-SYSTEM.nodes[id].y;
 }}
 
 function onNodeClick(e, id) {{
@@ -525,7 +560,7 @@ function renderDetailPanel(id) {{
     h+=`<div class="detail-label">Efeitos (saída)</div>`;
     out.forEach(l=>h+=`<div class="relation-item"><span class="rel-sign ${{l.sign==='+'?'rel-pos':'rel-neg'}}">${{l.sign}}</span><span style="color:var(--text2)">${{l.to}}</span></div>`);
   }}
-  h+=`<div style="margin-top:16px;display:flex;gap:8px">
+  h+=`<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
     <button class="btn-icon" onclick="openEditNodeModal('${{id}}')">✎ Editar</button>
     <button class="btn-icon" onclick="openLinkFromSelected()">+ Ligação</button>
     <button class="btn-icon" style="color:var(--coral)" onclick="deleteNode('${{id}}')">✕ Excluir</button>
@@ -534,10 +569,11 @@ function renderDetailPanel(id) {{
 }}
 
 // ============================================================
-// MOUSE / WHEEL
+// PAN / ZOOM com suporte a touch
 // ============================================================
-document.getElementById('canvas-wrap').addEventListener('mousedown', e => {{
-  if (e.target===document.getElementById('canvas-wrap')||e.target===document.getElementById('cld-svg')) {{
+const wrap = document.getElementById('canvas-wrap');
+wrap.addEventListener('mousedown', e => {{
+  if (e.target===wrap||e.target===document.getElementById('cld-svg')) {{
     isPanning=true; panStartX=e.clientX-panX; panStartY=e.clientY-panY;
     selectedNode=null;
     document.querySelectorAll('.cld-node').forEach(el=>el.classList.remove('selected'));
@@ -545,28 +581,52 @@ document.getElementById('canvas-wrap').addEventListener('mousedown', e => {{
   }}
 }});
 
-document.addEventListener('mousemove', e => {{
-  if (dragNode) {{
-    const rect=document.getElementById('canvas-wrap').getBoundingClientRect();
-    SYSTEM.nodes[dragNode].x=(e.clientX-rect.left-panX)/scale-dragOffX;
-    SYSTEM.nodes[dragNode].y=(e.clientY-rect.top-panY)/scale-dragOffY;
-    isDragging=true; renderAll();
-  }} else if (isPanning) {{
-    panX=e.clientX-panStartX; panY=e.clientY-panStartY;
-    document.getElementById('cld-canvas').style.transform=`translate(${{panX}}px,${{panY}}px) scale(${{scale}})`;
-    renderEdges();
+wrap.addEventListener('touchstart', e => {{
+  if (e.target===wrap||e.target===document.getElementById('cld-svg')) {{
+    e.preventDefault();
+    const touch = e.touches[0];
+    isPanning=true; panStartX=touch.clientX-panX; panStartY=touch.clientY-panY;
+    selectedNode=null;
+    document.querySelectorAll('.cld-node').forEach(el=>el.classList.remove('selected'));
+    document.getElementById('detail-content').innerHTML='<div class="placeholder-text"><div class="icon">⬡</div><p>Clique em um nó para ver seus detalhes.</p></div>';
   }}
 }});
 
-document.addEventListener('mouseup', () => {{
+function onGlobalMove(e) {{
+  let clientX, clientY;
+  if (e.touches) {{
+    clientX = e.touches[0].clientX;
+    clientY = e.touches[0].clientY;
+  }} else {{
+    clientX = e.clientX;
+    clientY = e.clientY;
+  }}
+  if (dragNode) {{
+    const rect=wrap.getBoundingClientRect();
+    SYSTEM.nodes[dragNode].x=(clientX-rect.left-panX)/scale-dragOffX;
+    SYSTEM.nodes[dragNode].y=(clientY-rect.top-panY)/scale-dragOffY;
+    isDragging=true; renderAll();
+  }} else if (isPanning) {{
+    panX=clientX-panStartX; panY=clientY-panStartY;
+    document.getElementById('cld-canvas').style.transform=`translate(${{panX}}px,${{panY}}px) scale(${{scale}})`;
+    renderEdges();
+  }}
+}}
+
+function onGlobalUp() {{
   if (dragNode) scheduleSave();
   dragNode=null; isPanning=false;
   setTimeout(()=>{{isDragging=false;}},50);
-}});
+}}
 
-document.getElementById('canvas-wrap').addEventListener('wheel', e => {{
+document.addEventListener('mousemove', onGlobalMove);
+document.addEventListener('mouseup', onGlobalUp);
+document.addEventListener('touchmove', (e) => {{ e.preventDefault(); onGlobalMove(e); }}, {{ passive: false }});
+document.addEventListener('touchend', onGlobalUp);
+
+wrap.addEventListener('wheel', e => {{
   e.preventDefault();
-  const rect=document.getElementById('canvas-wrap').getBoundingClientRect();
+  const rect=wrap.getBoundingClientRect();
   const mx=e.clientX-rect.left, my=e.clientY-rect.top;
   const ns=Math.max(0.3,Math.min(2.5,scale*(e.deltaY>0?0.9:1.1)));
   panX=mx-(mx-panX)*(ns/scale); panY=my-(my-panY)*(ns/scale); scale=ns;
@@ -575,7 +635,7 @@ document.getElementById('canvas-wrap').addEventListener('wheel', e => {{
 }}, {{passive:false}});
 
 // ============================================================
-// TOOLS & MODALS
+// TOOLS & MODAIS (mesmas funções)
 // ============================================================
 function setTool(t) {{
   currentTool=t; linkSource=null;
@@ -678,12 +738,10 @@ function confirmLink() {{
   scheduleSave(); renderAll();
 }}
 
-// Init
 renderAll();
 </script>
 </body>
 </html>"""
-
 
 # ============================================================
 # CABEÇALHO
@@ -721,11 +779,12 @@ with tab_cld:
             st.caption("⚠️ Configure [jsonbin] api_key e bin_id nas Secrets do Streamlit.")
 
 # ============================================================
-# ABA 2: SIMULAÇÃO
+# ABA 2: SIMULAÇÃO (com KPIs em cards responsivos)
 # ============================================================
 with tab_sim:
     st.markdown("## Simulação por Ciclos")
 
+    # KPIs em grade responsiva (no celular, as colunas empilham)
     col_kpi1, col_kpi2, col_kpi3, col_kpi4 = st.columns(4)
     rent    = SYSTEM["nodes"].get("Rentabilidade", {}).get("val", 0)
     receita = SYSTEM["nodes"].get("Receita", {}).get("val", 0)
@@ -743,6 +802,7 @@ with tab_sim:
 
     st.markdown("### Inputs de Decisão")
     input_keys = ['Pt', 'budget_update', 'budget_training', 'budget_infra', 'budget_promo', 'Nc']
+    # Em telas pequenas, cada input ocupa a largura total (CSS já força coluna 100%)
     cols = st.columns(6)
     for i, key in enumerate(input_keys):
         if key in SYSTEM["nodes"]:
@@ -811,7 +871,7 @@ with tab_sim:
         st.info("Avance alguns ciclos para visualizar os gráficos.")
 
 # ============================================================
-# ABA 3: VARIÁVEIS
+# ABA 3: VARIÁVEIS (tabela responsiva)
 # ============================================================
 with tab_vars:
     st.markdown("## Variáveis do Sistema")
@@ -838,4 +898,4 @@ with tab_vars:
         st.info(f"Variável '{selected_var}' selecionada. Volte para a aba Diagrama para editá-la.")
 
 st.markdown("---")
-st.caption("LUMINA · Simulador de Laços Causais · Versão Streamlit Colaborativa")
+st.caption("LUMINA · Simulador de Laços Causais · Versão Streamlit Colaborativa · Totalmente responsivo para celular")
