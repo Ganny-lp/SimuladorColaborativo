@@ -184,14 +184,10 @@ SYSTEM = st.session_state.system
 api_key, bin_id = _get_cfg()
 
 # ============================================================
-# HTML DO SIMULADOR
-# Fixes:
-#   1. ResizeObserver no canvas-wrap → re-renderiza arestas quando o
-#      painel colapsa/expande (resolve setas quebradas)
-#   2. Painel mobile usa position:absolute dentro do iframe (não fixed),
-#      evitando o clip do Streamlit iframe
-#   3. Layout em coluna única no mobile: canvas full-width, painel
-#      empilha abaixo como sheet deslizante
+# HTML DO SIMULADOR (VERSÃO REFATORADA)
+#  - Removido autosave
+#  - Adicionados botões "💾 Salvar" e "↻ Recarregar"
+#  - Mobile: bottom sheet redimensionável e com scroll
 # ============================================================
 def get_simulator_html(model_json, js_api_key, js_bin_id):
     ak = json.dumps(js_api_key)
@@ -218,63 +214,17 @@ def get_simulator_html(model_json, js_api_key, js_bin_id):
 *{{box-sizing:border-box;margin:0;padding:0;}}
 html,body{{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;}}
 
-/* ── Shell ── */
 #shell{{display:flex;flex-direction:column;height:100%;}}
 
-/* ── Top bar ── */
+/* TOP BAR */
 #topbar{{
   height:var(--topbar-h);flex-shrink:0;
   background:var(--bg2);border-bottom:1px solid var(--border);
   display:flex;align-items:center;gap:6px;padding:0 10px;
-  overflow:hidden;
+  overflow-x:auto; scrollbar-width:none;
 }}
+#topbar::-webkit-scrollbar{{display:none;}}
 #tb-title{{font-family:var(--serif);font-size:15px;color:var(--gold);white-space:nowrap;margin-right:4px;}}
-#save-ind{{
-  margin-left:auto;font-size:11px;font-family:var(--mono);
-  color:var(--text3);background:var(--bg3);border:1px solid var(--border);
-  border-radius:20px;padding:3px 10px;white-space:nowrap;flex-shrink:0;transition:all .25s;
-}}
-#save-ind.saving{{color:var(--gold);border-color:var(--gold);}}
-#save-ind.saved{{color:var(--green);border-color:var(--green);}}
-#save-ind.error{{color:var(--coral);border-color:var(--coral);}}
-
-/* ── Main row ── */
-#main{{display:flex;flex:1;overflow:hidden;position:relative;}}
-
-/* ── Canvas area ── */
-#canvas-wrap{{
-  flex:1;position:relative;overflow:hidden;
-  background:var(--bg);
-}}
-#canvas-wrap::before{{
-  content:'';position:absolute;inset:0;pointer-events:none;
-  background-image:linear-gradient(rgba(120,130,200,.04) 1px,transparent 1px),
-                   linear-gradient(90deg,rgba(120,130,200,.04) 1px,transparent 1px);
-  background-size:36px 36px;
-}}
-#cld-canvas{{position:absolute;inset:0;transform-origin:0 0;will-change:transform;}}
-#cld-svg{{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;}}
-
-/* ── Bottom toolbar ── */
-#toolbar{{
-  position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
-  background:rgba(19,22,42,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  border:1px solid var(--border2);border-radius:40px;
-  padding:5px 10px;display:flex;align-items:center;gap:3px;
-  z-index:20;box-shadow:0 4px 20px rgba(0,0,0,.4);
-  max-width:calc(100% - 24px);overflow-x:auto;scrollbar-width:none;
-}}
-#toolbar::-webkit-scrollbar{{display:none;}}
-
-/* ── Zoom chip ── */
-#zoom-chip{{
-  position:absolute;top:8px;left:8px;
-  font-size:11px;font-family:var(--mono);color:var(--text3);
-  background:rgba(19,22,42,.75);border:1px solid var(--border);
-  border-radius:20px;padding:2px 9px;pointer-events:none;z-index:10;
-}}
-
-/* ── Tool buttons ── */
 .tbtn{{
   display:inline-flex;align-items:center;justify-content:center;gap:4px;
   padding:6px 11px;border:1px solid transparent;background:transparent;
@@ -286,58 +236,51 @@ html,body{{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fo
 .tbtn.active{{background:var(--surf2);border-color:var(--accent);color:var(--accent);}}
 .tbtn.danger:hover{{background:rgba(224,96,96,.12);color:var(--coral);border-color:var(--coral);}}
 .tsep{{width:1px;height:18px;background:var(--border);flex-shrink:0;}}
-
-/* ── RIGHT PANEL (desktop sidebar) ── */
-#right-panel{{
-  width:var(--panel-w);flex-shrink:0;
-  background:var(--bg2);border-left:1px solid var(--border);
-  display:flex;flex-direction:column;overflow:hidden;
-  transition:width .28s cubic-bezier(.4,0,.2,1);
+#save-ind{{
+  margin-left:auto;font-size:11px;font-family:var(--mono);
+  color:var(--text3);background:var(--bg3);border:1px solid var(--border);
+  border-radius:20px;padding:3px 10px;white-space:nowrap;flex-shrink:0;
 }}
-#right-panel.panel-hidden{{width:0;border-left:none;overflow:hidden;}}
+#save-ind.saving{{color:var(--gold);border-color:var(--gold);}}
+#save-ind.saved{{color:var(--green);border-color:var(--green);}}
+#save-ind.error{{color:var(--coral);border-color:var(--coral);}}
 
-.panel-hdr{{
-  padding:11px 13px 9px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:8px;flex-shrink:0;min-height:44px;
+/* MAIN ROW */
+#main{{display:flex;flex:1;overflow:hidden;position:relative;}}
+
+/* CANVAS */
+#canvas-wrap{{
+  flex:1;position:relative;overflow:hidden;
+  background:var(--bg);
 }}
-.panel-title{{font-family:var(--serif);font-size:15px;color:var(--gold);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}}
-#panel-badge{{font-size:10px;font-family:var(--mono);letter-spacing:1px;color:var(--text3);white-space:nowrap;}}
-.panel-x{{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:17px;line-height:1;padding:4px 5px;border-radius:5px;flex-shrink:0;}}
-.panel-x:hover{{background:var(--surface);color:var(--text);}}
+#cld-canvas{{position:absolute;inset:0;transform-origin:0 0;will-change:transform;}}
+#cld-svg{{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;}}
 
-.panel-body{{flex:1;overflow-y:auto;overflow-x:hidden;padding:13px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}}
-.panel-body::-webkit-scrollbar{{width:4px;}}
-.panel-body::-webkit-scrollbar-thumb{{background:var(--border2);border-radius:2px;}}
+/* BOTTOM TOOLBAR */
+#toolbar{{
+  position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  background:rgba(19,22,42,.94);backdrop-filter:blur(14px);
+  border:1px solid var(--border2);border-radius:40px;
+  padding:5px 10px;display:flex;align-items:center;gap:3px;
+  z-index:20;box-shadow:0 4px 20px rgba(0,0,0,.4);
+  max-width:calc(100% - 24px);overflow-x:auto;scrollbar-width:none;
+}}
+#toolbar::-webkit-scrollbar{{display:none;}}
+#zoom-chip{{
+  position:absolute;top:8px;left:8px;
+  font-size:11px;font-family:var(--mono);color:var(--text3);
+  background:rgba(19,22,42,.75);border:1px solid var(--border);
+  border-radius:20px;padding:2px 9px;pointer-events:none;z-index:10;
+}}
 
-.panel-legend{{padding:9px 13px;border-top:1px solid var(--border);flex-shrink:0;}}
-.legend-lbl{{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-family:var(--mono);margin-bottom:6px;}}
-.legend-grid{{display:grid;grid-template-columns:1fr 1fr;gap:5px;}}
-.legend-item{{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);}}
-.legend-dot{{width:9px;height:9px;border-radius:3px;border:1.5px solid;flex-shrink:0;}}
-
-/* Detail panel content */
-.dn-name{{font-family:var(--serif);font-size:17px;color:var(--text);margin-bottom:3px;word-break:break-word;}}
-.dn-cat{{font-size:10px;font-family:var(--mono);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:12px;}}
-.dl{{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin:11px 0 4px;font-family:var(--mono);}}
-.dv{{font-family:var(--mono);font-size:13px;color:var(--gold);}}
-.dd{{font-size:12.5px;color:var(--text2);line-height:1.6;}}
-.deq{{font-family:var(--mono);font-size:11.5px;color:var(--teal);background:var(--bg3);padding:8px 10px;border-radius:6px;border-left:2px solid var(--teal);word-break:break-all;line-height:1.6;}}
-.rel-row{{background:var(--bg3);border-radius:7px;padding:7px 10px;margin-bottom:5px;display:flex;align-items:center;gap:8px;font-size:12px;}}
-.rsgn{{font-weight:700;font-size:13px;padding:1px 6px;border-radius:4px;flex-shrink:0;}}
-.rpos{{color:var(--green);background:rgba(82,201,122,.12);}}
-.rneg{{color:var(--coral);background:rgba(224,96,96,.12);}}
-.dact{{margin-top:16px;display:flex;gap:6px;flex-wrap:wrap;}}
-.ph{{color:var(--text3);font-size:13px;line-height:1.7;text-align:center;padding:36px 12px 16px;}}
-.ph .ico{{font-size:28px;margin-bottom:8px;}}
-
-/* ── NODES ── */
+/* NODES */
 .cld-node{{position:absolute;cursor:grab;user-select:none;transform:translate(-50%,-50%);z-index:5;touch-action:none;}}
 .cld-node:active{{cursor:grabbing;}}
 .node-box{{
   padding:7px 13px;border-radius:10px;border:1.5px solid;
   font-size:11.5px;font-family:var(--sans);font-weight:500;white-space:nowrap;
   transition:transform .12s,box-shadow .12s;text-align:center;min-width:80px;
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  backdrop-filter:blur(8px);
 }}
 .cld-node:hover .node-box{{transform:scale(1.05);}}
 .cld-node.selected .node-box{{box-shadow:0 0 0 3px rgba(108,143,255,.5),0 0 20px rgba(108,143,255,.2);}}
@@ -352,13 +295,30 @@ html,body{{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fo
 .cat-ambiente{{background:rgba(14,50,40,.88);border-color:#208060;color:#80ffcc;}}
 .cat-input{{background:rgba(70,30,8,.88);border-color:#c06020;color:#ffc080;}}
 
-/* ── MOBILE BOTTOM SHEET ──
-   KEY FIX: position:absolute (not fixed!) dentro do #shell que é
-   position:relative. Isso garante que o sheet fica dentro do iframe
-   e não é cortado pelo overflow do Streamlit.
-── */
+/* DESKTOP RIGHT PANEL */
+#right-panel{{
+  width:var(--panel-w);flex-shrink:0;
+  background:var(--bg2);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+  transition:width .28s cubic-bezier(.4,0,.2,1);
+}}
+#right-panel.panel-hidden{{width:0;border-left:none;overflow:hidden;}}
+.panel-hdr{{padding:11px 13px 9px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;min-height:44px;}}
+.panel-title{{font-family:var(--serif);font-size:15px;color:var(--gold);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}}
+#panel-badge{{font-size:10px;font-family:var(--mono);letter-spacing:1px;color:var(--text3);white-space:nowrap;}}
+.panel-x{{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:17px;line-height:1;padding:4px 5px;border-radius:5px;flex-shrink:0;}}
+.panel-x:hover{{background:var(--surface);color:var(--text);}}
+.panel-body{{flex:1;overflow-y:auto;overflow-x:hidden;padding:13px;scrollbar-width:thin;}}
+.panel-body::-webkit-scrollbar{{width:4px;}}
+.panel-legend{{padding:9px 13px;border-top:1px solid var(--border);flex-shrink:0;}}
+.legend-lbl{{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-family:var(--mono);margin-bottom:6px;}}
+.legend-grid{{display:grid;grid-template-columns:1fr 1fr;gap:5px;}}
+.legend-item{{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);}}
+.legend-dot{{width:9px;height:9px;border-radius:3px;border:1.5px solid;flex-shrink:0;}}
+
+/* MOBILE BOTTOM SHEET */
 #mobile-sheet{{
-  display:none;          /* visível só no mobile via JS */
+  display:none;
   position:absolute;
   bottom:0;left:0;right:0;
   height:55%;
@@ -373,30 +333,18 @@ html,body{{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fo
   transition:transform .3s cubic-bezier(.4,0,.2,1);
 }}
 #mobile-sheet.open{{transform:translateY(0);}}
-#sheet-handle{{
-  width:36px;height:4px;background:var(--border2);border-radius:2px;
-  margin:10px auto 0;flex-shrink:0;
-}}
-#sheet-hdr{{
-  padding:8px 13px 9px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:8px;flex-shrink:0;
-}}
+#sheet-handle{{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:10px auto 0;flex-shrink:0;}}
+#sheet-hdr{{padding:8px 13px 9px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;}}
 #sheet-title{{font-family:var(--serif);font-size:14px;color:var(--gold);flex:1;}}
 #sheet-x{{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:17px;padding:4px 5px;border-radius:5px;}}
-#sheet-x:hover{{background:var(--surface);color:var(--text);}}
-#sheet-body{{flex:1;overflow-y:auto;padding:12px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}}
+#sheet-body{{flex:1;overflow-y:auto;padding:12px;scrollbar-width:thin;}}
 #sheet-body::-webkit-scrollbar{{width:4px;}}
-#sheet-body::-webkit-scrollbar-thumb{{background:var(--border2);border-radius:2px;}}
 #sheet-legend{{padding:8px 13px;border-top:1px solid var(--border);flex-shrink:0;}}
-
-/* Backdrop for mobile sheet */
 #sheet-backdrop{{
   display:none;position:absolute;inset:0;
   background:rgba(5,7,20,.6);z-index:49;
 }}
 #sheet-backdrop.open{{display:block;}}
-
-/* FAB */
 #fab{{
   position:absolute;bottom:70px;right:14px;z-index:30;
   display:none;
@@ -405,20 +353,17 @@ html,body{{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fo
   font-size:19px;cursor:pointer;
   box-shadow:0 4px 16px rgba(0,0,0,.4);
   align-items:center;justify-content:center;
-  transition:transform .15s,background .15s;
 }}
 #fab.show{{display:flex;}}
 #fab:hover{{background:var(--accent);transform:scale(1.08);}}
 #fab.node-sel{{background:var(--gold);color:#000;}}
 
-/* ── MODALS ──
-   position:absolute dentro do #shell para não vazar do iframe
-── */
+/* MODAIS */
 .modal-overlay{{
   display:none;position:absolute;inset:0;
   background:rgba(5,7,20,.82);z-index:100;
   align-items:flex-end;justify-content:center;
-  backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+  backdrop-filter:blur(5px);
 }}
 .modal-overlay.open{{display:flex;}}
 .modal{{
@@ -431,11 +376,9 @@ html,body{{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fo
 @keyframes slideup{{from{{transform:translateY(40px);opacity:0;}}to{{transform:translateY(0);opacity:1;}}}}
 @media(min-width:560px){{
   .modal-overlay{{align-items:center;}}
-  .modal{{border-radius:14px;width:90%;animation:fscale .2s cubic-bezier(.4,0,.2,1);}}
+  .modal{{border-radius:14px;width:90%;animation:fscale .2s;}}
   @keyframes fscale{{from{{transform:scale(.96);opacity:0;}}to{{transform:scale(1);opacity:1;}}}}
 }}
-.modal::before{{content:'';display:block;width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px;}}
-@media(min-width:560px){{.modal::before{{display:none;}}}}
 .modal-title{{font-family:var(--serif);font-size:19px;color:var(--gold);margin-bottom:3px;}}
 .modal-sub{{font-size:12px;color:var(--text3);margin-bottom:16px;}}
 .frow{{margin-bottom:12px;}}
@@ -443,52 +386,47 @@ html,body{{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fo
 .finput,.fselect,.ftextarea{{
   width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;
   color:var(--text);font-family:var(--sans);font-size:14px;padding:9px 11px;
-  outline:none;transition:border .15s;-webkit-appearance:none;appearance:none;
+  outline:none;transition:border .15s;
 }}
 .finput:focus,.fselect:focus,.ftextarea:focus{{border-color:var(--accent);}}
 .ftextarea{{resize:vertical;min-height:62px;font-family:var(--mono);font-size:13px;}}
 .mact{{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap;}}
-.btn-cancel{{flex:0 0 auto;padding:10px 16px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:var(--sans);font-size:13px;cursor:pointer;border-radius:8px;min-height:44px;transition:all .15s;}}
+.btn-cancel{{padding:10px 16px;border:1px solid var(--border2);background:transparent;color:var(--text2);border-radius:8px;min-height:44px;cursor:pointer;}}
 .btn-cancel:hover{{background:var(--surface);color:var(--text);}}
-.btn-ok{{flex:1 1 auto;padding:10px 18px;border:none;background:var(--accent2);color:#fff;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;border-radius:8px;min-height:44px;transition:background .15s;}}
+.btn-ok{{padding:10px 18px;border:none;background:var(--accent2);color:#fff;border-radius:8px;min-height:44px;font-weight:600;cursor:pointer;}}
 .btn-ok:hover{{background:var(--accent);}}
-.bi{{padding:7px 12px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-family:var(--sans);font-size:12px;cursor:pointer;border-radius:7px;min-height:36px;transition:all .15s;white-space:nowrap;}}
+.bi,.bd{{padding:7px 12px;border-radius:7px;min-height:36px;cursor:pointer;white-space:nowrap;}}
+.bi{{border:1px solid var(--border2);background:var(--bg3);color:var(--text2);}}
 .bi:hover{{background:var(--surf2);color:var(--text);}}
-.bd{{padding:7px 12px;border:1px solid rgba(224,96,96,.25);background:rgba(224,96,96,.06);color:var(--coral);font-family:var(--sans);font-size:12px;cursor:pointer;border-radius:7px;min-height:36px;transition:all .15s;white-space:nowrap;}}
+.bd{{border:1px solid rgba(224,96,96,.25);background:rgba(224,96,96,.06);color:var(--coral);}}
 .bd:hover{{background:rgba(224,96,96,.15);border-color:var(--coral);}}
 .lhint{{background:rgba(232,169,74,.08);border:1px solid rgba(232,169,74,.25);border-radius:8px;padding:9px 13px;font-size:12px;color:var(--gold);margin-bottom:13px;line-height:1.6;}}
-
-::-webkit-scrollbar{{width:5px;}}
-::-webkit-scrollbar-track{{background:transparent;}}
-::-webkit-scrollbar-thumb{{background:var(--border2);border-radius:3px;}}
 </style>
 </head>
 <body>
 <div id="shell">
 
-<!-- TOP BAR -->
 <div id="topbar">
   <span id="tb-title">⬡ LUMINA</span>
-  <div class="tsep" style="margin:0 3px;"></div>
-  <button class="tbtn active" id="tool-select" onclick="setTool('select')" title="Selecionar (S)">⬚ Sel</button>
-  <button class="tbtn" onclick="openAddModal()" title="Novo Nó (N)">＋ Nó</button>
-  <button class="tbtn" id="tool-link" onclick="setTool('link')" title="Criar Link (L)">→ Link</button>
-  <div class="tsep" style="margin:0 3px;"></div>
-  <button class="tbtn" onclick="zoomReset()" title="Reset zoom (R)">◎</button>
-  <button class="tbtn danger" onclick="deleteSelected()" title="Excluir (Del)">✕</button>
+  <div class="tsep"></div>
+  <button class="tbtn active" id="tool-select" onclick="setTool('select')">⬚ Sel</button>
+  <button class="tbtn" onclick="openAddModal()">＋ Nó</button>
+  <button class="tbtn" id="tool-link" onclick="setTool('link')">→ Link</button>
+  <div class="tsep"></div>
+  <button class="tbtn" onclick="zoomReset()">◎</button>
+  <button class="tbtn danger" onclick="deleteSelected()">✕</button>
+  <div class="tsep"></div>
+  <button class="tbtn" id="save-btn" onclick="manualSave()" title="Salvar no servidor">💾 Salvar</button>
+  <button class="tbtn" onclick="refreshFromCloud()" title="Recarregar da nuvem">↻ Recarregar</button>
   <div id="save-ind">pronto</div>
 </div>
 
-<!-- MAIN ROW -->
 <div id="main">
-
-  <!-- CANVAS -->
   <div id="canvas-wrap">
     <div id="zoom-chip">75%</div>
     <div id="cld-canvas"></div>
     <svg id="cld-svg"></svg>
 
-    <!-- BOTTOM TOOLBAR -->
     <div id="toolbar">
       <button class="tbtn" onclick="zoomIn()">＋</button>
       <button class="tbtn" onclick="zoomOut()">－</button>
@@ -498,15 +436,8 @@ html,body{{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fo
       <button class="tbtn" id="toggle-panel-btn" onclick="togglePanel()">◧ Painel</button>
     </div>
 
-    <!-- FAB (mobile only) -->
-    <button id="fab" onclick="openSheet()" title="Ver detalhes">📋</button>
-
-    <!-- MOBILE BACKDROP -->
+    <button id="fab" onclick="openSheet()">📋</button>
     <div id="sheet-backdrop" onclick="closeSheet()"></div>
-
-    <!-- MOBILE BOTTOM SHEET
-         Fica DENTRO do #canvas-wrap (position:absolute) para não
-         ser cortado pelo iframe boundary do Streamlit -->
     <div id="mobile-sheet">
       <div id="sheet-handle"></div>
       <div id="sheet-hdr">
@@ -529,15 +460,14 @@ html,body{{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fo
     </div>
   </div>
 
-  <!-- DESKTOP RIGHT PANEL -->
   <div id="right-panel">
     <div class="panel-hdr">
       <span class="panel-title">Detalhes</span>
       <span id="panel-badge">SELECIONAR</span>
-      <button class="panel-x" onclick="togglePanel()" title="Fechar painel">✕</button>
+      <button class="panel-x" onclick="togglePanel()">✕</button>
     </div>
     <div class="panel-body" id="panel-content">
-      <div class="ph"><div class="ico">⬡</div><p>Clique em um nó para ver seus detalhes, relações e equação.</p></div>
+      <div class="ph"><div class="ico">⬡</div><p>Clique em um nó para ver detalhes.</p></div>
     </div>
     <div class="panel-legend">
       <div class="legend-lbl">Categorias</div>
@@ -550,15 +480,15 @@ html,body{{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fo
       </div>
     </div>
   </div>
-</div><!-- /main -->
-</div><!-- /shell -->
+</div>
+</div>
 
-<!-- MODALS (dentro do #shell, não do body) -->
+<!-- MODAIS -->
 <div class="modal-overlay" id="modal-add">
   <div class="modal">
     <div class="modal-title">Novo Nó</div>
     <div class="modal-sub">Crie uma nova variável no sistema</div>
-    <div class="frow"><label class="flabel">Nome *</label><input class="finput" id="nn-name" placeholder="ex: Taxa_Adocao"></div>
+    <div class="frow"><label class="flabel">Nome *</label><input class="finput" id="nn-name"></div>
     <div class="frow"><label class="flabel">Categoria</label>
       <select class="fselect" id="nn-cat">
         <option value="Estado">Estado</option><option value="Equação">Equação</option>
@@ -567,8 +497,8 @@ html,body{{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fo
       </select>
     </div>
     <div class="frow"><label class="flabel">Valor Inicial</label><input class="finput" id="nn-val" type="number" value="0" step="any"></div>
-    <div class="frow"><label class="flabel">Equação (opcional)</label><textarea class="ftextarea" id="nn-eq" placeholder="ex: A * B + C"></textarea></div>
-    <div class="frow"><label class="flabel">Descrição</label><textarea class="ftextarea" id="nn-desc" placeholder="Descreva o papel desta variável..."></textarea></div>
+    <div class="frow"><label class="flabel">Equação (opcional)</label><textarea class="ftextarea" id="nn-eq"></textarea></div>
+    <div class="frow"><label class="flabel">Descrição</label><textarea class="ftextarea" id="nn-desc"></textarea></div>
     <div class="mact">
       <button class="btn-cancel" onclick="closeModal('modal-add')">Cancelar</button>
       <button class="btn-ok" onclick="addNode()">Criar Nó</button>
@@ -612,7 +542,7 @@ html,body{{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fo
         <option value="-">－ Negativa — A aumenta → B diminui</option>
       </select>
     </div>
-    <div class="frow"><label class="flabel">Descrição (opcional)</label><textarea class="ftextarea" id="lk-desc" placeholder="ex: Maior preço reduz o volume vendido"></textarea></div>
+    <div class="frow"><label class="flabel">Descrição (opcional)</label><textarea class="ftextarea" id="lk-desc"></textarea></div>
     <div class="mact">
       <button class="btn-cancel" onclick="closeModal('modal-link')">Cancelar</button>
       <button class="btn-ok" onclick="confirmLink()">Criar Ligação</button>
@@ -625,7 +555,6 @@ const JSONBIN_API_KEY = {ak};
 const JSONBIN_BIN_ID  = {bi};
 let SYS = {model_json};
 
-// ── State ──
 let selNode=null, lkSrc=null, curTool='select';
 let isDrag=false, dragNode=null, dragOX=0, dragOY=0;
 let panX=60,panY=60,scale=.75,isPan=false,panSX=0,panSY=0;
@@ -634,10 +563,9 @@ let saveTimer=null, isMobile=false;
 const CAT_CLS={{Estado:'cat-estado',Equação:'cat-equacao',Parâmetro:'cat-parametro',Ambiente:'cat-ambiente',Input:'cat-input'}};
 const CAT_COL={{Estado:'#6a8aff',Equação:'#ff9090',Parâmetro:'#c090ff',Ambiente:'#60ffa0',Input:'#ffb060'}};
 
-// ── Save ──
 function setInd(cls,msg){{const e=document.getElementById('save-ind');e.className=cls;e.textContent=msg;}}
-async function persist(){{
-  if(!JSONBIN_API_KEY||!JSONBIN_BIN_ID){{setInd('','sem credenciais');return;}}
+async function manualSave(){{
+  if(!JSONBIN_API_KEY||!JSONBIN_BIN_ID){{setInd('error','sem credenciais');return;}}
   setInd('saving','⏳ salvando…');
   try{{
     const r=await fetch(`https://api.jsonbin.io/v3/b/${{JSONBIN_BIN_ID}}`,{{method:'PUT',headers:{{'Content-Type':'application/json','X-Master-Key':JSONBIN_API_KEY}},body:JSON.stringify(SYS)}});
@@ -645,16 +573,27 @@ async function persist(){{
     else setInd('error','✗ erro '+r.status);
   }}catch{{setInd('error','✗ sem conexão');}}
 }}
-function sched(){{clearTimeout(saveTimer);saveTimer=setTimeout(persist,700);}}
 
-// ── Zoom ──
-function upZoom(){{document.getElementById('zoom-chip').textContent=Math.round(scale*100)+'%';}}
-function applyXform(){{
-  document.getElementById('cld-canvas').style.transform=`translate(${{panX}}px,${{panY}}px) scale(${{scale}})`;
-  upZoom();
-  // Re-render edges with a tiny rAF so layout has settled
-  requestAnimationFrame(renderEdges);
+async function refreshFromCloud(){{
+  if(!JSONBIN_API_KEY||!JSONBIN_BIN_ID){{alert('Credenciais não configuradas.');return;}}
+  setInd('saving','⏳ carregando…');
+  try{{
+    const r=await fetch(`https://api.jsonbin.io/v3/b/${{JSONBIN_BIN_ID}}/latest`,{{headers:{{'X-Master-Key':JSONBIN_API_KEY}}}});
+    if(r.ok){{
+      const data=await r.json();
+      if(data.record && data.record.nodes){{
+        SYS = data.record;
+        selNode=null; lkSrc=null;
+        renderAll();
+        setInd('saved','✓ recarregado');
+        setTimeout(()=>setInd('','pronto'),2500);
+      }} else throw new Error();
+    }} else throw new Error();
+  }}catch{{setInd('error','✗ falha');}}
 }}
+
+function upZoom(){{document.getElementById('zoom-chip').textContent=Math.round(scale*100)+'%';}}
+function applyXform(){{document.getElementById('cld-canvas').style.transform=`translate(${{panX}}px,${{panY}}px) scale(${{scale}})`; upZoom(); requestAnimationFrame(renderEdges);}}
 function setScale(ns,cx,cy){{
   const w=document.getElementById('canvas-wrap');
   const mx=cx??w.clientWidth/2, my=cy??w.clientHeight/2;
@@ -665,12 +604,9 @@ function zoomIn(){{setScale(Math.min(2.5,scale*1.15));}}
 function zoomOut(){{setScale(Math.max(.25,scale*.87));}}
 function zoomReset(){{scale=.75;panX=60;panY=60;applyXform();renderAll();}}
 
-// ── Render nodes ──
 function renderAll(){{
   const cv=document.getElementById('cld-canvas');
   cv.innerHTML='';
-  cv.style.transformOrigin='0 0';
-  cv.style.transform=`translate(${{panX}}px,${{panY}}px) scale(${{scale}})`;
   for(const[id,nd] of Object.entries(SYS.nodes)){{
     const el=document.createElement('div');
     el.className='cld-node';
@@ -687,85 +623,58 @@ function renderAll(){{
     cv.appendChild(el);
   }}
   requestAnimationFrame(renderEdges);
-  upZoom();
 }}
 
-// ── Render edges ──
-// CRITICAL: sempre lê o clientWidth/Height do canvas-wrap DEPOIS
-// do layout ter sido aplicado (rAF garante isso).
-// Usamos as coordenadas dos nós transformadas por panX/Y/scale.
 function renderEdges(){{
   const svg=document.getElementById('cld-svg');
   const wrap=document.getElementById('canvas-wrap');
   const W=wrap.clientWidth, H=wrap.clientHeight;
   if(W===0||H===0){{setTimeout(renderEdges,50);return;}}
-
   svg.setAttribute('viewBox',`0 0 ${{W}} ${{H}}`);
-  svg.setAttribute('width',W);
-  svg.setAttribute('height',H);
-
+  svg.setAttribute('width',W); svg.setAttribute('height',H);
   svg.innerHTML=`<defs>
-    <marker id="a+" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M1 2L9 5L1 8" fill="none" stroke="#52c97a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <marker id="a+" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M1 2L9 5L1 8" fill="none" stroke="#52c97a" stroke-width="1.5" stroke-linecap="round"/>
     </marker>
-    <marker id="a-" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M1 2L9 5L1 8" fill="none" stroke="#e06060" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <marker id="a-" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M1 2L9 5L1 8" fill="none" stroke="#e06060" stroke-width="1.5" stroke-linecap="round"/>
     </marker>
   </defs>`;
-
   for(const lk of SYS.links){{
     const fn=SYS.nodes[lk.from], tn=SYS.nodes[lk.to];
     if(!fn||!tn) continue;
     const fEl=document.getElementById('node-'+lk.from);
     const tEl=document.getElementById('node-'+lk.to);
     if(!fEl||!tEl) continue;
-
-    // Node centres in canvas-wrap coordinate space
     const fx=fn.x*scale+panX, fy=fn.y*scale+panY;
     const tx=tn.x*scale+panX, ty=tn.y*scale+panY;
-
-    // Half-extents of node boxes (in screen space)
-    const fhx=(fEl.offsetWidth *scale)/2+2;
-    const fhy=(fEl.offsetHeight*scale)/2+2;
-    const thx=(tEl.offsetWidth *scale)/2+6;
-    const thy=(tEl.offsetHeight*scale)/2+6;
-
-    const dx=tx-fx, dy=ty-fy;
-    const dist=Math.sqrt(dx*dx+dy*dy)||1;
+    const fw=fEl.offsetWidth*scale, fh=fEl.offsetHeight*scale;
+    const tw=tEl.offsetWidth*scale, th=tEl.offsetHeight*scale;
+    const dx=tx-fx, dy=ty-fy, dist=Math.hypot(dx,dy)||1;
     const ux=dx/dist, uy=dy/dist;
-
-    // Edge start/end clamped to node border
-    const x1=fx+ux*Math.min(fhx,Math.abs(fhx*ux)>Math.abs(fhy*uy)?fhx/Math.abs(ux)||fhx:fhy/Math.abs(uy)||fhy);
-    const y1=fy+uy*Math.min(fhy,Math.abs(fhx*ux)>Math.abs(fhy*uy)?fhx/Math.abs(ux)||fhx:fhy/Math.abs(uy)||fhy);
-    const x2=tx-ux*Math.min(thx,Math.abs(thx*ux)>Math.abs(thy*uy)?thx/Math.abs(ux)||thx:thy/Math.abs(uy)||thy);
-    const y2=ty-uy*Math.min(thy,Math.abs(thx*ux)>Math.abs(thy*uy)?thx/Math.abs(ux)||thx:thy/Math.abs(uy)||thy);
-
+    const x1=fx+ux*Math.min(fw/2+2,Math.abs(fw/2/ux)||fw/2);
+    const y1=fy+uy*Math.min(fh/2+2,Math.abs(fh/2/uy)||fh/2);
+    const x2=tx-ux*Math.min(tw/2+6,Math.abs(tw/2/ux)||tw/2);
+    const y2=ty-uy*Math.min(th/2+6,Math.abs(th/2/uy)||th/2);
     const cx=(x1+x2)/2-uy*20, cy=(y1+y2)/2+ux*20;
     const col=lk.sign==='+'?'#52c97a':'#e06060';
-
     const p=document.createElementNS('http://www.w3.org/2000/svg','path');
     p.setAttribute('d',`M${{x1}},${{y1}} Q${{cx}},${{cy}} ${{x2}},${{y2}}`);
-    p.setAttribute('fill','none');p.setAttribute('stroke',col);
-    p.setAttribute('stroke-width','1.5');p.setAttribute('stroke-opacity','.65');
+    p.setAttribute('fill','none'); p.setAttribute('stroke',col);
+    p.setAttribute('stroke-width','1.5'); p.setAttribute('stroke-opacity','.65');
     p.setAttribute('marker-end',`url(#a${{lk.sign}})`);
-
     const t=document.createElementNS('http://www.w3.org/2000/svg','text');
-    t.setAttribute('x',cx);t.setAttribute('y',cy-5);
-    t.setAttribute('text-anchor','middle');t.setAttribute('font-size','11');
-    t.setAttribute('font-family','DM Mono,monospace');t.setAttribute('font-weight','700');
-    t.setAttribute('fill',col);t.setAttribute('opacity','.9');
+    t.setAttribute('x',cx); t.setAttribute('y',cy-5);
+    t.setAttribute('text-anchor','middle'); t.setAttribute('font-size','11');
+    t.setAttribute('font-family','DM Mono,monospace'); t.setAttribute('fill',col);
     t.textContent=lk.sign;
-
-    svg.appendChild(p);svg.appendChild(t);
+    svg.appendChild(p); svg.appendChild(t);
   }}
 }}
 
-// ── ResizeObserver: re-render edges whenever canvas-wrap changes size ──
-// This is the main fix for arrows breaking when the panel collapses.
-const _ro=new ResizeObserver(()=>{{requestAnimationFrame(renderEdges);}});
+const _ro=new ResizeObserver(()=>requestAnimationFrame(renderEdges));
 _ro.observe(document.getElementById('canvas-wrap'));
 
-// ── Pointer helpers ──
 function pxy(e){{
   if(e.touches&&e.touches.length>0) return[e.touches[0].clientX,e.touches[0].clientY];
   if(e.changedTouches&&e.changedTouches.length>0) return[e.changedTouches[0].clientX,e.changedTouches[0].clientY];
@@ -775,7 +684,7 @@ function pxy(e){{
 function onNDown(e,id){{
   if(curTool!=='select') return;
   e.stopPropagation();
-  isDrag=false;dragNode=id;
+  isDrag=false; dragNode=id;
   const[cx,cy]=pxy(e);
   const r=document.getElementById('canvas-wrap').getBoundingClientRect();
   dragOX=(cx-r.left-panX)/scale-SYS.nodes[id].x;
@@ -816,18 +725,17 @@ function selectNode(id){{
 function deselect(){{
   document.querySelectorAll('.cld-node').forEach(e=>e.classList.remove('selected'));
   selNode=null;
-  const ph='<div class="ph"><div class="ico">⬡</div><p>Clique em um nó para ver seus detalhes.</p></div>';
+  const ph='<div class="ph"><div class="ico">⬡</div><p>Clique em um nó para ver detalhes.</p></div>';
   document.getElementById('panel-content').innerHTML=ph;
   document.getElementById('sheet-body').innerHTML=ph;
   document.getElementById('fab').classList.remove('node-sel');
 }}
 
 function fillLinkTo(excl){{
-  document.getElementById('lk-to').innerHTML=
-    Object.keys(SYS.nodes).filter(n=>n!==excl).map(n=>`<option value="${{n}}">${{n}}</option>`).join('');
+  const opts=Object.keys(SYS.nodes).filter(n=>n!==excl).map(n=>`<option value="${{n}}">${{n}}</option>`).join('');
+  document.getElementById('lk-to').innerHTML=opts;
 }}
 
-// ── Detail builder ──
 function buildDetail(id){{
   const nd=SYS.nodes[id]; if(!nd) return '';
   const out=SYS.links.filter(l=>l.from===id);
@@ -840,11 +748,11 @@ function buildDetail(id){{
   if(nd.expr) h+=`<div class="dl">Equação</div><div class="deq">${{nd.expr}}</div>`;
   if(inc.length){{
     h+=`<div class="dl">Causas (${{inc.length}})</div>`;
-    inc.forEach(l=>h+=`<div class="rel-row"><span class="rsgn ${{l.sign==='+'?'rpos':'rneg'}}">${{l.sign}}</span><span style="color:var(--text2)">${{l.from}}</span></div>`);
+    inc.forEach(l=>h+=`<div class="rel-row"><span class="rsgn ${{l.sign==='+'?'rpos':'rneg'}}">${{l.sign}}</span><span>${{l.from}}</span></div>`);
   }}
   if(out.length){{
     h+=`<div class="dl">Efeitos (${{out.length}})</div>`;
-    out.forEach(l=>h+=`<div class="rel-row"><span class="rsgn ${{l.sign==='+'?'rpos':'rneg'}}">${{l.sign}}</span><span style="color:var(--text2)">${{l.to}}</span></div>`);
+    out.forEach(l=>h+=`<div class="rel-row"><span class="rsgn ${{l.sign==='+'?'rpos':'rneg'}}">${{l.sign}}</span><span>${{l.to}}</span></div>`);
   }}
   h+=`<div class="dact">
     <button class="bi" onclick="openEditModal('${{id}}')">✎ Editar</button>
@@ -854,16 +762,14 @@ function buildDetail(id){{
   return h;
 }}
 
-// ── Canvas pan/drag ──
 const wrap=document.getElementById('canvas-wrap');
-
 function onWrapDown(e){{
   const t=e.target;
   const isBackground=t===wrap||t===document.getElementById('cld-canvas')||t===document.getElementById('cld-svg')||t.closest('#cld-svg');
   if(isBackground){{
     isPan=true;
     const[cx,cy]=pxy(e);
-    panSX=cx-panX;panSY=cy-panY;
+    panSX=cx-panX; panSY=cy-panY;
     deselect();
     if(isMobile) closeSheet();
   }}
@@ -880,18 +786,17 @@ function onMove(e){{
     isDrag=true;
     renderAll();
   }}else if(isPan){{
-    panX=cx-panSX;panY=cy-panSY;
+    panX=cx-panSX; panY=cy-panSY;
     document.getElementById('cld-canvas').style.transform=`translate(${{panX}}px,${{panY}}px) scale(${{scale}})`;
     requestAnimationFrame(renderEdges);
   }}
 }}
-function onUp(){{if(dragNode)sched();dragNode=null;isPan=false;setTimeout(()=>{{isDrag=false;}},50);}}
+function onUp(){{dragNode=null; isPan=false; setTimeout(()=>{{isDrag=false;}},50);}}
 document.addEventListener('mousemove',onMove);
 document.addEventListener('mouseup',onUp);
 document.addEventListener('touchmove',e=>{{e.preventDefault();onMove(e);}},{{passive:false}});
 document.addEventListener('touchend',onUp);
 
-// Pinch zoom
 let pinchD=null;
 wrap.addEventListener('touchstart',e=>{{if(e.touches.length===2)pinchD=null;}},{{passive:true}});
 wrap.addEventListener('touchmove',e=>{{
@@ -906,22 +811,18 @@ wrap.addEventListener('touchmove',e=>{{
   }}
   pinchD=d;
 }},{{passive:false}});
-
-// Mouse wheel
 wrap.addEventListener('wheel',e=>{{
   e.preventDefault();
   const r=wrap.getBoundingClientRect();
   setScale(Math.max(.25,Math.min(2.5,scale*(e.deltaY>0?.9:1.1))),e.clientX-r.left,e.clientY-r.top);
 }},{{passive:false}});
 
-// ── Tools ──
 function setTool(t){{
-  curTool=t;lkSrc=null;
+  curTool=t; lkSrc=null;
   document.querySelectorAll('.cld-node').forEach(e=>e.classList.remove('lk-src'));
   document.querySelectorAll('.tbtn[id^="tool-"]').forEach(b=>b.classList.remove('active'));
   document.getElementById('tool-'+t)?.classList.add('active');
-  const badge=t==='select'?'SELECIONAR':'CRIAR LINK';
-  document.getElementById('panel-badge').textContent=badge;
+  document.getElementById('panel-badge').textContent=t==='select'?'SELECIONAR':'CRIAR LINK';
   if(t==='link'){{
     document.getElementById('lk-from').value='';
     fillLinkTo('');
@@ -937,7 +838,7 @@ function deleteNode(id){{
   document.getElementById('panel-content').innerHTML=ph;
   document.getElementById('sheet-body').innerHTML=ph;
   document.getElementById('fab').classList.remove('node-sel');
-  sched();renderAll();
+  renderAll();
   if(isMobile)closeSheet();
 }}
 function startLinkFrom(id){{
@@ -948,7 +849,6 @@ function startLinkFrom(id){{
   openModal('modal-link');
 }}
 
-// ── Panel (desktop) ──
 let panelVisible=true;
 function togglePanel(){{
   panelVisible=!panelVisible;
@@ -956,21 +856,12 @@ function togglePanel(){{
   const btn=document.getElementById('toggle-panel-btn');
   if(panelVisible){{rp.classList.remove('panel-hidden');btn.textContent='◨ Painel';}}
   else{{rp.classList.add('panel-hidden');btn.textContent='◧ Painel';}}
-  // After transition ends, re-render edges to correct arrow positions
   setTimeout(renderEdges,300);
 }}
 
-// ── Mobile sheet ──
-function openSheet(){{
-  document.getElementById('mobile-sheet').classList.add('open');
-  document.getElementById('sheet-backdrop').classList.add('open');
-}}
-function closeSheet(){{
-  document.getElementById('mobile-sheet').classList.remove('open');
-  document.getElementById('sheet-backdrop').classList.remove('open');
-}}
+function openSheet(){{document.getElementById('mobile-sheet').classList.add('open');document.getElementById('sheet-backdrop').classList.add('open');}}
+function closeSheet(){{document.getElementById('mobile-sheet').classList.remove('open');document.getElementById('sheet-backdrop').classList.remove('open');}}
 
-// ── Modals ──
 function openModal(id){{document.getElementById(id).classList.add('open');}}
 function closeModal(id){{
   document.getElementById(id).classList.remove('open');
@@ -984,23 +875,22 @@ document.querySelectorAll('.modal-overlay').forEach(o=>{{
   o.addEventListener('click',e=>{{if(e.target===o)closeModal(o.id);}});
 }});
 
-// ── CRUD Nodes ──
 function openAddModal(){{openModal('modal-add');}}
 function addNode(){{
   const name=document.getElementById('nn-name').value.trim();
-  if(!name){{alert('Nome é obrigatório.');return;}}
+  if(!name){{alert('Nome obrigatório.');return;}}
   if(SYS.nodes[name]){{alert(`"${{name}}" já existe.`);return;}}
   SYS.nodes[name]={{
     cat:document.getElementById('nn-cat').value,
     val:parseFloat(document.getElementById('nn-val').value)||0,
     expr:document.getElementById('nn-eq').value.trim(),
     desc:document.getElementById('nn-desc').value.trim()||'Sem descrição.',
-    x:400+Math.random()*200,y:280+Math.random()*120
+    x:400+Math.random()*200, y:280+Math.random()*120
   }};
   closeModal('modal-add');
   ['nn-name','nn-eq','nn-desc'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('nn-val').value='0';
-  sched();renderAll();selectNode(name);
+  renderAll(); selectNode(name);
 }}
 function openEditModal(id){{
   const nd=SYS.nodes[id];
@@ -1015,7 +905,7 @@ function openEditModal(id){{
 function saveEdit(){{
   const oldId=document.getElementById('en-id').value;
   const newName=document.getElementById('en-name').value.trim();
-  if(!newName){{alert('Nome é obrigatório.');return;}}
+  if(!newName){{alert('Nome obrigatório.');return;}}
   if(newName!==oldId&&SYS.nodes[newName]){{alert('Nome já existe.');return;}}
   const nd=SYS.nodes[oldId];
   nd.cat=document.getElementById('en-cat').value;
@@ -1023,12 +913,12 @@ function saveEdit(){{
   nd.expr=document.getElementById('en-eq').value.trim();
   nd.desc=document.getElementById('en-desc').value.trim()||'Sem descrição.';
   if(newName!==oldId){{
-    SYS.nodes[newName]=nd;delete SYS.nodes[oldId];
+    SYS.nodes[newName]=nd; delete SYS.nodes[oldId];
     SYS.links.forEach(l=>{{if(l.from===oldId)l.from=newName;if(l.to===oldId)l.to=newName;}});
     selNode=newName;
   }}
   closeModal('modal-edit');
-  sched();renderAll();
+  renderAll();
   if(selNode){{
     const h=buildDetail(selNode);
     document.getElementById('panel-content').innerHTML=h;
@@ -1040,16 +930,15 @@ function confirmLink(){{
   const to=document.getElementById('lk-to').value;
   const sign=document.getElementById('lk-sign').value;
   const desc=document.getElementById('lk-desc').value.trim()||`${{from}} ${{sign==='+'?'reforça':'reduz'}} ${{to}}`;
-  if(!from||!to||from===to){{alert('Origem e destino devem ser diferentes.');return;}}
+  if(!from||!to||from===to){{alert('Origem e destino diferentes.');return;}}
   const ex=SYS.links.find(l=>l.from===from&&l.to===to);
-  if(ex){{ex.sign=sign;ex.desc=desc;}}
+  if(ex){{ex.sign=sign; ex.desc=desc;}}
   else SYS.links.push({{from,to,sign,desc}});
   document.getElementById('lk-desc').value='';
-  closeModal('modal-link');lkSrc=null;setTool('select');
-  sched();renderAll();
+  closeModal('modal-link'); lkSrc=null; setTool('select');
+  renderAll();
 }}
 
-// ── Keyboard ──
 document.addEventListener('keydown',e=>{{
   if(['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
   if(e.key==='s'||e.key==='S') setTool('select');
@@ -1057,18 +946,15 @@ document.addEventListener('keydown',e=>{{
   if(e.key==='n'||e.key==='N') openAddModal();
   if(e.key==='r'||e.key==='R') zoomReset();
   if(e.key==='Delete'||e.key==='Backspace') deleteSelected();
-  if(e.key==='Escape'){{document.querySelectorAll('.modal-overlay.open').forEach(m=>closeModal(m.id));closeSheet();}}
+  if(e.key==='Escape'){{document.querySelectorAll('.modal-overlay.open').forEach(m=>closeModal(m.id)); closeSheet();}}
 }});
 
-// ── Responsive init ──
 function initResponsive(){{
   isMobile=window.innerWidth<700;
   if(isMobile){{
-    // Show mobile sheet, hide desktop panel toggle in toolbar
     document.getElementById('fab').classList.add('show');
     document.getElementById('toggle-panel-btn').style.display='none';
     document.getElementById('mobile-sheet').style.display='flex';
-    // Hide desktop panel entirely
     document.getElementById('right-panel').style.display='none';
   }}else{{
     document.getElementById('fab').classList.remove('show');
@@ -1077,12 +963,7 @@ function initResponsive(){{
     document.getElementById('right-panel').style.display='flex';
   }}
 }}
-
-window.addEventListener('resize',()=>{{
-  initResponsive();
-  requestAnimationFrame(renderEdges);
-}});
-
+window.addEventListener('resize',()=>{{initResponsive(); requestAnimationFrame(renderEdges);}});
 initResponsive();
 renderAll();
 </script>
@@ -1111,18 +992,22 @@ with tab_cld:
         height=660,
         scrolling=False,
     )
-    c1, c2 = st.columns([3, 2])
-    with c1:
-        if st.button("🔄 Recarregar modelo da nuvem", use_container_width=True):
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🔄 Recarregar modelo da nuvem (Streamlit)", use_container_width=True):
             fresh = load_system()
             st.session_state.system = fresh
             st.session_state.initial_vals = {k: v["val"] for k, v in fresh["nodes"].items()}
             st.rerun()
-    with c2:
-        if api_key and bin_id:
-            st.caption("✅ Persistência ativa — salvo automaticamente via JS")
-        else:
-            st.caption("⚠️ Configure [jsonbin] nas Secrets para persistência")
+    with col2:
+        if st.button("💾 Salvar agora (Streamlit)", use_container_width=True):
+            # O modelo atual do Python pode estar desatualizado; melhor usar o JS que tem os dados atualizados.
+            # Mas para simplificar, o botão no JS já faz o PUT. Este botão é redundante, mantido apenas para referência.
+            st.info("Use o botão 'Salvar' dentro do diagrama para enviar suas alterações.")
+    if api_key and bin_id:
+        st.caption("✅ Persistência ativa — clique em 💾 Salvar (dentro do diagrama) para enviar alterações. Use ↻ Recarregar para puxar mudanças de outros usuários.")
+    else:
+        st.caption("⚠️ Configure [jsonbin] nas Secrets para persistência")
 
 with tab_sim:
     st.markdown("### KPIs do Ciclo Atual")
