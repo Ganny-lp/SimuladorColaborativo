@@ -152,13 +152,21 @@ DEFAULT_SYSTEM = {
 # ============================================================
 # AVALIADOR
 # ============================================================
-def safe_eval(expr, nodes, snapshot=None):
-    if not expr or expr.strip() == "":
+def safe_eval(expr, nodes):
+    """
+    Avalia 'expr' substituindo cada nome de variável pelo valor ATUAL em
+    nodes[name]["val"]. Importante: esta função não tira mais um snapshot
+    isolado -- ela lê o dicionário `nodes` ao vivo. Isso só funciona
+    corretamente se as variáveis das quais 'expr' depende já tiverem sido
+    recalculadas antes, na ordem certa (ver `_topological_order` /
+    `advance_cycle` abaixo).
+    """
+    if not expr or not expr.strip():
         return 0.0
     s = expr
     for name in sorted(nodes.keys(), key=len, reverse=True):
-        val = snapshot[name] if (snapshot and name in snapshot) else nodes[name]["val"]
-        s = re.sub(r'\b' + re.escape(name) + r'\b', str(val), s)
+        val = nodes[name]["val"]
+        s = re.sub(r'\b' + re.escape(name) + r'\b', repr(float(val)), s)
     for fn, py in [('EXP','math.exp'),('MIN','min'),('MAX','max'),('ABS','abs'),
                    ('SQRT','math.sqrt'),('LOG','math.log10'),('LN','math.log'),
                    ('SIN','math.sin'),('COS','math.cos'),('TAN','math.tan')]:
@@ -169,6 +177,87 @@ def safe_eval(expr, nodes, snapshot=None):
         return 0.0 if (math.isnan(r) or not math.isfinite(r)) else float(r)
     except Exception:
         return 0.0
+
+
+def _referenced_vars(expr, all_names):
+    """Retorna o subconjunto de all_names que aparece (como palavra inteira) em expr."""
+    if not expr:
+        return set()
+    found = set()
+    for name in all_names:
+        if re.search(r'\b' + re.escape(name) + r'\b', expr):
+            found.add(name)
+    return found
+
+
+def _topological_order(nodes):
+    """
+    Ordena os nós que possuem 'expr' de modo que toda variável da qual um
+    nó depende seja calculada ANTES dele, no mesmo ciclo.
+
+    Isso é exatamente o que faltava no código original: lá, todos os nós
+    eram recalculados a partir de uma única "foto" (snapshot) tirada no
+    início do ciclo. Uma equação como `Qt = MIN(Dpt*St, Cap)` acabava
+    usando o Dpt/St do CICLO ANTERIOR, e não o valor recém-calculado no
+    mesmo ciclo -- então uma mudança em qualquer variável (ex.: o Preço)
+    levava vários cliques em "Avançar Ciclo" para se propagar por toda a
+    cadeia causal até `Rentabilidade`, dando a impressão de que o
+    diagrama "não influenciava" a simulação.
+    """
+    names = list(nodes.keys())
+    deps = {n: _referenced_vars(nodes[n].get("expr", ""), names) - {n} for n in names}
+    order, temp_mark, perm_mark = [], set(), set()
+
+    def visit(n):
+        if n in perm_mark:
+            return
+        if n in temp_mark:
+            # Dependência circular (loop algébrico) -- evita recursão
+            # infinita. Nesse caso raro o nó mantém o valor do ciclo
+            # anterior nesta iteração (não deveria ocorrer no modelo
+            # padrão, que é um DAG, mas protege contra loops criados
+            # manualmente pelo usuário no editor de diagrama).
+            return
+        temp_mark.add(n)
+        for dep in deps[n]:
+            if nodes[dep].get("expr"):
+                visit(dep)
+        temp_mark.discard(n)
+        perm_mark.add(n)
+        order.append(n)
+
+    for n in names:
+        visit(n)
+    return order
+
+
+def advance_cycle(system):
+    """
+    Avança um ciclo de simulação respeitando a cadeia causal completa:
+
+    1) Calcula todas as variáveis com 'expr' (Equação e Estado) na ordem
+       correta de dependência, sempre lendo o valor MAIS RECENTE (já
+       recalculado neste mesmo ciclo) das variáveis das quais dependem.
+    2) Para variáveis do tipo Estado (acumuladores/estoques), soma o
+       resultado da equação (o "fluxo" do período) ao valor que a
+       variável já tinha ANTES deste ciclo.
+    3) Variáveis sem 'expr' (Ambiente, Parâmetro, Input) são decisões
+       exógenas: só mudam quando o usuário edita manualmente.
+    """
+    nodes = system["nodes"]
+    prev_vals = {nid: nd["val"] for nid, nd in nodes.items()}
+    order = _topological_order(nodes)
+    for nid in order:
+        nd = nodes[nid]
+        expr = nd.get("expr")
+        if not expr:
+            continue
+        r = safe_eval(expr, nodes)
+        if nd["cat"] == "Estado":
+            nd["val"] = prev_vals[nid] + r
+        else:
+            nd["val"] = r
+    return system
 
 # ============================================================
 # SESSION STATE
@@ -1083,7 +1172,12 @@ with tab_cld:
             st.rerun()
     with col2:
         if api_key and bin_id:
-            st.caption("✅ Persistência ativa — use os botões 💾 Salvar e ↻ Recarregar no diagrama")
+            st.caption(
+                "✅ Persistência ativa — edições feitas aqui no diagrama só chegam à aba "
+                "▶ Simulação depois que você clicar em 💾 Salvar (no diagrama) e depois em "
+                "🔄 Recarregar modelo da nuvem (Streamlit) ao lado. São dois estados "
+                "diferentes (JS do diagrama vs. Python da simulação) sincronizados via nuvem."
+            )
         else:
             st.caption("⚠️ Configure [jsonbin] nas Secrets para persistência")
 
@@ -1123,22 +1217,18 @@ with tab_sim:
     adv_c, res_c = st.columns([3, 1])
     with adv_c:
         if st.button("▶ Avançar Ciclo", use_container_width=True):
-            snap = {k: v["val"] for k, v in SYSTEM["nodes"].items()}
-            nv   = {}
-            for nid, nd in SYSTEM["nodes"].items():
-                if nd.get("expr"):
-                    r = safe_eval(nd["expr"], SYSTEM["nodes"], snap)
-                    nv[nid] = snap[nid] + r if nd["cat"] == "Estado" else r
-                else:
-                    nv[nid] = snap[nid]
-            for nid, val in nv.items():
-                SYSTEM["nodes"][nid]["val"] = val
+            # Antes: recalculava tudo a partir de um único snapshot antigo,
+            # fazendo com que Qt/Receita/Custos/Rentabilidade levassem vários
+            # cliques para refletir qualquer mudança (ver `advance_cycle`
+            # para a explicação completa). Agora a cadeia causal inteira é
+            # resolvida corretamente dentro do mesmo ciclo.
+            advance_cycle(SYSTEM)
             st.session_state.sim_cycle += 1
-            profit = SYSTEM["nodes"].get("Receita",{}).get("val",0) - SYSTEM["nodes"].get("Custos",{}).get("val",0)
+            profit = SYSTEM["nodes"].get("Receita", {}).get("val", 0) - SYSTEM["nodes"].get("Custos", {}).get("val", 0)
             st.session_state.sim_history.append({
                 "cycle": st.session_state.sim_cycle,
                 "profit": profit,
-                "rentabilidade": SYSTEM["nodes"].get("Rentabilidade",{}).get("val",0),
+                "rentabilidade": SYSTEM["nodes"].get("Rentabilidade", {}).get("val", 0),
             })
             save_system(SYSTEM); st.rerun()
     with res_c:
