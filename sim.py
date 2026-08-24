@@ -83,8 +83,8 @@ def save_system(system):
 # ============================================================
 DEFAULT_SYSTEM = {
     "nodes": {
-        "Rentabilidade":      {"cat":"Estado",    "val":0,      "expr":"Receita - Custos",                                            "desc":"Acumulado de receitas menos custos.",   "x":760,"y":300},
-        "Receita":            {"cat":"Equação",   "val":0,      "expr":"(Pt*Qt)*(1-Carga_Tributaria)",                                "desc":"Receita líquida.",                      "x":560,"y":200},
+        "Rentabilidade":      {"cat":"Estado",    "val":0,      "expr":"Receita Líquida - Custos",                                    "desc":"Acumulado de receitas menos custos.",   "x":760,"y":300},
+        "Receita Líquida":    {"cat":"Equação",   "val":0,      "expr":"(Pt*Qt)*(1-Carga_Tributaria)",                                "desc":"Receita líquida.",                      "x":560,"y":200},
         "Custos":             {"cat":"Equação",   "val":0,      "expr":"Custo_Fixo+Custo_Variavel_t+Emprestimos_Mensal",              "desc":"Custo total.",                          "x":560,"y":400},
         "Pt":                 {"cat":"Input",     "val":150,    "expr":"",                                                            "desc":"Preço de venda.",                       "x":360,"y":130},
         "Qt":                 {"cat":"Equação",   "val":0,      "expr":"MIN(Dpt*St, Cap)",                                            "desc":"Demanda capturada.",                    "x":360,"y":270},
@@ -115,11 +115,11 @@ DEFAULT_SYSTEM = {
         "budget_promo":       {"cat":"Input",     "val":10000,  "expr":"",                                                            "desc":"Marketing.",                            "x":860,"y":380},
     },
     "links": [
-        {"from":"Receita",            "to":"Rentabilidade",    "sign":"+","desc":"Receita → Rentabilidade"},
+        {"from":"Receita Líquida",    "to":"Rentabilidade",    "sign":"+","desc":"Receita → Rentabilidade"},
         {"from":"Custos",             "to":"Rentabilidade",    "sign":"-","desc":"Custos → Rentabilidade"},
-        {"from":"Pt",                 "to":"Receita",          "sign":"+","desc":"Preço → Receita"},
-        {"from":"Qt",                 "to":"Receita",          "sign":"+","desc":"Qt → Receita"},
-        {"from":"Carga_Tributaria",   "to":"Receita",          "sign":"-","desc":"Imposto → Receita"},
+        {"from":"Pt",                 "to":"Receita Líquida",  "sign":"+","desc":"Preço → Receita"},
+        {"from":"Qt",                 "to":"Receita Líquida",  "sign":"+","desc":"Qt → Receita"},
+        {"from":"Carga_Tributaria",   "to":"Receita Líquida",  "sign":"-","desc":"Imposto → Receita"},
         {"from":"Custo_Fixo",         "to":"Custos",           "sign":"+","desc":"Fixo → Custos"},
         {"from":"Custo_Variavel_t",   "to":"Custos",           "sign":"+","desc":"Variável → Custos"},
         {"from":"Emprestimos_Mensal", "to":"Custos",           "sign":"+","desc":"Parcela → Custos"},
@@ -146,7 +146,22 @@ DEFAULT_SYSTEM = {
         {"from":"budget_training",    "to":"Custo_Fixo",       "sign":"+","desc":"Treinamento → Fixo"},
         {"from":"budget_infra",       "to":"Custo_Fixo",       "sign":"+","desc":"Infra → Fixo"},
         {"from":"budget_promo",       "to":"Custo_Fixo",       "sign":"+","desc":"Marketing → Fixo"},
-    ]
+    ],
+    # ── Régua de preço (vermelho → verde) — fallback usado apenas
+    # enquanto o JSONBin ainda não possuir essa chave. Assim que você
+    # atualizar o bin com "price_scale", o valor de lá passa a valer.
+    "price_scale": {
+        "min": 0,
+        "max": 300,
+        "stops": [
+            {"value": 0,   "color": "#e06060", "label": "Prejuízo"},
+            {"value": 30,  "color": "#e8825a", "label": "Custo variável"},
+            {"value": 84,  "color": "#e8a94a", "label": "Abaixo do mercado"},
+            {"value": 140, "color": "#52c97a", "label": "Alinhado ao mercado"},
+            {"value": 196, "color": "#e8a94a", "label": "Acima do mercado"},
+            {"value": 300, "color": "#e06060", "label": "Preço muito alto"},
+        ],
+    },
 }
 
 # ============================================================
@@ -258,6 +273,87 @@ def advance_cycle(system):
         else:
             nd["val"] = r
     return system
+
+# ============================================================
+# RÉGUA DE PREÇO (vermelho → verde)
+# ============================================================
+def get_price_scale(system):
+    """
+    Lê a chave 'price_scale' do JSON (jsonbin). Ela é totalmente
+    parametrizável de fora do código: min/max da régua e uma lista de
+    'stops' (valor de preço + cor + rótulo), formando o gradiente
+    vermelho → verde. Se essa chave ainda não existir no bin, deriva um
+    fallback razoável a partir de Pm (preço da concorrência) e do custo
+    variável unitário do modelo atual, para que a UI nunca quebre.
+    """
+    ps = system.get("price_scale")
+    if ps and isinstance(ps.get("stops"), list) and len(ps["stops"]) >= 2:
+        return ps
+
+    nodes = system.get("nodes", {})
+    pm = nodes.get("Pm", {}).get("val", 140) or 140
+    cvar = (nodes.get("Cp", {}).get("val", 20) or 0) + (nodes.get("C_Mao_Obra", {}).get("val", 10) or 0)
+    vmax = max(pm * 2.2, cvar * 3, 100)
+    return {
+        "min": 0,
+        "max": round(vmax, -1) or 300,
+        "stops": [
+            {"value": 0,        "color": "#e06060", "label": "Prejuízo"},
+            {"value": cvar,     "color": "#e8825a", "label": "Custo variável"},
+            {"value": pm * 0.6, "color": "#e8a94a", "label": "Abaixo do mercado"},
+            {"value": pm,       "color": "#52c97a", "label": "Alinhado ao mercado"},
+            {"value": pm * 1.4, "color": "#e8a94a", "label": "Acima do mercado"},
+            {"value": vmax,     "color": "#e06060", "label": "Preço muito alto"},
+        ],
+    }
+
+
+def render_price_ruler(ps, current_value):
+    """
+    Desenha a régua horizontal (gradiente vermelho→verde) com um
+    marcador na posição do preço atual e rótulos de valor em cada stop.
+    Toda a escala (cores, quantidade de faixas, valores de corte) vem
+    de `ps` (ou seja, do JSON), nada é fixo no código.
+    """
+    vmin, vmax = float(ps["min"]), float(ps["max"])
+    span = (vmax - vmin) or 1.0
+    stops = sorted(ps["stops"], key=lambda s: s["value"])
+
+    def pct(v):
+        return max(0.0, min(100.0, (float(v) - vmin) / span * 100.0))
+
+    gradient = "linear-gradient(to right, " + ", ".join(
+        f'{s["color"]} {pct(s["value"]):.2f}%' for s in stops
+    ) + ")"
+
+    marker_pct = pct(current_value)
+
+    labels_html = "".join(
+        f'<div style="position:absolute;left:{pct(s["value"]):.2f}%;'
+        f'transform:translateX(-50%);font-size:9.5px;color:#8892be;'
+        f'white-space:nowrap;text-align:center;line-height:1.3;">'
+        f'<div style="width:1px;height:5px;background:{s["color"]};margin:0 auto 2px;"></div>'
+        f'R$ {s["value"]:.0f}<br><span style="color:#5a6290;">{s["label"]}</span>'
+        f'</div>'
+        for s in stops
+    )
+
+    html = f"""
+    <div style="margin:6px 0 34px;font-family:'DM Sans',sans-serif;">
+      <div style="position:relative;height:18px;border-radius:9px;background:{gradient};
+                  box-shadow:inset 0 1px 3px rgba(0,0,0,.35);border:1px solid rgba(120,130,200,.2);">
+        <div title="Preço atual: R$ {current_value:.2f}"
+             style="position:absolute;top:-9px;left:{marker_pct:.2f}%;transform:translateX(-50%);
+                     width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;
+                     border-top:10px solid #ffffff;filter:drop-shadow(0 1px 3px rgba(0,0,0,.6));"></div>
+        <div style="position:absolute;top:-26px;left:{marker_pct:.2f}%;transform:translateX(-50%);
+                     font-family:'DM Mono',monospace;font-size:11px;color:#e8a94a;font-weight:600;
+                     white-space:nowrap;">R$ {current_value:.2f}</div>
+      </div>
+      <div style="position:relative;height:34px;margin-top:4px;">{labels_html}</div>
+    </div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
 
 # ============================================================
 # SESSION STATE
@@ -1183,10 +1279,10 @@ with tab_cld:
 
 with tab_sim:
     st.markdown("### KPIs do Ciclo Atual")
-    rent    = SYSTEM["nodes"].get("Rentabilidade", {}).get("val", 0)
-    receita = SYSTEM["nodes"].get("Receita",       {}).get("val", 0)
-    qt      = SYSTEM["nodes"].get("Qt",            {}).get("val", 0)
-    st_mk   = SYSTEM["nodes"].get("St",            {}).get("val", 0)
+    rent    = SYSTEM["nodes"].get("Rentabilidade",  {}).get("val", 0)
+    receita = SYSTEM["nodes"].get("Receita Líquida",{}).get("val", 0)
+    qt      = SYSTEM["nodes"].get("Qt",             {}).get("val", 0)
+    st_mk   = SYSTEM["nodes"].get("St",             {}).get("val", 0)
 
     kpi_cols = st.columns(4)
     for col, (lbl, val) in zip(kpi_cols, [
@@ -1199,8 +1295,33 @@ with tab_sim:
             st.markdown(f'<div class="card"><div class="kpi-label">{lbl}</div><div class="kpi-value">{val}</div></div>', unsafe_allow_html=True)
 
     st.markdown("### Decisões de Input")
-    input_keys  = ['Pt','budget_update','budget_training','budget_infra','budget_promo','Nc']
-    label_map   = {'Pt':'Preço (Pt)','budget_update':'P&D','budget_training':'Treinamento',
+
+    # ── Régua de preço (Pt) — vermelho → verde ──
+    # Escala 100% parametrizável via JSON (chave "price_scale" no
+    # jsonbin): min/max e a lista de "stops" (valor + cor + rótulo)
+    # definem o gradiente. Nada disso é fixo aqui no código.
+    if "Pt" in SYSTEM["nodes"]:
+        st.markdown("**Preço de Venda (Pt)** — régua de precificação")
+        ps = get_price_scale(SYSTEM)
+        pt_node = SYSTEM["nodes"]["Pt"]
+        render_price_ruler(ps, float(pt_node["val"]))
+        new_pt = st.slider(
+            "Ajustar preço",
+            min_value=float(ps["min"]),
+            max_value=float(ps["max"]),
+            value=float(pt_node["val"]),
+            step=1.0,
+            key="pt_slider",
+            label_visibility="collapsed",
+        )
+        if new_pt != pt_node["val"]:
+            pt_node["val"] = float(new_pt)
+            st.session_state.initial_vals["Pt"] = float(new_pt)
+            save_system(SYSTEM)
+
+    # ── Demais decisões de input ──
+    input_keys  = ['budget_update','budget_training','budget_infra','budget_promo','Nc']
+    label_map   = {'budget_update':'P&D','budget_training':'Treinamento',
                    'budget_infra':'Infraestrutura','budget_promo':'Marketing','Nc':'Concorrentes'}
     input_cols  = st.columns(len(input_keys))
     for i, key in enumerate(input_keys):
@@ -1224,7 +1345,7 @@ with tab_sim:
             # resolvida corretamente dentro do mesmo ciclo.
             advance_cycle(SYSTEM)
             st.session_state.sim_cycle += 1
-            profit = SYSTEM["nodes"].get("Receita", {}).get("val", 0) - SYSTEM["nodes"].get("Custos", {}).get("val", 0)
+            profit = SYSTEM["nodes"].get("Receita Líquida", {}).get("val", 0) - SYSTEM["nodes"].get("Custos", {}).get("val", 0)
             st.session_state.sim_history.append({
                 "cycle": st.session_state.sim_cycle,
                 "profit": profit,
