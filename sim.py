@@ -308,13 +308,9 @@ def get_price_scale(system):
     }
 
 
-def render_price_ruler(ps, current_value):
-    """
-    Desenha a régua horizontal (gradiente vermelho→verde) com um
-    marcador na posição do preço atual e rótulos de valor em cada stop.
-    Toda a escala (cores, quantidade de faixas, valores de corte) vem
-    de `ps` (ou seja, do JSON), nada é fixo no código.
-    """
+def _price_gradient(ps):
+    """Gera a string CSS do gradiente linear vermelho→verde a partir dos
+    'stops' de price_scale (JSON). Usada para colorir o próprio slider."""
     vmin, vmax = float(ps["min"]), float(ps["max"])
     span = (vmax - vmin) or 1.0
     stops = sorted(ps["stops"], key=lambda s: s["value"])
@@ -322,38 +318,78 @@ def render_price_ruler(ps, current_value):
     def pct(v):
         return max(0.0, min(100.0, (float(v) - vmin) / span * 100.0))
 
-    gradient = "linear-gradient(to right, " + ", ".join(
+    return "linear-gradient(to right, " + ", ".join(
         f'{s["color"]} {pct(s["value"]):.2f}%' for s in stops
     ) + ")"
 
-    marker_pct = pct(current_value)
 
-    labels_html = "".join(
-        f'<div style="position:absolute;left:{pct(s["value"]):.2f}%;'
-        f'transform:translateX(-50%);font-size:9.5px;color:#8892be;'
-        f'white-space:nowrap;text-align:center;line-height:1.3;">'
-        f'<div style="width:1px;height:5px;background:{s["color"]};margin:0 auto 2px;"></div>'
-        f'R$ {s["value"]:.0f}<br><span style="color:#5a6290;">{s["label"]}</span>'
-        f'</div>'
+def inject_price_slider_style(ps):
+    """
+    Colore o PRÓPRIO st.slider como a régua vermelho→verde -- em vez de
+    desenhar uma barra HTML separada por cima/embaixo dele. Isso resolve
+    dois problemas do design anterior:
+
+      1) Duas réguas: antes havia uma barra colorida (HTML) + o slider
+         nativo do Streamlit por baixo, redundantes. Agora só existe o
+         slider, e ele É a régua colorida.
+      2) Sumiço ao atualizar: a barra antiga usava um placeholder
+         (st.empty()) preenchido depois no script, o que deixava a UI
+         momentaneamente vazia a cada rerun. Como agora não há barra
+         separada nem placeholder -- é só CSS aplicado sobre o slider
+         nativo -- não existe mais esse "flash" de vazio.
+
+    Como o slider nativo já é clicável e arrastável (clicar em qualquer
+    ponto da trilha move a alça para lá), o usuário seleciona o preço
+    direto em cima da régua colorida.
+    """
+    gradient = _price_gradient(ps)
+    st.markdown(f"""
+    <style>
+    div[data-testid="stSlider"] div[data-baseweb="slider"] > div:nth-of-type(1) {{
+        background: {gradient} !important;
+        height: 10px !important;
+        border-radius: 6px !important;
+    }}
+    div[data-testid="stSlider"] div[data-baseweb="slider"] > div:nth-of-type(1) > div {{
+        background: transparent !important;
+        box-shadow: none !important;
+    }}
+    div[data-testid="stSlider"] div[role="slider"] {{
+        background-color: #ffffff !important;
+        border: 2px solid #13162a !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,.55) !important;
+        width: 18px !important;
+        height: 18px !important;
+    }}
+    div[data-testid="stTickBarMin"],
+    div[data-testid="stTickBarMax"] {{
+        font-family: 'DM Mono', monospace !important;
+        color: #5a6290 !important;
+        font-size: 11px !important;
+    }}
+    </style>
+    """, unsafe_allow_html=True)
+
+
+def price_scale_legend(ps):
+    """
+    Legenda estática (texto + chip de cor, sem nenhuma barra) com os
+    valores de referência de cada faixa, exibida uma única vez logo
+    abaixo do slider. Não é uma segunda régua -- é só a "chave de
+    leitura" das cores em forma de texto.
+    """
+    stops = sorted(ps["stops"], key=lambda s: s["value"])
+    chips = "".join(
+        f'<span style="display:inline-flex;align-items:center;gap:4px;'
+        f'font-size:10.5px;color:#8892be;margin-right:14px;white-space:nowrap;">'
+        f'<span style="width:8px;height:8px;border-radius:2px;background:{s["color"]};'
+        f'display:inline-block;flex-shrink:0;"></span>R$ {s["value"]:.0f} · {s["label"]}</span>'
         for s in stops
     )
-
-    html = f"""
-    <div style="margin:6px 0 34px;font-family:'DM Sans',sans-serif;">
-      <div style="position:relative;height:18px;border-radius:9px;background:{gradient};
-                  box-shadow:inset 0 1px 3px rgba(0,0,0,.35);border:1px solid rgba(120,130,200,.2);">
-        <div title="Preço atual: R$ {current_value:.2f}"
-             style="position:absolute;top:-9px;left:{marker_pct:.2f}%;transform:translateX(-50%);
-                     width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;
-                     border-top:10px solid #ffffff;filter:drop-shadow(0 1px 3px rgba(0,0,0,.6));"></div>
-        <div style="position:absolute;top:-26px;left:{marker_pct:.2f}%;transform:translateX(-50%);
-                     font-family:'DM Mono',monospace;font-size:11px;color:#e8a94a;font-weight:600;
-                     white-space:nowrap;">R$ {current_value:.2f}</div>
-      </div>
-      <div style="position:relative;height:34px;margin-top:4px;">{labels_html}</div>
-    </div>
-    """
-    st.markdown(html, unsafe_allow_html=True)
+    st.markdown(
+        f'<div style="margin:4px 0 12px;line-height:2;">{chips}</div>',
+        unsafe_allow_html=True,
+    )
 
 # ============================================================
 # SESSION STATE
@@ -1301,16 +1337,15 @@ with tab_sim:
     # jsonbin): min/max e a lista de "stops" (valor + cor + rótulo)
     # definem o gradiente. Nada disso é fixo aqui no código.
     if "Pt" in SYSTEM["nodes"]:
-        st.markdown("**Preço de Venda (Pt)** — régua de precificação")
         ps = get_price_scale(SYSTEM)
         pt_node = SYSTEM["nodes"]["Pt"]
 
-        # Placeholder reserva o espaço visual da régua ACIMA do slider,
-        # mas só é preenchido DEPOIS de lermos o valor atual do slider
-        # (mais abaixo). Antes, a régua era desenhada com pt_node["val"]
-        # antes do slider devolver o novo valor -- por isso ela sempre
-        # mostrava a posição da interação ANTERIOR (atraso de 1 passo).
-        ruler_placeholder = st.empty()
+        st.markdown("**Preço de Venda (Pt)** — clique ou arraste na régua colorida")
+
+        # Colore o PRÓPRIO slider como a régua vermelho→verde (não é uma
+        # barra separada) -- único widget, nativamente clicável/arrastável,
+        # sem placeholder e sem "sumiço" ao atualizar.
+        inject_price_slider_style(ps)
 
         new_pt = st.slider(
             "Ajustar preço",
@@ -1326,10 +1361,8 @@ with tab_sim:
             st.session_state.initial_vals["Pt"] = float(new_pt)
             save_system(SYSTEM)
 
-        # Agora sim: desenha a régua já com o valor mais recente,
-        # dentro do placeholder reservado acima do slider.
-        with ruler_placeholder.container():
-            render_price_ruler(ps, float(pt_node["val"]))
+        # Legenda estática (só texto) com os valores de referência de cada cor.
+        price_scale_legend(ps)
 
     # ── Demais decisões de input ──
     input_keys  = ['budget_update','budget_training','budget_infra','budget_promo','Nc']
