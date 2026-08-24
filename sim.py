@@ -209,15 +209,6 @@ def _topological_order(nodes):
     """
     Ordena os nós que possuem 'expr' de modo que toda variável da qual um
     nó depende seja calculada ANTES dele, no mesmo ciclo.
-
-    Isso é exatamente o que faltava no código original: lá, todos os nós
-    eram recalculados a partir de uma única "foto" (snapshot) tirada no
-    início do ciclo. Uma equação como `Qt = MIN(Dpt*St, Cap)` acabava
-    usando o Dpt/St do CICLO ANTERIOR, e não o valor recém-calculado no
-    mesmo ciclo -- então uma mudança em qualquer variável (ex.: o Preço)
-    levava vários cliques em "Avançar Ciclo" para se propagar por toda a
-    cadeia causal até `Rentabilidade`, dando a impressão de que o
-    diagrama "não influenciava" a simulação.
     """
     names = list(nodes.keys())
     deps = {n: _referenced_vars(nodes[n].get("expr", ""), names) - {n} for n in names}
@@ -227,11 +218,6 @@ def _topological_order(nodes):
         if n in perm_mark:
             return
         if n in temp_mark:
-            # Dependência circular (loop algébrico) -- evita recursão
-            # infinita. Nesse caso raro o nó mantém o valor do ciclo
-            # anterior nesta iteração (não deveria ocorrer no modelo
-            # padrão, que é um DAG, mas protege contra loops criados
-            # manualmente pelo usuário no editor de diagrama).
             return
         temp_mark.add(n)
         for dep in deps[n]:
@@ -248,16 +234,7 @@ def _topological_order(nodes):
 
 def advance_cycle(system):
     """
-    Avança um ciclo de simulação respeitando a cadeia causal completa:
-
-    1) Calcula todas as variáveis com 'expr' (Equação e Estado) na ordem
-       correta de dependência, sempre lendo o valor MAIS RECENTE (já
-       recalculado neste mesmo ciclo) das variáveis das quais dependem.
-    2) Para variáveis do tipo Estado (acumuladores/estoques), soma o
-       resultado da equação (o "fluxo" do período) ao valor que a
-       variável já tinha ANTES deste ciclo.
-    3) Variáveis sem 'expr' (Ambiente, Parâmetro, Input) são decisões
-       exógenas: só mudam quando o usuário edita manualmente.
+    Avança um ciclo de simulação respeitando a cadeia causal completa.
     """
     nodes = system["nodes"]
     prev_vals = {nid: nd["val"] for nid, nd in nodes.items()}
@@ -310,7 +287,7 @@ def get_price_scale(system):
 
 def _price_gradient(ps):
     """Gera a string CSS do gradiente linear vermelho→verde a partir dos
-    'stops' de price_scale (JSON). Usada para colorir o próprio slider."""
+    'stops' de price_scale (JSON)."""
     vmin, vmax = float(ps["min"]), float(ps["max"])
     span = (vmax - vmin) or 1.0
     stops = sorted(ps["stops"], key=lambda s: s["value"])
@@ -323,64 +300,82 @@ def _price_gradient(ps):
     ) + ")"
 
 
-def inject_price_slider_style(ps):
+def render_price_ruler(ps, current_value, input_key="pt_ruler"):
     """
-    Colore o PRÓPRIO st.slider como a régua vermelho→verde.
+    Régua de preço vermelho→verde 100% independente do markup interno do
+    st.slider (BaseWeb). Em vez de tentar "pintar por cima" de um widget
+    nativo do Streamlit -- cuja estrutura DOM muda entre versões e por
+    isso o CSS não pegava --, aqui a régua é um <input type="range">
+    puro, HTML/CSS simples, colorido diretamente com o gradiente vindo
+    de price_scale. Isso funciona em qualquer versão do Streamlit porque
+    não depende de nenhum seletor interno do framework.
 
-    Estratégia robusta a mudanças de versão do Streamlit/BaseWeb:
-    1) Zera o background de TODOS os <div> dentro do slider (exceto a
-       alça, role="slider"), sem mexer em altura/layout.
-    2) Pinta o gradiente apenas no <div> mais externo da trilha
-       (primeiro filho de [data-baseweb="slider"]), que sempre ocupa a
-       largura total do slider independente de quantos wrappers internos
-       o BaseWeb usa por baixo.
-    Como os filhos ficam transparentes, o gradiente do pai aparece por
-    trás deles em qualquer versão -- é isso que resolve o caso em que a
-    régua ficava sem cor e só a legenda aparecia.
+    Sincronização com o Python: ao soltar o slider, o valor é escrito na
+    URL (query param "pt") e a página é recarregada. O topo do script
+    lê esse query param (ver bloco logo após o session_state) e aplica
+    o novo preço ao sistema antes de renderizar -- então o valor
+    escolhido na régua chega normalmente em SYSTEM["nodes"]["Pt"].
     """
     gradient = _price_gradient(ps)
-    st.markdown(f"""
+    vmin, vmax = float(ps["min"]), float(ps["max"])
+    val = float(current_value)
+    uid = input_key
+
+    html = f"""
+    <div style="width:100%;padding:8px 4px 4px;font-family:'DM Sans',sans-serif;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;
+                  font-family:'DM Mono',monospace;font-size:12px;color:#8892be;margin-bottom:8px;">
+        <span>R$ {vmin:.0f}</span>
+        <span id="{uid}-val" style="color:#e8a94a;font-weight:600;font-size:16px;">R$ {val:.0f}</span>
+        <span>R$ {vmax:.0f}</span>
+      </div>
+      <input type="range" id="{uid}" min="{vmin}" max="{vmax}" step="1" value="{val}"
+        style="
+          -webkit-appearance:none;appearance:none;width:100%;height:12px;border-radius:8px;
+          background:{gradient};outline:none;cursor:pointer;margin:0;display:block;
+        ">
+    </div>
     <style>
-    /* 1) reseta qualquer camada interna para não tampar o gradiente */
-    div[data-testid="stSlider"] div[data-baseweb="slider"] div:not([role="slider"]) {{
-        background: transparent !important;
-        background-image: none !important;
-        box-shadow: none !important;
-    }}
-
-    /* 2) pinta o gradiente na trilha (wrapper mais externo) */
-    div[data-testid="stSlider"] div[data-baseweb="slider"] > div:first-child {{
-        background: {gradient} !important;
-        background-image: {gradient} !important;
-        height: 8px !important;
-        border-radius: 6px !important;
-        opacity: 1 !important;
-    }}
-
-    /* alça (thumb) */
-    div[data-testid="stSlider"] div[role="slider"] {{
-        background-color: #ffffff !important;
-        border: 2px solid #13162a !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,.55) !important;
-        width: 18px !important;
-        height: 18px !important;
-    }}
-
-    div[data-testid="stTickBarMin"],
-    div[data-testid="stTickBarMax"] {{
-        font-family: 'DM Mono', monospace !important;
-        color: #5a6290 !important;
-        font-size: 11px !important;
-    }}
+      #{uid}::-webkit-slider-thumb {{
+        -webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;
+        background:#ffffff;border:3px solid #13162a;box-shadow:0 2px 10px rgba(0,0,0,.6);
+        cursor:pointer;
+      }}
+      #{uid}::-moz-range-thumb {{
+        width:22px;height:22px;border-radius:50%;background:#ffffff;
+        border:3px solid #13162a;box-shadow:0 2px 10px rgba(0,0,0,.6);cursor:pointer;
+      }}
+      #{uid}::-moz-range-track {{
+        height:12px;border-radius:8px;background:{gradient};
+      }}
     </style>
-    """, unsafe_allow_html=True)
+    <script>
+      (function() {{
+        const slider = document.getElementById("{uid}");
+        const label  = document.getElementById("{uid}-val");
+        if (!slider) return;
+        slider.addEventListener("input", function() {{
+          label.textContent = "R$ " + parseFloat(slider.value).toFixed(0);
+        }});
+        slider.addEventListener("change", function() {{
+          try {{
+            const url = new URL(window.parent.location.href);
+            url.searchParams.set("pt", slider.value);
+            window.parent.location.href = url.toString();
+          }} catch (e) {{
+            window.location.href = "?pt=" + slider.value;
+          }}
+        }});
+      }})();
+    </script>
+    """
+    components.html(html, height=68, scrolling=False)
+
 
 def price_scale_legend(ps):
     """
-    Legenda estática (texto + chip de cor, sem nenhuma barra) com os
-    valores de referência de cada faixa, exibida uma única vez logo
-    abaixo do slider. Não é uma segunda régua -- é só a "chave de
-    leitura" das cores em forma de texto.
+    Legenda estática (texto + chip de cor) com os valores de referência
+    de cada faixa, exibida abaixo da régua colorida.
     """
     stops = sorted(ps["stops"], key=lambda s: s["value"])
     chips = "".join(
@@ -405,11 +400,24 @@ if "system" not in st.session_state:
     st.session_state.sim_history = []
     st.session_state.selected_node = None
 
+# ── Aplica o preço vindo da régua HTML (query param "pt"), se houver ──
+_qp = st.query_params
+if "pt" in _qp:
+    try:
+        _pt_from_url = float(_qp["pt"])
+    except (TypeError, ValueError):
+        _pt_from_url = None
+    if _pt_from_url is not None and "Pt" in st.session_state.system["nodes"]:
+        st.session_state.system["nodes"]["Pt"]["val"] = _pt_from_url
+        st.session_state.initial_vals["Pt"] = _pt_from_url
+        save_system(st.session_state.system)
+    st.query_params.clear()
+
 SYSTEM = st.session_state.system
 api_key, bin_id = _get_cfg()
 
 # ============================================================
-# HTML DO SIMULADOR (VERSÃO ORIGINAL, APENAS COM BOTÕES MANUAIS)
+# HTML DO SIMULADOR (DIAGRAMA CLD)
 # ============================================================
 def get_simulator_html(model_json, js_api_key, js_bin_id):
     ak = json.dumps(js_api_key)
@@ -1336,36 +1344,17 @@ with tab_sim:
 
     st.markdown("### Decisões de Input")
 
-    # ── Régua de preço (Pt) — vermelho → verde ──
-    # Escala 100% parametrizável via JSON (chave "price_scale" no
-    # jsonbin): min/max e a lista de "stops" (valor + cor + rótulo)
-    # definem o gradiente. Nada disso é fixo aqui no código.
+    # ── Régua de preço (Pt) — vermelho → verde, gradiente nativo ──
+    # A régua é um <input type="range"> puro (não é mais o st.slider),
+    # colorida diretamente com o gradiente vindo de "price_scale".
+    # Isso garante que a cor sempre apareça, independente da versão do
+    # Streamlit/BaseWeb instalada.
     if "Pt" in SYSTEM["nodes"]:
         ps = get_price_scale(SYSTEM)
         pt_node = SYSTEM["nodes"]["Pt"]
 
-        st.markdown("**Preço de Venda (Pt)** — clique ou arraste na régua colorida")
-
-        # Colore o PRÓPRIO slider como a régua vermelho→verde (não é uma
-        # barra separada) -- único widget, nativamente clicável/arrastável,
-        # sem placeholder e sem "sumiço" ao atualizar.
-        inject_price_slider_style(ps)
-
-        new_pt = st.slider(
-            "Ajustar preço",
-            min_value=float(ps["min"]),
-            max_value=float(ps["max"]),
-            value=float(pt_node["val"]),
-            step=1.0,
-            key="pt_slider",
-            label_visibility="collapsed",
-        )
-        if new_pt != pt_node["val"]:
-            pt_node["val"] = float(new_pt)
-            st.session_state.initial_vals["Pt"] = float(new_pt)
-            save_system(SYSTEM)
-
-        # Legenda estática (só texto) com os valores de referência de cada cor.
+        st.markdown("**Preço de Venda (Pt)** — arraste na régua colorida")
+        render_price_ruler(ps, pt_node["val"], input_key="pt_ruler")
         price_scale_legend(ps)
 
     # ── Demais decisões de input ──
@@ -1387,11 +1376,6 @@ with tab_sim:
     adv_c, res_c = st.columns([3, 1])
     with adv_c:
         if st.button("▶ Avançar Ciclo", use_container_width=True):
-            # Antes: recalculava tudo a partir de um único snapshot antigo,
-            # fazendo com que Qt/Receita/Custos/Rentabilidade levassem vários
-            # cliques para refletir qualquer mudança (ver `advance_cycle`
-            # para a explicação completa). Agora a cadeia causal inteira é
-            # resolvida corretamente dentro do mesmo ciclo.
             advance_cycle(SYSTEM)
             st.session_state.sim_cycle += 1
             profit = SYSTEM["nodes"].get("Receita Líquida", {}).get("val", 0) - SYSTEM["nodes"].get("Custos", {}).get("val", 0)
