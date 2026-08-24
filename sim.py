@@ -1304,7 +1304,14 @@ with tab_sim:
         st.markdown("**Preço de Venda (Pt)** — régua de precificação")
         ps = get_price_scale(SYSTEM)
         pt_node = SYSTEM["nodes"]["Pt"]
-        render_price_ruler(ps, float(pt_node["val"]))
+
+        # Placeholder reserva o espaço visual da régua ACIMA do slider,
+        # mas só é preenchido DEPOIS de lermos o valor atual do slider
+        # (mais abaixo). Antes, a régua era desenhada com pt_node["val"]
+        # antes do slider devolver o novo valor -- por isso ela sempre
+        # mostrava a posição da interação ANTERIOR (atraso de 1 passo).
+        ruler_placeholder = st.empty()
+
         new_pt = st.slider(
             "Ajustar preço",
             min_value=float(ps["min"]),
@@ -1318,6 +1325,11 @@ with tab_sim:
             pt_node["val"] = float(new_pt)
             st.session_state.initial_vals["Pt"] = float(new_pt)
             save_system(SYSTEM)
+
+        # Agora sim: desenha a régua já com o valor mais recente,
+        # dentro do placeholder reservado acima do slider.
+        with ruler_placeholder.container():
+            render_price_ruler(ps, float(pt_node["val"]))
 
     # ── Demais decisões de input ──
     input_keys  = ['budget_update','budget_training','budget_infra','budget_promo','Nc']
