@@ -325,35 +325,39 @@ def _price_gradient(ps):
 
 def inject_price_slider_style(ps):
     """
-    Colore o PRÓPRIO st.slider como a régua vermelho→verde -- em vez de
-    desenhar uma barra HTML separada por cima/embaixo dele. Isso resolve
-    dois problemas do design anterior:
+    Colore o PRÓPRIO st.slider como a régua vermelho→verde.
 
-      1) Duas réguas: antes havia uma barra colorida (HTML) + o slider
-         nativo do Streamlit por baixo, redundantes. Agora só existe o
-         slider, e ele É a régua colorida.
-      2) Sumiço ao atualizar: a barra antiga usava um placeholder
-         (st.empty()) preenchido depois no script, o que deixava a UI
-         momentaneamente vazia a cada rerun. Como agora não há barra
-         separada nem placeholder -- é só CSS aplicado sobre o slider
-         nativo -- não existe mais esse "flash" de vazio.
-
-    Como o slider nativo já é clicável e arrastável (clicar em qualquer
-    ponto da trilha move a alça para lá), o usuário seleciona o preço
-    direto em cima da régua colorida.
+    Estratégia robusta a mudanças de versão do Streamlit/BaseWeb:
+    1) Zera o background de TODOS os <div> dentro do slider (exceto a
+       alça, role="slider"), sem mexer em altura/layout.
+    2) Pinta o gradiente apenas no <div> mais externo da trilha
+       (primeiro filho de [data-baseweb="slider"]), que sempre ocupa a
+       largura total do slider independente de quantos wrappers internos
+       o BaseWeb usa por baixo.
+    Como os filhos ficam transparentes, o gradiente do pai aparece por
+    trás deles em qualquer versão -- é isso que resolve o caso em que a
+    régua ficava sem cor e só a legenda aparecia.
     """
     gradient = _price_gradient(ps)
     st.markdown(f"""
     <style>
-    div[data-testid="stSlider"] div[data-baseweb="slider"] > div:nth-of-type(1) {{
-        background: {gradient} !important;
-        height: 10px !important;
-        border-radius: 6px !important;
-    }}
-    div[data-testid="stSlider"] div[data-baseweb="slider"] > div:nth-of-type(1) > div {{
+    /* 1) reseta qualquer camada interna para não tampar o gradiente */
+    div[data-testid="stSlider"] div[data-baseweb="slider"] div:not([role="slider"]) {{
         background: transparent !important;
+        background-image: none !important;
         box-shadow: none !important;
     }}
+
+    /* 2) pinta o gradiente na trilha (wrapper mais externo) */
+    div[data-testid="stSlider"] div[data-baseweb="slider"] > div:first-child {{
+        background: {gradient} !important;
+        background-image: {gradient} !important;
+        height: 8px !important;
+        border-radius: 6px !important;
+        opacity: 1 !important;
+    }}
+
+    /* alça (thumb) */
     div[data-testid="stSlider"] div[role="slider"] {{
         background-color: #ffffff !important;
         border: 2px solid #13162a !important;
@@ -361,6 +365,7 @@ def inject_price_slider_style(ps):
         width: 18px !important;
         height: 18px !important;
     }}
+
     div[data-testid="stTickBarMin"],
     div[data-testid="stTickBarMax"] {{
         font-family: 'DM Mono', monospace !important;
@@ -369,7 +374,6 @@ def inject_price_slider_style(ps):
     }}
     </style>
     """, unsafe_allow_html=True)
-
 
 def price_scale_legend(ps):
     """
