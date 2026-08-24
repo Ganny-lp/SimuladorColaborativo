@@ -300,26 +300,36 @@ def _price_gradient(ps):
     ) + ")"
 
 
-def render_price_ruler(ps, current_value, input_key="pt_ruler"):
+def render_price_ruler(ps, current_value, sync_key="pt_hidden_sync", ruler_key="pt_ruler"):
     """
-    Régua de preço vermelho→verde 100% independente do markup interno do
-    st.slider (BaseWeb). Em vez de tentar "pintar por cima" de um widget
-    nativo do Streamlit -- cuja estrutura DOM muda entre versões e por
-    isso o CSS não pegava --, aqui a régua é um <input type="range">
-    puro, HTML/CSS simples, colorido diretamente com o gradiente vindo
-    de price_scale. Isso funciona em qualquer versão do Streamlit porque
-    não depende de nenhum seletor interno do framework.
+    Régua de preço vermelho→verde, 100% independente do markup interno
+    do st.slider (BaseWeb) -- é um <input type="range"> puro dentro de
+    um iframe (components.html), colorido via CSS com o gradiente de
+    price_scale, e com a trilha estilizada explicitamente em CADA
+    engine de navegador (::-webkit-slider-runnable-track E
+    ::-moz-range-track), o que evita a trilha preta padrão.
 
-    Sincronização com o Python: ao soltar o slider, o valor é escrito na
-    URL (query param "pt") e a página é recarregada. O topo do script
-    lê esse query param (ver bloco logo após o session_state) e aplica
-    o novo preço ao sistema antes de renderizar -- então o valor
-    escolhido na régua chega normalmente em SYSTEM["nodes"]["Pt"].
+    SINCRONIZAÇÃO -- SEM NAVEGAÇÃO DE PÁGINA:
+    Iframes criados por components.html rodam em sandbox que permite
+    acessar o DOM da página pai (window.parent.document), mas BLOQUEIA
+    navegação (window.parent.location = ...). A versão anterior tentava
+    navegar e, ao falhar, caía num fallback que navegava o PRÓPRIO
+    iframe da régua para a URL inteira do app -- por isso aparecia "uma
+    página nova, quebrada, dentro da régua".
+
+    A correção: nunca navegar. Em vez disso, ao soltar o slider, o JS
+    localiza um st.number_input nativo e ESCONDIDO (renderizado no
+    Python logo antes desta função, com key=sync_key) na página pai,
+    ajusta o valor dele usando o "setter" nativo do <input> e dispara
+    os eventos que o React do Streamlit espera (input + Enter + blur).
+    Isso é indistinguível de um usuário digitando ali e confirmando --
+    o Streamlit processa normalmente, sem reload de página, sem iframe
+    quebrado.
     """
     gradient = _price_gradient(ps)
     vmin, vmax = float(ps["min"]), float(ps["max"])
     val = float(current_value)
-    uid = input_key
+    uid = ruler_key
 
     html = f"""
     <div style="width:100%;padding:8px 4px 4px;font-family:'DM Sans',sans-serif;">
@@ -337,14 +347,6 @@ def render_price_ruler(ps, current_value, input_key="pt_ruler"):
     </div>
     <style>
       html, body {{ background: transparent !important; margin:0; }}
-
-      /* Trilha (track) — precisa ser estilizada explicitamente em CADA
-         motor de navegador. Antes só existia a regra para o Firefox
-         (::-moz-range-track); no Chrome/Edge/Safari, sem a regra
-         ::-webkit-slider-runnable-track, o navegador ignora o
-         "background" do <input> e desenha a trilha padrão dele por
-         cima -- que é escura. Isso é o que fazia a régua "sumir e
-         ficar preta". Agora as duas engines têm regra própria. */
       #{uid}::-webkit-slider-runnable-track {{
         -webkit-appearance:none;appearance:none;
         width:100%;height:12px;border-radius:8px;background:{gradient};
@@ -352,20 +354,15 @@ def render_price_ruler(ps, current_value, input_key="pt_ruler"):
       #{uid}::-moz-range-track {{
         width:100%;height:12px;border-radius:8px;background:{gradient};
       }}
-
-      /* Alça (thumb) — idem, uma regra por engine. */
       #{uid}::-webkit-slider-thumb {{
         -webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;
         background:#ffffff;border:3px solid #13162a;box-shadow:0 2px 10px rgba(0,0,0,.6);
-        cursor:pointer;margin-top:-5px; /* centraliza a bolinha de 22px numa trilha de 12px */
+        cursor:pointer;margin-top:-5px;
       }}
       #{uid}::-moz-range-thumb {{
         width:22px;height:22px;border-radius:50%;background:#ffffff;
         border:3px solid #13162a;box-shadow:0 2px 10px rgba(0,0,0,.6);cursor:pointer;
       }}
-
-      /* Remove o contorno pontilhado de foco do Firefox, que também
-         pode cobrir a trilha com uma cor sólida. */
       #{uid}::-moz-focus-outer {{ border:0; }}
     </style>
     <script>
@@ -373,16 +370,25 @@ def render_price_ruler(ps, current_value, input_key="pt_ruler"):
         const slider = document.getElementById("{uid}");
         const label  = document.getElementById("{uid}-val");
         if (!slider) return;
+
         slider.addEventListener("input", function() {{
           label.textContent = "R$ " + parseFloat(slider.value).toFixed(0);
         }});
+
         slider.addEventListener("change", function() {{
+          const v = slider.value;
           try {{
-            const url = new URL(window.parent.location.href);
-            url.searchParams.set("pt", slider.value);
-            window.parent.location.href = url.toString();
-          }} catch (e) {{
-            window.location.href = "?pt=" + slider.value;
+            const doc = window.parent.document;
+            const input = doc.querySelector('input[aria-label="{sync_key}"]');
+            if (!input) {{ console.warn("LUMINA: input de sincronização não encontrado."); return; }}
+            const setter = Object.getOwnPropertyDescriptor(window.parent.HTMLInputElement.prototype, 'value').set;
+            input.focus();
+            setter.call(input, v);
+            input.dispatchEvent(new Event('input', {{ bubbles: true }}));
+            input.dispatchEvent(new KeyboardEvent('keydown', {{ key: 'Enter', bubbles: true }}));
+            input.blur();
+          }} catch (err) {{
+            console.error("LUMINA: falha ao sincronizar preço:", err);
           }}
         }});
       }})();
@@ -418,19 +424,6 @@ if "system" not in st.session_state:
     st.session_state.sim_cycle = 0
     st.session_state.sim_history = []
     st.session_state.selected_node = None
-
-# ── Aplica o preço vindo da régua HTML (query param "pt"), se houver ──
-_qp = st.query_params
-if "pt" in _qp:
-    try:
-        _pt_from_url = float(_qp["pt"])
-    except (TypeError, ValueError):
-        _pt_from_url = None
-    if _pt_from_url is not None and "Pt" in st.session_state.system["nodes"]:
-        st.session_state.system["nodes"]["Pt"]["val"] = _pt_from_url
-        st.session_state.initial_vals["Pt"] = _pt_from_url
-        save_system(st.session_state.system)
-    st.query_params.clear()
 
 SYSTEM = st.session_state.system
 api_key, bin_id = _get_cfg()
@@ -1372,8 +1365,38 @@ with tab_sim:
         ps = get_price_scale(SYSTEM)
         pt_node = SYSTEM["nodes"]["Pt"]
 
+        # ── Ponte oculta Python↔JS ──
+        # st.number_input NATIVO (um <input> de verdade), escondido via
+        # CSS (não via display:none — isso impediria o foco/blur que a
+        # régua usa para "confirmar" o valor). A régua colorida (JS, no
+        # iframe abaixo) escreve nele e dispara os eventos; o Streamlit
+        # trata isso como uma edição normal do usuário e reprocessa o
+        # valor aqui, sem qualquer navegação de página.
+        st.markdown("""
+        <style>
+        div[data-testid="stNumberInput"]:has(input[aria-label="pt_hidden_sync"]) {
+            position:absolute !important;
+            width:1px !important; height:1px !important;
+            padding:0 !important; margin:-1px !important;
+            overflow:hidden !important; clip:rect(0,0,0,0) !important;
+            white-space:nowrap !important; border:0 !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+        pt_hidden = st.number_input(
+            "pt_hidden_sync",
+            min_value=float(ps["min"]), max_value=float(ps["max"]),
+            value=float(pt_node["val"]), step=1.0,
+            key="pt_hidden_sync", label_visibility="collapsed",
+        )
+        if pt_hidden != pt_node["val"]:
+            pt_node["val"] = float(pt_hidden)
+            st.session_state.initial_vals["Pt"] = float(pt_hidden)
+            save_system(SYSTEM)
+
         st.markdown("**Preço de Venda (Pt)** — arraste na régua colorida")
-        render_price_ruler(ps, pt_node["val"], input_key="pt_ruler")
+        render_price_ruler(ps, pt_node["val"], sync_key="pt_hidden_sync", ruler_key="pt_ruler")
         price_scale_legend(ps)
 
     # ── Demais decisões de input ──
