@@ -336,18 +336,37 @@ def render_price_ruler(ps, current_value, input_key="pt_ruler"):
         ">
     </div>
     <style>
+      html, body {{ background: transparent !important; margin:0; }}
+
+      /* Trilha (track) — precisa ser estilizada explicitamente em CADA
+         motor de navegador. Antes só existia a regra para o Firefox
+         (::-moz-range-track); no Chrome/Edge/Safari, sem a regra
+         ::-webkit-slider-runnable-track, o navegador ignora o
+         "background" do <input> e desenha a trilha padrão dele por
+         cima -- que é escura. Isso é o que fazia a régua "sumir e
+         ficar preta". Agora as duas engines têm regra própria. */
+      #{uid}::-webkit-slider-runnable-track {{
+        -webkit-appearance:none;appearance:none;
+        width:100%;height:12px;border-radius:8px;background:{gradient};
+      }}
+      #{uid}::-moz-range-track {{
+        width:100%;height:12px;border-radius:8px;background:{gradient};
+      }}
+
+      /* Alça (thumb) — idem, uma regra por engine. */
       #{uid}::-webkit-slider-thumb {{
         -webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;
         background:#ffffff;border:3px solid #13162a;box-shadow:0 2px 10px rgba(0,0,0,.6);
-        cursor:pointer;
+        cursor:pointer;margin-top:-5px; /* centraliza a bolinha de 22px numa trilha de 12px */
       }}
       #{uid}::-moz-range-thumb {{
         width:22px;height:22px;border-radius:50%;background:#ffffff;
         border:3px solid #13162a;box-shadow:0 2px 10px rgba(0,0,0,.6);cursor:pointer;
       }}
-      #{uid}::-moz-range-track {{
-        height:12px;border-radius:8px;background:{gradient};
-      }}
+
+      /* Remove o contorno pontilhado de foco do Firefox, que também
+         pode cobrir a trilha com uma cor sólida. */
+      #{uid}::-moz-focus-outer {{ border:0; }}
     </style>
     <script>
       (function() {{
