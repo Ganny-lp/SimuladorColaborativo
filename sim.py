@@ -75,13 +75,22 @@ def load_system():
     return migrate_system(system)
 
 def save_system(system):
+    """
+    Salva só o MODELO na nuvem (equações, inputs, layout). Os nós de estado
+    (Rentabilidade, B, Backlog, ...) são gravados com o valor INICIAL, para
+    o JSONBin nunca acumular ciclos de simulação. A sessão local continua
+    com o estado corrente.
+    """
     api_key, bin_id = _get_cfg()
     if api_key and bin_id:
         try:
+            payload = copy.deepcopy(system)
+            for k, v in initial_state(payload).items():
+                payload["nodes"][k]["val"] = v
             requests.put(
                 f"https://api.jsonbin.io/v3/b/{bin_id}",
                 headers={"Content-Type": "application/json", "X-Master-Key": api_key},
-                json=system, timeout=8,
+                json=payload, timeout=8,
             )
         except Exception:
             pass
@@ -500,12 +509,16 @@ def price_scale_legend(ps):
 # ============================================================
 # SESSION STATE
 # ============================================================
-if "system" not in st.session_state:
+# Mude APP_VERSION sempre que alterar equações/estado inicial: sessões
+# abertas antes do deploy (que ainda guardam o estado antigo) são recarregadas.
+APP_VERSION = "2026-09-28-fix-st-rentabilidade"
+if st.session_state.get("app_version") != APP_VERSION or "system" not in st.session_state:
     st.session_state.system = load_system()
     st.session_state.initial_vals = {k: v["val"] for k, v in st.session_state.system["nodes"].items()}
     st.session_state.sim_cycle = 0
     st.session_state.sim_history = []
     st.session_state.selected_node = None
+    st.session_state.app_version = APP_VERSION
 
 SYSTEM = st.session_state.system
 api_key, bin_id = _get_cfg()
