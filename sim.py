@@ -50,6 +50,13 @@ def _get_cfg():
         return None, None
 
 def load_system():
+    """
+    Carrega o MODELO (equações, inputs, layout) do JSONBin. O estado da
+    simulação (Rentabilidade acumulada, B, Backlog, etc.) NÃO é herdado
+    da nuvem: migrate_system() aplica as correções de equação e zera o
+    estado, para a simulação sempre começar limpa.
+    """
+    system = None
     api_key, bin_id = _get_cfg()
     if api_key and bin_id:
         try:
@@ -60,10 +67,12 @@ def load_system():
             if r.status_code == 200:
                 data = r.json().get("record", {})
                 if "nodes" in data and "links" in data:
-                    return data
+                    system = data
         except Exception:
             pass
-    return copy.deepcopy(DEFAULT_SYSTEM)
+    if system is None:
+        system = copy.deepcopy(DEFAULT_SYSTEM)
+    return migrate_system(system)
 
 def save_system(system):
     api_key, bin_id = _get_cfg()
@@ -93,7 +102,7 @@ DEFAULT_SYSTEM = {
         "Custo_Variavel_t":   {"cat":"Equação",   "val":0,      "expr":"CVt*(1+Inflacao)",                                           "desc":"Custo variável ajustado.",             "x":360,"y":520},
         "Emprestimos_Mensal": {"cat":"Equação",   "val":0,      "expr":"Emprestimo/a_ni",                                            "desc":"Parcela mensal.",                       "x":560,"y":520},
         "Dpt":                {"cat":"Equação",   "val":0,      "expr":"B*Alfa*Teta_1",                                              "desc":"Demanda Potencial.",                    "x":160,"y":270},
-        "St":                 {"cat":"Equação",   "val":0,      "expr":"EXP(-Beta_1*(Pt-Pm))/(1+Nc)",                                "desc":"Market share.",                         "x":360,"y":200},
+        "St":                 {"cat":"Equação",   "val":0,      "expr":"1/(1+Nc*EXP(Beta_1*(Pt-Pm)))",                              "desc":"Market share (logit, sempre entre 0 e 1).", "x":360,"y":200},
         "B":                  {"cat":"Ambiente",  "val":10000,  "expr":"",                                                            "desc":"Base instalada.",                       "x":80, "y":180},
         "Alfa":               {"cat":"Ambiente",  "val":1,      "expr":"",                                                            "desc":"Taxa de falha.",                        "x":80, "y":350},
         "Teta_1":             {"cat":"Ambiente",  "val":0.10,   "expr":"",                                                            "desc":"Confiança.",                            "x":160,"y":430},
@@ -249,6 +258,79 @@ def advance_cycle(system):
             nd["val"] = prev_vals[nid] + r
         else:
             nd["val"] = r
+    return system
+
+# ============================================================
+# CORREÇÕES DO MODELO + ESTADO INICIAL
+# ============================================================
+# Só substitui se a equação ainda for exatamente a antiga
+# (idempotente, e não sobrescreve edições suas).
+EXPR_FIXES = {
+    "St": ("EXP(-Beta_1*(Pt-Pm))/(1+Nc)",
+           "1/(1+Nc*EXP(Beta_1*(Pt-Pm)))"),
+    "Margem_Lucro": ("Rentabilidade/((1)+(Receita Líquida)+SQRT(((1)-(Receita Líquida))^2))/2",
+                     "Rentabilidade/MAX(1,Receita Líquida)"),
+    "ROI": ("Rentabilidade/((1)+(Custos Abertura)+SQRT(((1)-(Custos Abertura))^2))/2",
+            "Rentabilidade/MAX(1,Custos Abertura)"),
+}
+
+# Valores iniciais dos nós com memória. Podem ser sobrescritos por uma
+# chave "initial_state" no JSON. Rentabilidade = -Custos Abertura (calculado).
+INITIAL_STATE_DEFAULTS = {
+    "B": 10000.0,
+    "Satisfacao_Cliente": 0.5,
+    "Reputacao_Empresa": 0.5,
+    "Nivel_Qualificacao_Tecnica": 0.6,
+    "Experiencia_Acumulada": 1.0,
+    "Backlog_Servicos": 0.0,
+    "Motivacao": 0.7,
+}
+
+
+def _state_nodes(nodes):
+    """Nós com memória: cat 'Estado' ou equação que referencia a si mesma (ex.: B)."""
+    names = list(nodes.keys())
+    return {n for n, nd in nodes.items()
+            if nd.get("cat") == "Estado"
+            or n in _referenced_vars(nd.get("expr", ""), names)}
+
+
+def initial_state(system):
+    nodes = system["nodes"]
+    custom = system.get("initial_state", {})
+    init = dict(INITIAL_STATE_DEFAULTS)
+    init.update(custom)
+    if "Rentabilidade" not in custom:
+        ab = nodes.get("Custos Abertura")
+        invest = safe_eval(ab["expr"], nodes) if ab and ab.get("expr") else 0.0
+        init["Rentabilidade"] = -invest
+    return {k: float(v) for k, v in init.items() if k in nodes}
+
+
+def reset_state(system):
+    for k, v in initial_state(system).items():
+        system["nodes"][k]["val"] = v
+
+
+def recompute_derived(system):
+    """Recalcula as equações a partir do estado atual, SEM avançar os estados."""
+    nodes = system["nodes"]
+    states = _state_nodes(nodes)
+    for _ in range(2):
+        for nid in _topological_order(nodes):
+            nd = nodes[nid]
+            if nid in states or not nd.get("expr"):
+                continue
+            nd["val"] = safe_eval(nd["expr"], nodes)
+
+
+def migrate_system(system):
+    nodes = system["nodes"]
+    for name, (old, new) in EXPR_FIXES.items():
+        if name in nodes and (nodes[name].get("expr") or "").strip() == old:
+            nodes[name]["expr"] = new
+    reset_state(system)
+    recompute_derived(system)
     return system
 
 # ============================================================
@@ -1325,6 +1407,8 @@ with tab_cld:
             fresh = load_system()
             st.session_state.system = fresh
             st.session_state.initial_vals = {k: v["val"] for k, v in fresh["nodes"].items()}
+            st.session_state.sim_cycle = 0
+            st.session_state.sim_history = []
             st.rerun()
     with col2:
         if api_key and bin_id:
@@ -1431,6 +1515,7 @@ with tab_sim:
         if st.button("↺ Reiniciar", use_container_width=True):
             for k, v in st.session_state.initial_vals.items():
                 if k in SYSTEM["nodes"]: SYSTEM["nodes"][k]["val"] = v
+            recompute_derived(SYSTEM)
             st.session_state.sim_cycle   = 0
             st.session_state.sim_history = []
             save_system(SYSTEM); st.rerun()
