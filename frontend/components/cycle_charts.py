@@ -6,9 +6,11 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from backend.application.dto import CycleRecordDTO
+from frontend.branding import PALETTE
 from frontend.compat import STRETCH
 
-_BLUE, _GREEN, _RED = "#4a6aee", "#52c97a", "#e06060"
+_BLUE, _GREEN, _RED = PALETTE.usp_blue_light, PALETTE.positive, PALETTE.negative
+_GRID = "rgba(143,170,188,.14)"
 
 
 class CycleCharts:
@@ -47,7 +49,12 @@ class CycleCharts:
                    marker_color=[positive_color if v >= 0 else _RED for v in y])
         )
         figure.update_layout(
-            title=title, template="plotly_dark", height=260,
-            margin=dict(l=10, r=10, t=40, b=20), font=dict(family="DM Sans"),
+            title=dict(text=title, font=dict(family="Montserrat, Open Sans, sans-serif", size=14, color=PALETTE.text)),
+            template="plotly_dark", height=260,
+            margin=dict(l=10, r=10, t=40, b=20),
+            font=dict(family="Open Sans, sans-serif", color=PALETTE.text_muted),
+            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
         )
+        figure.update_xaxes(gridcolor=_GRID, zerolinecolor=_GRID, title_text="Ciclo")
+        figure.update_yaxes(gridcolor=_GRID, zerolinecolor=PALETTE.slate)
         return figure

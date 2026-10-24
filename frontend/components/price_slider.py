@@ -41,7 +41,7 @@ class PriceScaleLegend:
     def render(self, scale: PriceScaleDTO) -> None:
         chips = "".join(
             '<span style="display:inline-flex;align-items:center;gap:4px;'
-            'font-size:10.5px;color:#8892be;margin-right:14px;white-space:nowrap;">'
+            'font-size:10.5px;color:#9db1be;margin-right:14px;white-space:nowrap;">'
             f'<span style="width:8px;height:8px;border-radius:2px;background:{s.color};'
             'display:inline-block;flex-shrink:0;"></span>'
             f"R$ {s.value:.0f} · {s.label}</span>"

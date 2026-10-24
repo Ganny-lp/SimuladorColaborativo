@@ -5,6 +5,7 @@ from typing import Any, Mapping
 
 
 from frontend.assets.asset_template import AssetTemplate
+from frontend.branding import BrandAssets
 from frontend.compat import render_html_frame
 from frontend.config import CloudCredentials
 
@@ -17,6 +18,7 @@ class CldDiagram:
     def __init__(self, credentials: CloudCredentials) -> None:
         self._credentials = credentials
         self._page = AssetTemplate("cld_simulator.html")
+        self._tokens = AssetTemplate("brand_tokens.css")
         self._styles = AssetTemplate("cld_simulator.css")
         self._script = AssetTemplate("cld_simulator.js")
 
@@ -29,7 +31,9 @@ class CldDiagram:
             jsonbin_api_key=self._js_literal(self._credentials.api_key),
             jsonbin_bin_id=self._js_literal(self._credentials.bin_id),
         )
-        return self._page.render(styles=self._styles.read(), script=script)
+        # o iframe é um documento à parte: recebe os tokens da marca e o símbolo (data URI).
+        styles = f"{self._tokens.read()}\n{self._styles.read()}"
+        return self._page.render(styles=styles, script=script, logo_mark=BrandAssets.mark_data_uri())
 
     @staticmethod
     def _js_literal(value: Any) -> str:
