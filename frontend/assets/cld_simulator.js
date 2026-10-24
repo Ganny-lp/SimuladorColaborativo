@@ -9,7 +9,7 @@ let panX=60,panY=60,scale=.75,isPan=false,panSX=0,panSY=0;
 let saveTimer=null, isMobile=false;
 
 const CAT_CLS={Estado:'cat-estado',Equação:'cat-equacao',Parâmetro:'cat-parametro',Ambiente:'cat-ambiente',Input:'cat-input'};
-const CAT_COL={Estado:'#6a8aff',Equação:'#ff9090',Parâmetro:'#c090ff',Ambiente:'#60ffa0',Input:'#ffb060'};
+const CAT_COL={Estado:'#64c4d2',Equação:'#ff9a90',Parâmetro:'#b5a8f5',Ambiente:'#7fe3a4',Input:'#fcb421'};
 
 // ── Save / Load manual ──
 function setInd(cls,msg){const e=document.getElementById('save-ind');e.className=cls;e.textContent=msg;}
@@ -94,7 +94,7 @@ function renderEdges(){
       <path d="M1 2L9 5L1 8" fill="none" stroke="#52c97a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </marker>
     <marker id="a-" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M1 2L9 5L1 8" fill="none" stroke="#e06060" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M1 2L9 5L1 8" fill="none" stroke="#e8685d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </marker>
   </defs>`;
   for(const lk of SYS.links){
@@ -114,7 +114,7 @@ function renderEdges(){
     const x2=tx-ux*Math.min(tw/2+6,Math.abs(tw/2/ux)||tw/2);
     const y2=ty-uy*Math.min(th/2+6,Math.abs(th/2/uy)||th/2);
     const cx=(x1+x2)/2-uy*20, cy=(y1+y2)/2+ux*20;
-    const col=lk.sign==='+'?'#52c97a':'#e06060';
+    const col=lk.sign==='+'?'#52c97a':'#e8685d';
     const p=document.createElementNS('http://www.w3.org/2000/svg','path');
     p.setAttribute('d',`M${x1},${y1} Q${cx},${cy} ${x2},${y2}`);
     p.setAttribute('fill','none');p.setAttribute('stroke',col);
@@ -185,7 +185,7 @@ function selectNode(id){
 function deselect(){
   document.querySelectorAll('.cld-node').forEach(e=>e.classList.remove('selected'));
   selNode=null;
-  const ph='<div class="ph"><div class="ico">⬡</div><p>Clique em um nó para ver seus detalhes.</p></div>';
+  const ph='<div class="ph"><div class="ico"></div><p>Clique em um nó para ver seus detalhes.</p></div>';
   document.getElementById('panel-content').innerHTML=ph;
   document.getElementById('sheet-body').innerHTML=ph;
   document.getElementById('fab').classList.remove('node-sel');
@@ -302,7 +302,7 @@ function deleteNode(id){
   delete SYS.nodes[id];
   SYS.links=SYS.links.filter(l=>l.from!==id&&l.to!==id);
   selNode=null;
-  const ph='<div class="ph"><div class="ico">⬡</div><p>Nó excluído.</p></div>';
+  const ph='<div class="ph"><div class="ico"></div><p>Nó excluído.</p></div>';
   document.getElementById('panel-content').innerHTML=ph;
   document.getElementById('sheet-body').innerHTML=ph;
   document.getElementById('fab').classList.remove('node-sel');

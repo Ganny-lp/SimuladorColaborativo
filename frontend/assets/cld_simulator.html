@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <style>
+:root{--mark:url("__LOGO_MARK__");}
 __STYLES__
 </style>
 </head>
@@ -12,7 +13,8 @@ __STYLES__
 
 <!-- TOP BAR -->
 <div id="topbar">
-  <span id="tb-title">⬡ LUMINA</span>
+  <span class="tb-mark" role="img" aria-label="LUMINA"></span>
+  <span id="tb-title">LUMINA</span><span class="tb-tag">PUB·<b>USP</b></span>
   <div class="tsep" style="margin:0 3px;"></div>
   <button class="tbtn active" id="tool-select" onclick="setTool('select')" title="Selecionar (S)">⬚ Sel</button>
   <button class="tbtn" onclick="openAddModal()" title="Novo Nó (N)">＋ Nó</button>
@@ -59,16 +61,16 @@ __STYLES__
         <button id="sheet-x" onclick="closeSheet()">✕</button>
       </div>
       <div id="sheet-body">
-        <div class="ph"><div class="ico">⬡</div><p>Clique em um nó para ver detalhes.</p></div>
+        <div class="ph"><div class="ico"></div><p>Clique em um nó para ver detalhes.</p></div>
       </div>
       <div id="sheet-legend">
         <div class="legend-lbl">Categorias</div>
         <div class="legend-grid">
-          <div class="legend-item"><div class="legend-dot" style="background:rgba(14,26,80,.9);border-color:#4a6aee"></div>Estado</div>
-          <div class="legend-item"><div class="legend-dot" style="background:rgba(80,14,14,.9);border-color:#c04040"></div>Equação</div>
-          <div class="legend-item"><div class="legend-dot" style="background:rgba(20,14,60,.9);border-color:#6040c0"></div>Parâmetro</div>
-          <div class="legend-item"><div class="legend-dot" style="background:rgba(14,50,40,.9);border-color:#208060"></div>Ambiente</div>
-          <div class="legend-item"><div class="legend-dot" style="background:rgba(70,30,8,.9);border-color:#c06020"></div>Input</div>
+          <div class="legend-item"><div class="legend-dot cat-estado"></div>Estado</div>
+          <div class="legend-item"><div class="legend-dot cat-equacao"></div>Equação</div>
+          <div class="legend-item"><div class="legend-dot cat-parametro"></div>Parâmetro</div>
+          <div class="legend-item"><div class="legend-dot cat-ambiente"></div>Ambiente</div>
+          <div class="legend-item"><div class="legend-dot cat-input"></div>Input</div>
         </div>
       </div>
     </div>
@@ -82,16 +84,16 @@ __STYLES__
       <button class="panel-x" onclick="togglePanel()" title="Fechar painel">✕</button>
     </div>
     <div class="panel-body" id="panel-content">
-      <div class="ph"><div class="ico">⬡</div><p>Clique em um nó para ver seus detalhes, relações e equação.</p></div>
+      <div class="ph"><div class="ico"></div><p>Clique em um nó para ver seus detalhes, relações e equação.</p></div>
     </div>
     <div class="panel-legend">
       <div class="legend-lbl">Categorias</div>
       <div class="legend-grid">
-        <div class="legend-item"><div class="legend-dot" style="background:rgba(14,26,80,.9);border-color:#4a6aee"></div>Estado</div>
-        <div class="legend-item"><div class="legend-dot" style="background:rgba(80,14,14,.9);border-color:#c04040"></div>Equação</div>
-        <div class="legend-item"><div class="legend-dot" style="background:rgba(20,14,60,.9);border-color:#6040c0"></div>Parâmetro</div>
-        <div class="legend-item"><div class="legend-dot" style="background:rgba(14,50,40,.9);border-color:#208060"></div>Ambiente</div>
-        <div class="legend-item"><div class="legend-dot" style="background:rgba(70,30,8,.9);border-color:#c06020"></div>Input</div>
+        <div class="legend-item"><div class="legend-dot cat-estado"></div>Estado</div>
+        <div class="legend-item"><div class="legend-dot cat-equacao"></div>Equação</div>
+        <div class="legend-item"><div class="legend-dot cat-parametro"></div>Parâmetro</div>
+        <div class="legend-item"><div class="legend-dot cat-ambiente"></div>Ambiente</div>
+        <div class="legend-item"><div class="legend-dot cat-input"></div>Input</div>
       </div>
     </div>
   </div>

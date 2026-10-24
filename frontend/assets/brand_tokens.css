@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Open+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+/*
+ * ── Identidade visual LUMINA · PUB USP ─────────────────────────────────────────
+ * Fonte única de verdade das cores/tipografia. É injetada tanto na página Streamlit
+ * (Theme) quanto no iframe do diagrama (CldDiagram), que são documentos separados.
+ * Se mudar algo aqui, mantenha frontend/branding.py (Palette) em sincronia
+ * — tests/frontend/test_branding.py verifica.
+ *
+ *  Da logo       : cinza-azulado do símbolo (slate) e a malha poligonal do cérebro.
+ *  Da USP        : azul primário #1094ab, azul secundário #64c4d2 e amarelo #fcb421
+ *                  (Manual de Identidade Visual da USP). Tipografia: Open Sans é a
+ *                  alternativa livre recomendada pela USP ao Univers do logotipo.
+ */
+:root{
+  /* marca */
+  --slate:#6f8391;--slate-light:#b0c6d4;
+  --usp-blue:#1094ab;--usp-blue-light:#64c4d2;--usp-yellow:#fcb421;
+
+  /* superfícies (azul-ardósia escuro derivado do slate da logo) */
+  --bg:#0b1218;--bg2:#101a22;--bg3:#15222c;
+  --surface:#192832;--surf2:#20323f;
+  --border:rgba(143,170,188,.16);--border2:rgba(143,170,188,.30);
+
+  /* texto */
+  --text:#dbe6ec;--text2:#9db1be;--text3:#7a8f9d;
+
+  /* ações */
+  --accent:#64c4d2;--accent2:#0c7a8e;--accent-hover:#1094ab;
+  --yellow:#fcb421;--teal:#64c4d2;--coral:#e8685d;--green:#52c97a;
+
+  /* tipografia */
+  --sans:'Open Sans',system-ui,sans-serif;
+  --display:'Montserrat','Open Sans',sans-serif;
+  --mono:'DM Mono',monospace;
+}

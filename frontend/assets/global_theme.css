@@ -1,18 +1,66 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
-html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
-.stApp { background-color: #0d0f1a; color: #d8ddf0; }
-.lumina-header { display:flex; align-items:baseline; gap:12px; padding:0 0 4px; border-bottom:1px solid rgba(120,130,200,0.12); margin-bottom:12px; flex-wrap:wrap; }
-.main-header { font-family:'DM Serif Display',serif; font-size:clamp(1.2rem,4vw,1.8rem); color:#e8a94a; letter-spacing:.5px; line-height:1; }
-.sub-header { font-family:'DM Mono',monospace; font-size:clamp(.55rem,2vw,.72rem); color:#5a6290; letter-spacing:1px; }
-.card { background:#1e2340; border:1px solid rgba(120,130,200,0.15); border-radius:12px; padding:clamp(.6rem,2vw,1rem); margin-bottom:.7rem; }
-.kpi-value { font-family:'DM Mono',monospace; font-size:clamp(1rem,3vw,1.5rem); color:#e8a94a; font-weight:600; white-space:nowrap; }
-.kpi-label { font-size:clamp(.6rem,1.5vw,.7rem); color:#5a6290; text-transform:uppercase; letter-spacing:.5px; }
-.stButton>button { background:#4a6aee; color:white; border:none; border-radius:8px; font-weight:500; min-height:42px; font-size:clamp(.75rem,2vw,.9rem); width:100%; }
-.stButton>button:hover { background:#6c8fff; }
-.stTabs [data-baseweb="tab-list"] { gap:4px; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; }
+/* Tema global LUMINA · PUB USP (as variáveis vêm de brand_tokens.css, injetado antes). */
+html, body, [class*="css"], .stApp { font-family: var(--sans); }
+button, input, textarea, select { font-family: inherit; }
+.stApp { background-color: var(--bg); color: var(--text); }
+[data-testid="stHeader"] { background: transparent; }
+
+/* faixa institucional (azul · azul claro · amarelo) no topo da página */
+.stApp::before {
+  content:''; position:fixed; top:0; left:0; right:0; height:3px; z-index:999991;
+  background:linear-gradient(90deg, var(--usp-blue) 0 45%, var(--usp-blue-light) 45% 70%, var(--usp-yellow) 70% 100%);
+}
+
+/* ── Cabeçalho ── */
+.lumina-header { display:flex; align-items:center; gap:14px; padding:2px 0 12px; border-bottom:1px solid var(--border); margin-bottom:14px; flex-wrap:wrap; }
+.lumina-mark { height:clamp(34px,6vw,52px); width:auto; flex-shrink:0; display:block; }
+.lumina-wordmark { display:flex; flex-direction:column; gap:3px; line-height:1; }
+.main-header { font-family:var(--display); font-weight:700; font-size:clamp(1.3rem,4vw,1.9rem); color:var(--slate-light); letter-spacing:.14em; line-height:1; }
+.pub-tag { font-family:var(--display); font-weight:600; font-size:clamp(.55rem,1.6vw,.68rem); color:var(--slate); letter-spacing:.32em; }
+.pub-tag b { color:var(--usp-yellow); font-weight:700; }
+.sub-header { font-family:var(--mono); font-size:clamp(.55rem,2vw,.72rem); color:var(--text3); letter-spacing:1px; margin-left:auto; padding-left:12px; border-left:2px solid var(--usp-yellow); }
+@media (max-width:640px){ .sub-header { margin-left:0; flex-basis:100%; border-left:none; padding-left:0; } }
+
+/* ── Títulos de seção ── */
+.stApp h3 { font-family:var(--display); font-weight:600; font-size:1.05rem; letter-spacing:.02em; color:var(--text);
+            border-left:3px solid var(--usp-yellow); padding:2px 0 2px 10px; margin-top:.4rem; }
+
+/* ── Cards / KPIs ── */
+.card { background:var(--surface); border:1px solid var(--border); border-top:2px solid var(--usp-blue); border-radius:12px; padding:clamp(.6rem,2vw,1rem); margin-bottom:.7rem; }
+.kpi-value { font-family:var(--mono); font-size:clamp(1rem,3vw,1.5rem); color:var(--usp-yellow); font-weight:600; white-space:nowrap; }
+.kpi-label { font-family:var(--display); font-weight:600; font-size:clamp(.58rem,1.5vw,.68rem); color:var(--text3); text-transform:uppercase; letter-spacing:.8px; }
+
+/* ── Botões ── */
+.stButton>button { background:var(--accent2); color:#fff; border:none; border-radius:8px; font-weight:600; min-height:42px; font-size:clamp(.75rem,2vw,.9rem); width:100%; transition:background .15s, box-shadow .15s; }
+.stButton>button:hover { background:var(--accent-hover); color:#fff; }
+.stButton>button:focus-visible { box-shadow:0 0 0 3px rgba(252,180,33,.55); outline:none; }
+
+/* ── Abas ── */
+.stTabs [data-baseweb="tab-list"] { gap:4px; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid var(--border); }
 .stTabs [data-baseweb="tab-list"]::-webkit-scrollbar { display:none; }
-.stTabs [data-baseweb="tab"] { font-size:clamp(.7rem,2vw,.85rem); padding:8px 12px; white-space:nowrap; }
-[data-testid="stDataFrame"] { width:100% !important; overflow-x:auto; }
-div[data-testid="stMarkdownContainer"] p { color:#8892be; }
-.stCaption { color:#5a6290 !important; }
-hr { border-color:rgba(120,130,200,0.12) !important; }
+.stTabs [data-baseweb="tab"] { font-family:var(--display); font-weight:600; font-size:clamp(.7rem,2vw,.85rem); padding:8px 12px; white-space:nowrap; color:var(--text3); }
+.stTabs [data-baseweb="tab"][aria-selected="true"] { color:var(--usp-blue-light); }
+.stTabs [data-baseweb="tab-highlight"] { background-color:var(--usp-yellow); height:3px; }
+.stTabs [data-baseweb="tab-border"] { background-color:transparent; }
+
+/* ── Campos ── */
+[data-baseweb="input"], [data-baseweb="base-input"], [data-baseweb="select"] > div, [data-baseweb="textarea"] { background-color:var(--bg3) !important; border-color:var(--border2) !important; }
+[data-baseweb="input"]:focus-within, [data-baseweb="select"]:focus-within > div { border-color:var(--usp-blue-light) !important; }
+[data-testid="stWidgetLabel"] p { color:var(--text2); font-weight:500; }
+[data-testid="stAlert"] { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--usp-blue-light); }
+
+/* ── Tabela / texto ── */
+[data-testid="stDataFrame"] { width:100% !important; overflow-x:auto; border:1px solid var(--border); border-radius:10px; }
+div[data-testid="stMarkdownContainer"] p { color:var(--text2); }
+div[data-testid="stMarkdownContainer"] strong { color:var(--text); }
+.stCaption { color:var(--text3) !important; }
+hr { border-color:var(--border) !important; }
+::selection { background:rgba(252,180,33,.35); }
+
+/* ── Rodapé ── */
+.lumina-footer { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:1.4rem; padding-top:14px; border-top:1px solid var(--border); position:relative; }
+.lumina-footer::before { content:''; position:absolute; top:-1px; left:0; width:120px; height:2px;
+  background:linear-gradient(90deg, var(--usp-blue) 0 45%, var(--usp-blue-light) 45% 70%, var(--usp-yellow) 70% 100%); }
+.lumina-footer img { height:30px; width:auto; opacity:.9; }
+.lumina-footer .f-text { font-size:.74rem; color:var(--text3); line-height:1.5; }
+.lumina-footer .f-text b { font-family:var(--display); color:var(--slate-light); letter-spacing:.12em; font-weight:700; }
+.lumina-footer .f-motto { margin-left:auto; font-family:var(--display); font-style:italic; font-weight:500; font-size:.74rem; color:var(--usp-yellow); letter-spacing:.06em; }
