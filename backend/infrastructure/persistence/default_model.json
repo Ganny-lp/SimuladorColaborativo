@@ -1,0 +1,468 @@
+{
+  "nodes": {
+    "Rentabilidade": {
+      "cat": "Estado",
+      "val": 0,
+      "expr": "Receita Líquida - Custos",
+      "desc": "Acumulado de receitas menos custos.",
+      "x": 760,
+      "y": 300
+    },
+    "Receita Líquida": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "(Pt*Qt)*(1-Carga_Tributaria)",
+      "desc": "Receita líquida.",
+      "x": 560,
+      "y": 200
+    },
+    "Custos": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "Custo_Fixo+Custo_Variavel_t+Emprestimos_Mensal",
+      "desc": "Custo total.",
+      "x": 560,
+      "y": 400
+    },
+    "Pt": {
+      "cat": "Input",
+      "val": 150,
+      "expr": "",
+      "desc": "Preço de venda.",
+      "x": 360,
+      "y": 130
+    },
+    "Qt": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "MIN(Dpt*St, Cap)",
+      "desc": "Demanda capturada.",
+      "x": 360,
+      "y": 270
+    },
+    "Carga_Tributaria": {
+      "cat": "Parâmetro",
+      "val": 0.15,
+      "expr": "",
+      "desc": "Percentual de impostos.",
+      "x": 560,
+      "y": 100
+    },
+    "Custo_Fixo": {
+      "cat": "Equação",
+      "val": 500,
+      "expr": "500+budget_update+budget_training+budget_infra+budget_promo",
+      "desc": "Custos fixos.",
+      "x": 360,
+      "y": 430
+    },
+    "Custo_Variavel_t": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "CVt*(1+Inflacao)",
+      "desc": "Custo variável ajustado.",
+      "x": 360,
+      "y": 520
+    },
+    "Emprestimos_Mensal": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "Emprestimo/a_ni",
+      "desc": "Parcela mensal.",
+      "x": 560,
+      "y": 520
+    },
+    "Dpt": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "B*Alfa*Teta_1",
+      "desc": "Demanda Potencial.",
+      "x": 160,
+      "y": 270
+    },
+    "St": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "1/(1+Nc*EXP(Beta_1*(Pt-Pm)))",
+      "desc": "Market share (logit, sempre entre 0 e 1).",
+      "x": 360,
+      "y": 200
+    },
+    "B": {
+      "cat": "Ambiente",
+      "val": 10000,
+      "expr": "",
+      "desc": "Base instalada.",
+      "x": 80,
+      "y": 180
+    },
+    "Alfa": {
+      "cat": "Ambiente",
+      "val": 1,
+      "expr": "",
+      "desc": "Taxa de falha.",
+      "x": 80,
+      "y": 350
+    },
+    "Teta_1": {
+      "cat": "Ambiente",
+      "val": 0.1,
+      "expr": "",
+      "desc": "Confiança.",
+      "x": 160,
+      "y": 430
+    },
+    "Pm": {
+      "cat": "Ambiente",
+      "val": 140,
+      "expr": "",
+      "desc": "Preço concorrência.",
+      "x": 200,
+      "y": 130
+    },
+    "Beta_1": {
+      "cat": "Parâmetro",
+      "val": 0.5,
+      "expr": "",
+      "desc": "Sensibilidade.",
+      "x": 200,
+      "y": 200
+    },
+    "Nc": {
+      "cat": "Ambiente",
+      "val": 4,
+      "expr": "",
+      "desc": "Nº concorrentes.",
+      "x": 200,
+      "y": 310
+    },
+    "Cap": {
+      "cat": "Parâmetro",
+      "val": 300,
+      "expr": "",
+      "desc": "Capacidade máx.",
+      "x": 460,
+      "y": 310
+    },
+    "CVt": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "Qt*(Cp+C_Mao_Obra)",
+      "desc": "Custo variável base.",
+      "x": 160,
+      "y": 560
+    },
+    "Cp": {
+      "cat": "Ambiente",
+      "val": 20,
+      "expr": "",
+      "desc": "Custo peças.",
+      "x": 80,
+      "y": 520
+    },
+    "C_Mao_Obra": {
+      "cat": "Parâmetro",
+      "val": 10,
+      "expr": "",
+      "desc": "Mão de obra.",
+      "x": 280,
+      "y": 580
+    },
+    "Inflacao": {
+      "cat": "Ambiente",
+      "val": 0.035,
+      "expr": "",
+      "desc": "Inflação.",
+      "x": 460,
+      "y": 520
+    },
+    "Emprestimo": {
+      "cat": "Parâmetro",
+      "val": 10000,
+      "expr": "",
+      "desc": "Valor empréstimo.",
+      "x": 660,
+      "y": 580
+    },
+    "a_ni": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "((1+Tx_Juros_Emprestimo)^Prazo-1)/((1+Tx_Juros_Emprestimo)^Prazo*Tx_Juros_Emprestimo)",
+      "desc": "Fator anuidade.",
+      "x": 760,
+      "y": 520
+    },
+    "Tx_Juros_Emprestimo": {
+      "cat": "Parâmetro",
+      "val": 0.016,
+      "expr": "",
+      "desc": "Juros mensais.",
+      "x": 860,
+      "y": 580
+    },
+    "Prazo": {
+      "cat": "Parâmetro",
+      "val": 12,
+      "expr": "",
+      "desc": "Prazo.",
+      "x": 960,
+      "y": 520
+    },
+    "budget_update": {
+      "cat": "Input",
+      "val": 5000,
+      "expr": "",
+      "desc": "P&D.",
+      "x": 560,
+      "y": 380
+    },
+    "budget_training": {
+      "cat": "Input",
+      "val": 5000,
+      "expr": "",
+      "desc": "Treinamento.",
+      "x": 660,
+      "y": 430
+    },
+    "budget_infra": {
+      "cat": "Input",
+      "val": 5000,
+      "expr": "",
+      "desc": "Infraestrutura.",
+      "x": 760,
+      "y": 430
+    },
+    "budget_promo": {
+      "cat": "Input",
+      "val": 10000,
+      "expr": "",
+      "desc": "Marketing.",
+      "x": 860,
+      "y": 380
+    }
+  },
+  "links": [
+    {
+      "from": "Receita Líquida",
+      "to": "Rentabilidade",
+      "sign": "+",
+      "desc": "Receita → Rentabilidade"
+    },
+    {
+      "from": "Custos",
+      "to": "Rentabilidade",
+      "sign": "-",
+      "desc": "Custos → Rentabilidade"
+    },
+    {
+      "from": "Pt",
+      "to": "Receita Líquida",
+      "sign": "+",
+      "desc": "Preço → Receita"
+    },
+    {
+      "from": "Qt",
+      "to": "Receita Líquida",
+      "sign": "+",
+      "desc": "Qt → Receita"
+    },
+    {
+      "from": "Carga_Tributaria",
+      "to": "Receita Líquida",
+      "sign": "-",
+      "desc": "Imposto → Receita"
+    },
+    {
+      "from": "Custo_Fixo",
+      "to": "Custos",
+      "sign": "+",
+      "desc": "Fixo → Custos"
+    },
+    {
+      "from": "Custo_Variavel_t",
+      "to": "Custos",
+      "sign": "+",
+      "desc": "Variável → Custos"
+    },
+    {
+      "from": "Emprestimos_Mensal",
+      "to": "Custos",
+      "sign": "+",
+      "desc": "Parcela → Custos"
+    },
+    {
+      "from": "Dpt",
+      "to": "Qt",
+      "sign": "+",
+      "desc": "Demanda → Qt"
+    },
+    {
+      "from": "St",
+      "to": "Qt",
+      "sign": "+",
+      "desc": "Share → Qt"
+    },
+    {
+      "from": "Cap",
+      "to": "Qt",
+      "sign": "-",
+      "desc": "Capacidade → Qt"
+    },
+    {
+      "from": "B",
+      "to": "Dpt",
+      "sign": "+",
+      "desc": "Base → Dpt"
+    },
+    {
+      "from": "Alfa",
+      "to": "Dpt",
+      "sign": "+",
+      "desc": "Falha → Dpt"
+    },
+    {
+      "from": "Teta_1",
+      "to": "Dpt",
+      "sign": "+",
+      "desc": "Confiança → Dpt"
+    },
+    {
+      "from": "Pm",
+      "to": "St",
+      "sign": "+",
+      "desc": "Preço médio → St"
+    },
+    {
+      "from": "Pt",
+      "to": "St",
+      "sign": "-",
+      "desc": "Preço → St"
+    },
+    {
+      "from": "Beta_1",
+      "to": "St",
+      "sign": "-",
+      "desc": "Sensibilidade → St"
+    },
+    {
+      "from": "Nc",
+      "to": "St",
+      "sign": "-",
+      "desc": "Concorrentes → St"
+    },
+    {
+      "from": "Qt",
+      "to": "CVt",
+      "sign": "+",
+      "desc": "Qt → CVt"
+    },
+    {
+      "from": "Cp",
+      "to": "CVt",
+      "sign": "+",
+      "desc": "Peças → CVt"
+    },
+    {
+      "from": "C_Mao_Obra",
+      "to": "CVt",
+      "sign": "+",
+      "desc": "Mão de obra → CVt"
+    },
+    {
+      "from": "CVt",
+      "to": "Custo_Variavel_t",
+      "sign": "+",
+      "desc": "CVt → Custo Var"
+    },
+    {
+      "from": "Inflacao",
+      "to": "Custo_Variavel_t",
+      "sign": "+",
+      "desc": "Inflação → Custo Var"
+    },
+    {
+      "from": "Emprestimo",
+      "to": "Emprestimos_Mensal",
+      "sign": "+",
+      "desc": "Empréstimo → Parcela"
+    },
+    {
+      "from": "a_ni",
+      "to": "Emprestimos_Mensal",
+      "sign": "-",
+      "desc": "Anuidade → Parcela"
+    },
+    {
+      "from": "Tx_Juros_Emprestimo",
+      "to": "a_ni",
+      "sign": "+",
+      "desc": "Juros → a_ni"
+    },
+    {
+      "from": "Prazo",
+      "to": "a_ni",
+      "sign": "+",
+      "desc": "Prazo → a_ni"
+    },
+    {
+      "from": "budget_update",
+      "to": "Custo_Fixo",
+      "sign": "+",
+      "desc": "P&D → Fixo"
+    },
+    {
+      "from": "budget_training",
+      "to": "Custo_Fixo",
+      "sign": "+",
+      "desc": "Treinamento → Fixo"
+    },
+    {
+      "from": "budget_infra",
+      "to": "Custo_Fixo",
+      "sign": "+",
+      "desc": "Infra → Fixo"
+    },
+    {
+      "from": "budget_promo",
+      "to": "Custo_Fixo",
+      "sign": "+",
+      "desc": "Marketing → Fixo"
+    }
+  ],
+  "price_scale": {
+    "min": 0,
+    "max": 300,
+    "stops": [
+      {
+        "value": 0,
+        "color": "#e06060",
+        "label": "Prejuízo"
+      },
+      {
+        "value": 30,
+        "color": "#e8825a",
+        "label": "Custo variável"
+      },
+      {
+        "value": 84,
+        "color": "#e8a94a",
+        "label": "Abaixo do mercado"
+      },
+      {
+        "value": 140,
+        "color": "#52c97a",
+        "label": "Alinhado ao mercado"
+      },
+      {
+        "value": 196,
+        "color": "#e8a94a",
+        "label": "Acima do mercado"
+      },
+      {
+        "value": 300,
+        "color": "#e06060",
+        "label": "Preço muito alto"
+      }
+    ]
+  }
+}
