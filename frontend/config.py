@@ -5,7 +5,7 @@ from dataclasses import dataclass
 # do deploy (que ainda guardam o estado antigo) são recarregadas.
 APP_VERSION = "2026-09-28-fix-st-rentabilidade"
 
-PAGE_TITLE = "LUMINA · Simulador de Laços Causais"
+PAGE_TITLE = "LUMINA · Simulador de Laços Causais · PUB USP"
 PRICE_VARIABLE = "Pt"
 PRICE_SYNC_KEY = "pt_hidden_sync"
 PRICE_RULER_KEY = "pt_ruler"
