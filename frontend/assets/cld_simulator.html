@@ -4,27 +4,31 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <style>
-:root{--mark:url("__LOGO_MARK__");}
+:root{--mark-url:url("__LOGO_MARK__");}
 __STYLES__
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><symbol id="i-select" viewBox="0 0 24 24"><path d="M4.04 4.69a.5.5 0 0 1 .65-.65l16 6.5a.5.5 0 0 1-.06.95l-6.13 1.58a2 2 0 0 0-1.43 1.44l-1.58 6.12a.5.5 0 0 1-.95.07z"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol><symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol><symbol id="i-focus" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></symbol><symbol id="i-save" viewBox="0 0 24 24"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></symbol><symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol><symbol id="i-panel" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol><symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></symbol><symbol id="i-pencil" viewBox="0 0 24 24"><path d="M21.17 6.81a1 1 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5z"/><path d="m15 5 4 4"/></symbol></defs></svg>
 <div id="shell">
 
 <!-- TOP BAR -->
 <div id="topbar">
-  <span class="tb-mark" role="img" aria-label="LUMINA"></span>
-  <span id="tb-title">LUMINA</span><span class="tb-tag">PUB·<b>USP</b></span>
-  <div class="tsep" style="margin:0 3px;"></div>
-  <button class="tbtn active" id="tool-select" onclick="setTool('select')" title="Selecionar (S)">⬚ Sel</button>
-  <button class="tbtn" onclick="openAddModal()" title="Novo Nó (N)">＋ Nó</button>
-  <button class="tbtn" id="tool-link" onclick="setTool('link')" title="Criar Link (L)">→ Link</button>
-  <div class="tsep" style="margin:0 3px;"></div>
-  <button class="tbtn" onclick="zoomReset()" title="Reset zoom (R)">◎</button>
-  <button class="tbtn danger" onclick="deleteSelected()" title="Excluir (Del)">✕</button>
+  <div class="usp-stripe usp-stripe-bar"></div>
+  <div class="tb-brand">
+    <span class="mark" role="img" aria-label="LUMINA"><i></i><b></b></span>
+    <span class="tb-name"><span id="tb-title">LUMINA</span><span class="tb-tag">PUB · <b>USP</b></span></span>
+  </div>
   <div class="tsep"></div>
-  <button class="tbtn" onclick="manualSave()">💾 Salvar</button>
-  <button class="tbtn" onclick="refreshFromCloud()">↻ Recarregar</button>
+  <button class="tbtn active" id="tool-select" onclick="setTool('select')" title="Selecionar (S)"><svg class="ic" aria-hidden="true"><use href="#i-select"/></svg><span class="lbl">Selecionar</span></button>
+  <button class="tbtn" onclick="openAddModal()" title="Novo Nó (N)"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg><span class="lbl">Nó</span></button>
+  <button class="tbtn" id="tool-link" onclick="setTool('link')" title="Criar Link (L)"><svg class="ic" aria-hidden="true"><use href="#i-link"/></svg><span class="lbl">Link</span></button>
+  <div class="tsep"></div>
+  <button class="tbtn" onclick="zoomReset()" title="Centralizar (R)" aria-label="Centralizar"><svg class="ic" aria-hidden="true"><use href="#i-focus"/></svg></button>
+  <button class="tbtn danger" onclick="deleteSelected()" title="Excluir (Del)" aria-label="Excluir"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg></button>
+  <div class="tsep"></div>
+  <button class="tbtn" onclick="manualSave()" title="Salvar na nuvem"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg><span class="lbl">Salvar</span></button>
+  <button class="tbtn" onclick="refreshFromCloud()" title="Recarregar da nuvem"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg><span class="lbl">Recarregar</span></button>
   <div id="save-ind">pronto</div>
 </div>
 
@@ -39,16 +43,16 @@ __STYLES__
 
     <!-- BOTTOM TOOLBAR -->
     <div id="toolbar">
-      <button class="tbtn" onclick="zoomIn()">＋</button>
-      <button class="tbtn" onclick="zoomOut()">－</button>
+      <button class="tbtn" onclick="zoomOut()" title="Reduzir" aria-label="Reduzir"><svg class="ic" aria-hidden="true"><use href="#i-minus"/></svg></button>
+      <button class="tbtn" onclick="zoomIn()" title="Ampliar" aria-label="Ampliar"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button>
       <div class="tsep"></div>
-      <button class="tbtn" onclick="zoomReset()">◎ Central.</button>
+      <button class="tbtn" onclick="zoomReset()"><svg class="ic" aria-hidden="true"><use href="#i-focus"/></svg><span class="lbl">Centralizar</span></button>
       <div class="tsep"></div>
-      <button class="tbtn" id="toggle-panel-btn" onclick="togglePanel()">◧ Painel</button>
+      <button class="tbtn" id="toggle-panel-btn" onclick="togglePanel()"><svg class="ic" aria-hidden="true"><use href="#i-panel"/></svg><span class="lbl">Painel</span></button>
     </div>
 
     <!-- FAB (mobile only) -->
-    <button id="fab" onclick="openSheet()" title="Ver detalhes">📋</button>
+    <button id="fab" onclick="openSheet()" title="Ver detalhes" aria-label="Ver detalhes"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg></button>
 
     <!-- MOBILE BACKDROP -->
     <div id="sheet-backdrop" onclick="closeSheet()"></div>
@@ -58,10 +62,10 @@ __STYLES__
       <div id="sheet-handle"></div>
       <div id="sheet-hdr">
         <span id="sheet-title">Detalhes</span>
-        <button id="sheet-x" onclick="closeSheet()">✕</button>
+        <button class="panel-x" id="sheet-x" onclick="closeSheet()" aria-label="Fechar"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
       </div>
       <div id="sheet-body">
-        <div class="ph"><div class="ico"></div><p>Clique em um nó para ver detalhes.</p></div>
+        <div class="ph"><span class="mark ico" role="img" aria-label=""><i></i><b></b></span><p>Clique em um nó para ver detalhes.</p></div>
       </div>
       <div id="sheet-legend">
         <div class="legend-lbl">Categorias</div>
@@ -81,10 +85,10 @@ __STYLES__
     <div class="panel-hdr">
       <span class="panel-title">Detalhes</span>
       <span id="panel-badge">SELECIONAR</span>
-      <button class="panel-x" onclick="togglePanel()" title="Fechar painel">✕</button>
+      <button class="panel-x" onclick="togglePanel()" title="Fechar painel" aria-label="Fechar painel"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
     </div>
     <div class="panel-body" id="panel-content">
-      <div class="ph"><div class="ico"></div><p>Clique em um nó para ver seus detalhes, relações e equação.</p></div>
+      <div class="ph"><span class="mark ico" role="img" aria-label=""><i></i><b></b></span><p>Clique em um nó para ver seus detalhes, relações e equação.</p></div>
     </div>
     <div class="panel-legend">
       <div class="legend-lbl">Categorias</div>
@@ -155,8 +159,8 @@ __STYLES__
     <div class="frow"><label class="flabel">Para (Destino)</label><select class="fselect" id="lk-to"></select></div>
     <div class="frow"><label class="flabel">Sinal da Relação</label>
       <select class="fselect" id="lk-sign">
-        <option value="+">＋ Positiva — A aumenta → B aumenta</option>
-        <option value="-">－ Negativa — A aumenta → B diminui</option>
+        <option value="+">+ Positiva — A aumenta, B aumenta</option>
+        <option value="-">− Negativa — A aumenta, B diminui</option>
       </select>
     </div>
     <div class="frow"><label class="flabel">Descrição (opcional)</label><textarea class="ftextarea" id="lk-desc" placeholder="ex: Maior preço reduz o volume vendido"></textarea></div>
@@ -167,6 +171,9 @@ __STYLES__
   </div>
 </div>
 
+<script>
+__THEME_BRIDGE__
+</script>
 <script>
 __SCRIPT__
 </script>

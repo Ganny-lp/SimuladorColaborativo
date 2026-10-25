@@ -9,24 +9,24 @@ let panX=60,panY=60,scale=.75,isPan=false,panSX=0,panSY=0;
 let saveTimer=null, isMobile=false;
 
 const CAT_CLS={Estado:'cat-estado',Equação:'cat-equacao',Parâmetro:'cat-parametro',Ambiente:'cat-ambiente',Input:'cat-input'};
-const CAT_COL={Estado:'#64c4d2',Equação:'#ff9a90',Parâmetro:'#b5a8f5',Ambiente:'#7fe3a4',Input:'#fcb421'};
+const CAT_FG={Estado:'fg-estado',Equação:'fg-equacao',Parâmetro:'fg-parametro',Ambiente:'fg-ambiente',Input:'fg-input'};
 
 // ── Save / Load manual ──
 function setInd(cls,msg){const e=document.getElementById('save-ind');e.className=cls;e.textContent=msg;}
 
 async function manualSave(){
   if(!JSONBIN_API_KEY||!JSONBIN_BIN_ID){setInd('error','sem credenciais');return;}
-  setInd('saving','⏳ salvando…');
+  setInd('saving','salvando…');
   try{
     const r=await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_API_KEY},body:JSON.stringify(SYS)});
-    if(r.ok){setInd('saved','✓ salvo');setTimeout(()=>setInd('','pronto'),2500);}
-    else setInd('error','✗ erro '+r.status);
-  }catch{setInd('error','✗ sem conexão');}
+    if(r.ok){setInd('saved','salvo');setTimeout(()=>setInd('','pronto'),2500);}
+    else setInd('error','erro '+r.status);
+  }catch{setInd('error','sem conexão');}
 }
 
 async function refreshFromCloud(){
   if(!JSONBIN_API_KEY||!JSONBIN_BIN_ID){alert('Credenciais não configuradas.');return;}
-  setInd('saving','⏳ carregando…');
+  setInd('saving','carregando…');
   try{
     const r=await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`,{headers:{'X-Master-Key':JSONBIN_API_KEY}});
     if(r.ok){
@@ -35,11 +35,11 @@ async function refreshFromCloud(){
         SYS = data.record;
         selNode=null; lkSrc=null;
         renderAll();
-        setInd('saved','✓ recarregado');
+        setInd('saved','recarregado');
         setTimeout(()=>setInd('','pronto'),2500);
       } else throw new Error();
     } else throw new Error();
-  }catch{setInd('error','✗ falha');}
+  }catch{setInd('error','falha');}
 }
 
 // ── Zoom ──
@@ -91,10 +91,10 @@ function renderEdges(){
   svg.setAttribute('height',H);
   svg.innerHTML=`<defs>
     <marker id="a+" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M1 2L9 5L1 8" fill="none" stroke="#52c97a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M1 2L9 5L1 8" fill="none" style="stroke:var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </marker>
     <marker id="a-" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M1 2L9 5L1 8" fill="none" stroke="#e8685d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M1 2L9 5L1 8" fill="none" style="stroke:var(--coral)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </marker>
   </defs>`;
   for(const lk of SYS.links){
@@ -114,17 +114,17 @@ function renderEdges(){
     const x2=tx-ux*Math.min(tw/2+6,Math.abs(tw/2/ux)||tw/2);
     const y2=ty-uy*Math.min(th/2+6,Math.abs(th/2/uy)||th/2);
     const cx=(x1+x2)/2-uy*20, cy=(y1+y2)/2+ux*20;
-    const col=lk.sign==='+'?'#52c97a':'#e8685d';
+    const col=lk.sign==='+'?'var(--green)':'var(--coral)';
     const p=document.createElementNS('http://www.w3.org/2000/svg','path');
     p.setAttribute('d',`M${x1},${y1} Q${cx},${cy} ${x2},${y2}`);
-    p.setAttribute('fill','none');p.setAttribute('stroke',col);
+    p.setAttribute('fill','none');p.style.stroke=col;
     p.setAttribute('stroke-width','1.5');p.setAttribute('stroke-opacity','.65');
     p.setAttribute('marker-end',`url(#a${lk.sign})`);
     const t=document.createElementNS('http://www.w3.org/2000/svg','text');
     t.setAttribute('x',cx);t.setAttribute('y',cy-5);
     t.setAttribute('text-anchor','middle');t.setAttribute('font-size','11');
     t.setAttribute('font-family','DM Mono,monospace');t.setAttribute('font-weight','700');
-    t.setAttribute('fill',col);t.setAttribute('opacity','.9');
+    t.style.fill=col;t.setAttribute('opacity','.95');
     t.textContent=lk.sign;
     svg.appendChild(p);svg.appendChild(t);
   }
@@ -185,7 +185,7 @@ function selectNode(id){
 function deselect(){
   document.querySelectorAll('.cld-node').forEach(e=>e.classList.remove('selected'));
   selNode=null;
-  const ph='<div class="ph"><div class="ico"></div><p>Clique em um nó para ver seus detalhes.</p></div>';
+  const ph='<div class="ph"><span class="mark ico" role="img" aria-label=""><i></i><b></b></span><p>Clique em um nó para ver seus detalhes.</p></div>';
   document.getElementById('panel-content').innerHTML=ph;
   document.getElementById('sheet-body').innerHTML=ph;
   document.getElementById('fab').classList.remove('node-sel');
@@ -201,9 +201,9 @@ function buildDetail(id){
   const nd=SYS.nodes[id]; if(!nd) return '';
   const out=SYS.links.filter(l=>l.from===id);
   const inc=SYS.links.filter(l=>l.to===id);
-  const col=CAT_COL[nd.cat]||'#aaa';
+  const fgCls=CAT_FG[nd.cat]||'';
   const fmtVal=v=>typeof v==='number'?v.toPrecision(6).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''):v;
-  let h=`<div class="dn-name">${id}</div><div class="dn-cat" style="color:${col}">${nd.cat}</div>`;
+  let h=`<div class="dn-name">${id}</div><div class="dn-cat ${fgCls}">${nd.cat}</div>`;
   h+=`<div class="dl">Descrição</div><div class="dd">${nd.desc||'—'}</div>`;
   h+=`<div class="dl">Valor Atual</div><div class="dv">${fmtVal(nd.val)}</div>`;
   if(nd.expr) h+=`<div class="dl">Equação</div><div class="deq">${nd.expr}</div>`;
@@ -216,9 +216,9 @@ function buildDetail(id){
     out.forEach(l=>h+=`<div class="rel-row"><span class="rsgn ${l.sign==='+'?'rpos':'rneg'}">${l.sign}</span><span style="color:var(--text2)">${l.to}</span></div>`);
   }
   h+=`<div class="dact">
-    <button class="bi" onclick="openEditModal('${id}')">✎ Editar</button>
-    <button class="bi" onclick="startLinkFrom('${id}')">+ Link</button>
-    <button class="bd" onclick="deleteNode('${id}')">✕ Excluir</button>
+    <button class="bi" onclick="openEditModal('${id}')"><svg class="ic" aria-hidden="true"><use href="#i-pencil"/></svg>Editar</button>
+    <button class="bi" onclick="startLinkFrom('${id}')"><svg class="ic" aria-hidden="true"><use href="#i-link"/></svg>Link</button>
+    <button class="bd" onclick="deleteNode('${id}')"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Excluir</button>
   </div>`;
   return h;
 }
@@ -302,7 +302,7 @@ function deleteNode(id){
   delete SYS.nodes[id];
   SYS.links=SYS.links.filter(l=>l.from!==id&&l.to!==id);
   selNode=null;
-  const ph='<div class="ph"><div class="ico"></div><p>Nó excluído.</p></div>';
+  const ph='<div class="ph"><span class="mark ico" role="img" aria-label=""><i></i><b></b></span><p>Nó excluído.</p></div>';
   document.getElementById('panel-content').innerHTML=ph;
   document.getElementById('sheet-body').innerHTML=ph;
   document.getElementById('fab').classList.remove('node-sel');
@@ -323,8 +323,8 @@ function togglePanel(){
   panelVisible=!panelVisible;
   const rp=document.getElementById('right-panel');
   const btn=document.getElementById('toggle-panel-btn');
-  if(panelVisible){rp.classList.remove('panel-hidden');btn.textContent='◨ Painel';}
-  else{rp.classList.add('panel-hidden');btn.textContent='◧ Painel';}
+  if(panelVisible){rp.classList.remove('panel-hidden');btn.classList.add('active');}
+  else{rp.classList.add('panel-hidden');btn.classList.remove('active');}
   setTimeout(renderEdges,300);
 }
 

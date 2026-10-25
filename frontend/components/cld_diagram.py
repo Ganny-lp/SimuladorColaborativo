@@ -21,6 +21,7 @@ class CldDiagram:
         self._tokens = AssetTemplate("brand_tokens.css")
         self._styles = AssetTemplate("cld_simulator.css")
         self._script = AssetTemplate("cld_simulator.js")
+        self._bridge = AssetTemplate("theme_bridge.js")
 
     def render(self, model_payload: Mapping[str, Any]) -> None:
         render_html_frame(self.build_html(model_payload), height=self._HEIGHT)
@@ -33,7 +34,10 @@ class CldDiagram:
         )
         # o iframe é um documento à parte: recebe os tokens da marca e o símbolo (data URI).
         styles = f"{self._tokens.read()}\n{self._styles.read()}"
-        return self._page.render(styles=styles, script=script, logo_mark=BrandAssets.mark_data_uri())
+        return self._page.render(
+            styles=styles, script=script, logo_mark=BrandAssets.mark_data_uri(),
+            theme_bridge=self._bridge.read(),
+        )
 
     @staticmethod
     def _js_literal(value: Any) -> str:

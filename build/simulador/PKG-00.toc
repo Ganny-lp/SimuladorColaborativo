@@ -1,0 +1,68 @@
+('D:\\Downloads '
+ 'HDD\\SimuladorColaborativo-com-empacotamento\\build\\simulador\\SimuladorLumina.pkg',
+ {'BINARY': True,
+  'DATA': True,
+  'EXECUTABLE': True,
+  'EXTENSION': True,
+  'PYMODULE': True,
+  'PYSOURCE': True,
+  'PYZ': False,
+  'SPLASH': True,
+  'SYMLINK': False},
+ [('pyi-contents-directory _internal', '', 'OPTION'),
+  ('PYZ-00.pyz',
+   'D:\\Downloads '
+   'HDD\\SimuladorColaborativo-com-empacotamento\\build\\simulador\\PYZ-00.pyz',
+   'PYZ'),
+  ('struct',
+   'D:\\Downloads '
+   'HDD\\SimuladorColaborativo-com-empacotamento\\build\\simulador\\localpycs\\struct.pyc',
+   'PYMODULE'),
+  ('pyimod01_archive',
+   'D:\\Downloads '
+   'HDD\\SimuladorColaborativo-com-empacotamento\\build\\simulador\\localpycs\\pyimod01_archive.pyc',
+   'PYMODULE'),
+  ('pyimod02_importers',
+   'D:\\Downloads '
+   'HDD\\SimuladorColaborativo-com-empacotamento\\build\\simulador\\localpycs\\pyimod02_importers.pyc',
+   'PYMODULE'),
+  ('pyimod03_ctypes',
+   'D:\\Downloads '
+   'HDD\\SimuladorColaborativo-com-empacotamento\\build\\simulador\\localpycs\\pyimod03_ctypes.pyc',
+   'PYMODULE'),
+  ('pyimod04_pywin32',
+   'D:\\Downloads '
+   'HDD\\SimuladorColaborativo-com-empacotamento\\build\\simulador\\localpycs\\pyimod04_pywin32.pyc',
+   'PYMODULE'),
+  ('pyiboot01_bootstrap',
+   'D:\\Downloads '
+   'HDD\\SimuladorColaborativo-com-empacotamento\\.venv-build\\Lib\\site-packages\\PyInstaller\\loader\\pyiboot01_bootstrap.py',
+   'PYSOURCE'),
+  ('pyi_rth_inspect',
+   'D:\\Downloads '
+   'HDD\\SimuladorColaborativo-com-empacotamento\\.venv-build\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_inspect.py',
+   'PYSOURCE'),
+  ('pyi_rth_pkgutil',
+   'D:\\Downloads '
+   'HDD\\SimuladorColaborativo-com-empacotamento\\.venv-build\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pkgutil.py',
+   'PYSOURCE'),
+  ('pyi_rth_setuptools',
+   'D:\\Downloads '
+   'HDD\\SimuladorColaborativo-com-empacotamento\\.venv-build\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_setuptools.py',
+   'PYSOURCE'),
+  ('pyi_rth_multiprocessing',
+   'D:\\Downloads '
+   'HDD\\SimuladorColaborativo-com-empacotamento\\.venv-build\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_multiprocessing.py',
+   'PYSOURCE'),
+  ('launcher',
+   'D:\\Downloads '
+   'HDD\\SimuladorColaborativo-com-empacotamento\\packaging\\launcher.py',
+   'PYSOURCE')],
+ 'python312.dll',
+ True,
+ False,
+ False,
+ [],
+ None,
+ None,
+ None)

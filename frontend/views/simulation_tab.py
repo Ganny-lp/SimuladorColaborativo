@@ -15,7 +15,7 @@ from frontend.views.tab import Tab
 
 
 class SimulationTab(Tab):
-    title = "▶ Simulação"
+    title = ":material/play_circle: Simulação"
 
     def __init__(
         self,
@@ -52,31 +52,33 @@ class SimulationTab(Tab):
         self._apply_input(PRICE_VARIABLE, chosen)
 
     def _render_other_decisions(self, snapshot: SimulationSnapshot) -> None:
-        columns = st.columns(len(DECISION_INPUTS))
-        for column, decision in zip(columns, DECISION_INPUTS):
-            variable = snapshot.variable(decision.variable)
-            if variable is None:
-                continue
-            step = 100.0 if variable.value > 10 else 0.01
-            new_value = column.number_input(
-                decision.label, value=float(variable.value), step=step, format="%.4g"
-            )
-            self._apply_input(decision.variable, new_value)
+        with st.container(key="lumina-decisions"):  # colunas que quebram de linha em telas estreitas
+            columns = st.columns(len(DECISION_INPUTS))
+            for column, decision in zip(columns, DECISION_INPUTS):
+                variable = snapshot.variable(decision.variable)
+                if variable is None:
+                    continue
+                step = 100.0 if variable.value > 10 else 0.01
+                new_value = column.number_input(
+                    decision.label, value=float(variable.value), step=step, format="%.4g"
+                )
+                self._apply_input(decision.variable, new_value)
 
     def _apply_input(self, name: str, value: float) -> None:
         result = self._change_input.execute(name, value)
         if result.changed and result.persistence is PersistenceOutcome.FAILED:
-            st.toast("⚠️ Não foi possível salvar o modelo na nuvem.")
+            st.toast("Não foi possível salvar o modelo na nuvem.", icon=":material/warning:")
 
     # ── ciclo ───────────────────────────────────────────────────────────────
     def _render_controls(self, snapshot: SimulationSnapshot) -> None:
         st.markdown(f"**Ciclo atual:** {snapshot.cycle}")
-        advance_col, restart_col = st.columns([3, 1])
-        with advance_col:
-            if st.button("▶ Avançar Ciclo", **STRETCH):
-                self._advance_cycle.execute()
-                st.rerun()
-        with restart_col:
-            if st.button("↺ Reiniciar", **STRETCH):
-                self._restart.execute()
-                st.rerun()
+        with st.container(key="lumina-controls"):
+            advance_col, restart_col = st.columns([3, 1])
+            with advance_col:
+                if st.button("Avançar Ciclo", icon=":material/play_arrow:", **STRETCH):
+                    self._advance_cycle.execute()
+                    st.rerun()
+            with restart_col:
+                if st.button("Reiniciar", icon=":material/restart_alt:", **STRETCH):
+                    self._restart.execute()
+                    st.rerun()

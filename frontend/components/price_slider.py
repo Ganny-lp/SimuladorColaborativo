@@ -40,17 +40,10 @@ class PriceScaleLegend:
 
     def render(self, scale: PriceScaleDTO) -> None:
         chips = "".join(
-            '<span style="display:inline-flex;align-items:center;gap:4px;'
-            'font-size:10.5px;color:#9db1be;margin-right:14px;white-space:nowrap;">'
-            f'<span style="width:8px;height:8px;border-radius:2px;background:{s.color};'
-            'display:inline-block;flex-shrink:0;"></span>'
-            f"R$ {s.value:.0f} · {s.label}</span>"
+            f'<span><i style="background:{s.color}"></i>R$ {s.value:.0f} · {s.label}</span>'
             for s in sorted(scale.stops, key=lambda s: s.value)
         )
-        st.markdown(
-            f'<div style="margin:4px 0 12px;line-height:2;">{chips}</div>',
-            unsafe_allow_html=True,
-        )
+        st.markdown(f'<div class="price-legend">{chips}</div>', unsafe_allow_html=True)
 
 
 class PriceSlider:
@@ -62,12 +55,14 @@ class PriceSlider:
     do number_input; o chamador decide o que fazer quando ele muda.
     """
 
-    _IFRAME_HEIGHT = 68
+    _IFRAME_HEIGHT = 84
 
     def __init__(self, sync_key: str, ruler_key: str) -> None:
         self._sync_key = sync_key
         self._ruler_key = ruler_key
         self._template = AssetTemplate("price_ruler.html")
+        self._tokens = AssetTemplate("brand_tokens.css")
+        self._bridge = AssetTemplate("theme_bridge.js")
         self._legend = PriceScaleLegend()
 
     def render(self, scale: PriceScaleDTO, current_value: float) -> float:
@@ -81,7 +76,7 @@ class PriceSlider:
             key=self._sync_key,
             label_visibility="collapsed",
         )
-        st.markdown("**Preço de Venda (Pt)** — arraste na régua colorida")
+        st.markdown("**Preço de Venda (Pt)** · arraste na régua colorida")
         render_html_frame(self._ruler_html(scale, current_value), height=self._IFRAME_HEIGHT)
         self._legend.render(scale)
         return float(synced_value)
@@ -89,6 +84,8 @@ class PriceSlider:
     def _ruler_html(self, scale: PriceScaleDTO, value: float) -> str:
         return self._template.render(
             uid=self._ruler_key,
+            tokens=self._tokens.read(),
+            theme_bridge=self._bridge.read(),
             sync_key=self._sync_key,
             gradient=PriceGradient.css(scale),
             vmin=float(scale.minimum),

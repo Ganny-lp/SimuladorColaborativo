@@ -7,7 +7,7 @@ from frontend.views.tab import Tab
 
 
 class VariablesTab(Tab):
-    title = "≋ Variáveis"
+    title = ":material/table_chart: Variáveis"
 
     def __init__(self, table: VariablesTable, ui_state: UiState) -> None:
         self._table = table
@@ -15,13 +15,13 @@ class VariablesTab(Tab):
 
     def render(self, snapshot: SimulationSnapshot) -> None:
         st.markdown("### Variáveis do Sistema")
-        search = st.text_input("🔍 Filtrar", placeholder="Nome ou categoria…")
+        search = st.text_input(":material/search: Filtrar", placeholder="Nome ou categoria…")
         frame = self._table.build_dataframe(snapshot.variables, search)
         self._table.render(frame)
         st.markdown(f"**{len(frame)} de {len(snapshot.variables)} variáveis**")
 
         names = sorted(v.name for v in snapshot.variables)
-        selected = st.selectbox("Ir para variável:", options=[""] + names)
+        selected = st.selectbox("Ir para variável", options=names, index=None, placeholder="Escolha uma variável…")
         if selected:
             self._ui_state.selected_variable = selected
-            st.info(f"Variável **{selected}** selecionada. Volte à aba Diagrama para editá-la.")
+            st.info(f"Variável **{selected}** selecionada. Volte à aba Diagrama para editá-la.", icon=":material/info:")
