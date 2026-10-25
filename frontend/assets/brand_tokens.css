@@ -1,74 +1,85 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Open+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 /*
- * Identidade visual LUMINA · PUB USP — fonte única de cores e tipografia.
- * Injetada na página Streamlit (Theme) e nos iframes (diagrama, régua de preço).
+ * ── Identidade visual LUMINA · PUB USP ─────────────────────────────────────────
+ * Fonte única de verdade das cores e da tipografia. É injetada na página Streamlit
+ * (Theme) e dentro de cada iframe (diagrama e régua de preço), que são documentos
+ * separados. Se mudar algo na marca, mantenha frontend/branding.py (Palette) em
+ * sincronia: tests/frontend/test_branding.py verifica.
  *
- *  Da logo : cinza-azulado do símbolo (--slate) e a malha poligonal do cérebro.
- *  Da USP  : azul #1094ab, azul secundário #64c4d2 e amarelo #fcb421 (Manual de Identidade
- *            Visual da USP). Open Sans é a alternativa livre que o manual recomenda ao Univers.
+ *  Da logo : cinza-azulado do símbolo (slate) e o ponto amarelo central.
+ *  Da USP  : azul primário #1094ab, azul secundário #64c4d2 e amarelo #fcb421
+ *            (Manual de Identidade Visual da USP). Tipografia: Open Sans é a
+ *            alternativa livre recomendada pela USP ao Univers do logotipo.
  *
- * Tema claro/escuro: cada token usa light-dark(claro, escuro). O tema segue o do Streamlit
- * (theme_sync.html grava data-lumina-theme no <html>); sem isso, segue o sistema.
- * As constantes de marca de frontend/branding.py precisam bater com as daqui (há teste).
+ * Tema: o claro é o padrão. O escuro é ativado por [data-lumina-theme="dark"] (página,
+ * definido pela ponte theme_bridge.js a partir do tema real do Streamlit) ou por
+ * [data-theme="dark"] (iframes, sincronizado por theme_sync.js). Antes do JS rodar,
+ * vale a preferência do sistema (@media no fim do arquivo).
+ * O bloco escuro aparece duas vezes (atributo e @media): CSS não permite
+ * compartilhar, e o teste de branding garante que os dois são idênticos.
  */
-:root{color-scheme:light dark;}
-:root[data-lumina-theme="light"]{color-scheme:light;}
-:root[data-lumina-theme="dark"]{color-scheme:dark;}
-
 :root{
   /* marca (iguais nos dois temas) */
-  --slate:#6f8391;
-  --usp-blue:#1094ab;--usp-blue-light:#64c4d2;--usp-yellow:#fcb421;
+  --slate:#6f8391; --slate-light:#b0c6d4;
+  --usp-blue:#1094ab; --usp-blue-light:#64c4d2; --usp-yellow:#fcb421;
+  --pos:#2fa56b; --neg:#e0584d;
 
-  /* superfícies e texto */
-  --bg:light-dark(#f2f6f8,#0b1218);
-  --bg2:light-dark(#ffffff,#101a22);
-  --bg3:light-dark(#e8eef2,#15222c);
-  --surface:light-dark(#ffffff,#192832);
-  --surf2:light-dark(#dfe8ed,#20323f);
-  --border:light-dark(rgba(40,70,90,.14),rgba(143,170,188,.16));
-  --border2:light-dark(rgba(40,70,90,.30),rgba(143,170,188,.32));
-  --text:light-dark(#13222c,#e3edf2);
-  --text2:light-dark(#3d5365,#a7bac6);
-  --text3:light-dark(#5a7081,#8197a5);
-  --shadow:light-dark(0 4px 18px rgba(30,60,80,.12),0 4px 20px rgba(0,0,0,.4));
-
-  /* marca aplicada */
-  --brand:light-dark(#566c7b,#b0c6d4);        /* wordmark */
-  --mark-color:light-dark(#6f8391,#b0c6d4);   /* símbolo */
-  --accent:light-dark(#0b7285,#64c4d2);       /* links, item ativo */
-  --btn:#0c7a8e;--btn-hover:light-dark(#09667a,#1094ab);
-  --focus:light-dark(#0b7285,#64c4d2);
-  --yellow:#fcb421;                           /* preenchimentos/realces */
-  --yellow-text:light-dark(#8a5a00,#fcb421);  /* amarelo quando é texto */
-
-  /* semânticas */
-  --coral:light-dark(#cc4b41,#ec6f64);
-  --green:light-dark(#1d9150,#52c97a);
-
-  /* categorias do diagrama (Estado = azul USP, Input = amarelo USP) */
-  --cat-estado-bg:light-dark(#dff2f6,#093844);--cat-estado-bd:#1094ab;--cat-estado-fg:light-dark(#0a5a6b,#9fe3ef);
-  --cat-equacao-bg:light-dark(#fbe6e3,#481a18);--cat-equacao-bd:light-dark(#cc4b41,#e8685d);--cat-equacao-fg:light-dark(#8e2a22,#ffb8b0);
-  --cat-parametro-bg:light-dark(#ebe7fa,#28204e);--cat-parametro-bd:light-dark(#7766c8,#8f7fd6);--cat-parametro-fg:light-dark(#493a9a,#d3c9ff);
-  --cat-ambiente-bg:light-dark(#e0f4e8,#0e3826);--cat-ambiente-bd:light-dark(#2f9a5c,#3fae6a);--cat-ambiente-fg:light-dark(#1b6b3c,#a3ebbf);
-  --cat-input-bg:light-dark(#fff1d1,#4c3406);--cat-input-bd:light-dark(#e09a00,#fcb421);--cat-input-fg:light-dark(#7a4f00,#ffdc8a);
+  /* categorias do diagrama: matizes distintos entre si, saturação contida */
+  --cat-estado:#1094ab; --cat-equacao:#5b72d6; --cat-parametro:#7d8fa0;
+  --cat-ambiente:#32a06c; --cat-input:#f0a30a;
 
   /* tipografia */
-  --sans:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --sans:'Open Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   --display:'Montserrat','Open Sans',system-ui,sans-serif;
-  --mono:'DM Mono',ui-monospace,monospace;
+  --mono:'DM Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+
+  /* forma e movimento */
+  --r-sm:8px; --r-md:12px; --r-lg:16px;
+  --ease:cubic-bezier(.3,.7,.2,1);
+
+  /* ── tema claro (padrão) ── */
+  color-scheme:light;
+  --bg:#f3f6f8; --bg2:#ffffff; --surface:#ffffff; --surf2:#e9eff3; --inset:#eef3f6;
+  --border:rgba(24,52,70,.12); --border2:rgba(24,52,70,.24);
+  --text:#12212b; --text2:#415667; --text3:#5b7081;
+  --accent:#0b7f95; --accent-hover:#096a7d; --accent-soft:rgba(16,148,171,.12);
+  --btn-bg:#0b7f95; --btn-bg-hover:#096a7d; --btn-fg:#ffffff;
+  --gold:#8f5f00; --focus:#d99200;
+  --pos-text:#1b7a4e; --neg-text:#b53d33;
+  --edge:rgba(66,92,110,.40); --grid:rgba(24,52,70,.16);
+  --shadow:0 1px 2px rgba(18,33,43,.06),0 6px 20px rgba(18,33,43,.07);
+  --thumb:#ffffff; --thumb-ring:#12212b; --wordmark:#3b5568;
+  --mark:var(--mark-light);
 }
 
-/* Símbolo da marca: máscara (cor vem de --mark-color) + nó central amarelo.
-   Uso: <span class="mark" role="img" aria-label="LUMINA"><i></i><b></b></span>; defina a altura. */
-.mark{position:relative;display:inline-block;aspect-ratio:420/338;flex-shrink:0;}
-.mark i{position:absolute;inset:0;background:var(--mark-color);
-  -webkit-mask:var(--mark-url) center/contain no-repeat;mask:var(--mark-url) center/contain no-repeat;}
-.mark b{position:absolute;left:49.58%;top:51.28%;width:5.6%;aspect-ratio:1;border-radius:50%;
-  background:var(--usp-yellow);transform:translate(-50%,-50%);box-shadow:0 0 0 2px color-mix(in srgb,var(--usp-yellow) 25%,transparent);}
+:root[data-lumina-theme="dark"],
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0d151b; --bg2:#121d25; --surface:#16232d; --surf2:#1f313d; --inset:#0f1a21;
+  --border:rgba(170,198,214,.14); --border2:rgba(170,198,214,.28);
+  --text:#e4edf2; --text2:#a9bcc8; --text3:#8499a7;
+  --accent:#64c4d2; --accent-hover:#8bd5df; --accent-soft:rgba(100,196,210,.14);
+  --btn-bg:#64c4d2; --btn-bg-hover:#8bd5df; --btn-fg:#06222a;
+  --gold:#fcb421; --focus:#fcb421;
+  --pos-text:#5fd08e; --neg-text:#f0877d;
+  --edge:rgba(160,188,204,.34); --grid:rgba(170,198,214,.18);
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.30);
+  --thumb:#e4edf2; --thumb-ring:#0d151b; --wordmark:#b0c6d4;
+  --mark:var(--mark-dark);
+}
 
-/* Faixa institucional (azul · azul claro · amarelo) */
-.usp-stripe{background:linear-gradient(90deg,var(--usp-blue) 0 45%,var(--usp-blue-light) 45% 70%,var(--usp-yellow) 70% 100%);}
-
-/* Ícones SVG de traço (Lucide, ISC): <svg class="ic"><use href="#i-nome"/></svg> */
-.ic{width:1.15em;height:1.15em;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.2em;}
+@media (prefers-color-scheme:dark){
+  :root:not([data-lumina-theme]):not([data-theme]){
+    color-scheme:dark;
+    --bg:#0d151b; --bg2:#121d25; --surface:#16232d; --surf2:#1f313d; --inset:#0f1a21;
+    --border:rgba(170,198,214,.14); --border2:rgba(170,198,214,.28);
+    --text:#e4edf2; --text2:#a9bcc8; --text3:#8499a7;
+    --accent:#64c4d2; --accent-hover:#8bd5df; --accent-soft:rgba(100,196,210,.14);
+    --btn-bg:#64c4d2; --btn-bg-hover:#8bd5df; --btn-fg:#06222a;
+    --gold:#fcb421; --focus:#fcb421;
+    --pos-text:#5fd08e; --neg-text:#f0877d;
+    --edge:rgba(160,188,204,.34); --grid:rgba(170,198,214,.18);
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.30);
+    --thumb:#e4edf2; --thumb-ring:#0d151b; --wordmark:#b0c6d4;
+    --mark:var(--mark-dark);
+  }
+}

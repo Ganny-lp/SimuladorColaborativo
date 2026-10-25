@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 from functools import lru_cache
 from pathlib import Path
@@ -30,3 +31,11 @@ class AssetTemplate:
     def render(self, **tokens: object) -> str:
         values = {key.upper(): str(value) for key, value in tokens.items()}
         return _TOKEN.sub(lambda m: values.get(m.group(1), m.group(0)), self.read())
+
+
+def js_literal(value: object) -> str:
+    """Valor Python → literal JavaScript seguro para embutir num <script>.
+
+    ``</`` é escapado para que um texto de usuário nunca feche a tag ``<script>``.
+    """
+    return json.dumps(value, ensure_ascii=False).replace("</", "<\\/")

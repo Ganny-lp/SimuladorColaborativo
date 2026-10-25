@@ -2,178 +2,182 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Diagrama CLD · LUMINA</title>
+<link rel="stylesheet" href="__FONTS_URL__">
+<script>__THEME_SYNC__</script>
 <style>
-:root{--mark-url:url("__LOGO_MARK__");}
+:root{--mark-dark:url("__LOGO_MARK_DARK__");--mark-light:url("__LOGO_MARK_LIGHT__");}
 __STYLES__
 </style>
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><symbol id="i-select" viewBox="0 0 24 24"><path d="M4.04 4.69a.5.5 0 0 1 .65-.65l16 6.5a.5.5 0 0 1-.06.95l-6.13 1.58a2 2 0 0 0-1.43 1.44l-1.58 6.12a.5.5 0 0 1-.95.07z"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol><symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol><symbol id="i-focus" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></symbol><symbol id="i-save" viewBox="0 0 24 24"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></symbol><symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol><symbol id="i-panel" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol><symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></symbol><symbol id="i-pencil" viewBox="0 0 24 24"><path d="M21.17 6.81a1 1 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5z"/><path d="m15 5 4 4"/></symbol></defs></svg>
+
+<!-- Ícones (traço 2px, estilo Lucide). Usados com <svg class="ic"><use href="#i-nome"/></svg> -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-pointer" viewBox="0 0 24 24"><path d="M4.04 4.69a.5.5 0 0 1 .65-.65l16 6.5a.5.5 0 0 1-.06.95l-6.12 1.58a2 2 0 0 0-1.44 1.43l-1.58 6.13a.5.5 0 0 1-.95.06z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><path d="M8 12h8"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol>
+  <symbol id="i-panel" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M21.17 6.81a1 1 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5z"/><path d="m15 5 4 4"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-fit" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></symbol>
+  <symbol id="i-spread" viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></symbol>
+  <symbol id="i-flip" viewBox="0 0 24 24"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+</svg>
+
 <div id="shell">
 
-<!-- TOP BAR -->
-<div id="topbar">
-  <div class="usp-stripe usp-stripe-bar"></div>
-  <div class="tb-brand">
-    <span class="mark" role="img" aria-label="LUMINA"><i></i><b></b></span>
-    <span class="tb-name"><span id="tb-title">LUMINA</span><span class="tb-tag">PUB · <b>USP</b></span></span>
-  </div>
-  <div class="tsep"></div>
-  <button class="tbtn active" id="tool-select" onclick="setTool('select')" title="Selecionar (S)"><svg class="ic" aria-hidden="true"><use href="#i-select"/></svg><span class="lbl">Selecionar</span></button>
-  <button class="tbtn" onclick="openAddModal()" title="Novo Nó (N)"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg><span class="lbl">Nó</span></button>
-  <button class="tbtn" id="tool-link" onclick="setTool('link')" title="Criar Link (L)"><svg class="ic" aria-hidden="true"><use href="#i-link"/></svg><span class="lbl">Link</span></button>
-  <div class="tsep"></div>
-  <button class="tbtn" onclick="zoomReset()" title="Centralizar (R)" aria-label="Centralizar"><svg class="ic" aria-hidden="true"><use href="#i-focus"/></svg></button>
-  <button class="tbtn danger" onclick="deleteSelected()" title="Excluir (Del)" aria-label="Excluir"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg></button>
-  <div class="tsep"></div>
-  <button class="tbtn" onclick="manualSave()" title="Salvar na nuvem"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg><span class="lbl">Salvar</span></button>
-  <button class="tbtn" onclick="refreshFromCloud()" title="Recarregar da nuvem"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg><span class="lbl">Recarregar</span></button>
-  <div id="save-ind">pronto</div>
-</div>
+  <!-- BARRA DE FERRAMENTAS -->
+  <header id="topbar" role="toolbar" aria-label="Ferramentas do diagrama">
+    <div class="grp" role="group" aria-label="Modo de edição">
+      <button type="button" class="tbtn active" data-tool="select" aria-pressed="true" title="Selecionar e mover (S)">
+        <svg class="ic"><use href="#i-pointer"/></svg><span class="lbl">Selecionar</span></button>
+      <button type="button" class="tbtn" data-tool="link" aria-pressed="false" title="Ligar duas variáveis (L)">
+        <svg class="ic"><use href="#i-link"/></svg><span class="lbl">Ligar</span></button>
+    </div>
+    <button type="button" class="tbtn ghost" id="btn-add" title="Novo nó (N)">
+      <svg class="ic"><use href="#i-plus"/></svg><span class="lbl">Novo nó</span></button>
 
-<!-- MAIN ROW -->
-<div id="main">
-
-  <!-- CANVAS -->
-  <div id="canvas-wrap">
-    <div id="zoom-chip">75%</div>
-    <div id="cld-canvas"></div>
-    <svg id="cld-svg"></svg>
-
-    <!-- BOTTOM TOOLBAR -->
-    <div id="toolbar">
-      <button class="tbtn" onclick="zoomOut()" title="Reduzir" aria-label="Reduzir"><svg class="ic" aria-hidden="true"><use href="#i-minus"/></svg></button>
-      <button class="tbtn" onclick="zoomIn()" title="Ampliar" aria-label="Ampliar"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button>
-      <div class="tsep"></div>
-      <button class="tbtn" onclick="zoomReset()"><svg class="ic" aria-hidden="true"><use href="#i-focus"/></svg><span class="lbl">Centralizar</span></button>
-      <div class="tsep"></div>
-      <button class="tbtn" id="toggle-panel-btn" onclick="togglePanel()"><svg class="ic" aria-hidden="true"><use href="#i-panel"/></svg><span class="lbl">Painel</span></button>
+    <div id="search" role="search">
+      <svg class="ic"><use href="#i-search"/></svg>
+      <input id="search-input" type="search" placeholder="Buscar variável…" aria-label="Buscar variável"
+             autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="search-results">
+      <kbd>/</kbd>
+      <ul id="search-results" role="listbox" hidden></ul>
     </div>
 
-    <!-- FAB (mobile only) -->
-    <button id="fab" onclick="openSheet()" title="Ver detalhes" aria-label="Ver detalhes"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg></button>
+    <div class="spacer"></div>
 
-    <!-- MOBILE BACKDROP -->
-    <div id="sheet-backdrop" onclick="closeSheet()"></div>
+    <span id="status" data-state="idle" role="status" aria-live="polite"><i></i><span id="status-text">Sem alterações</span></span>
+    <button type="button" class="tbtn primary" id="btn-save" title="Salvar o diagrama na nuvem">
+      <svg class="ic"><use href="#i-save"/></svg><span class="lbl">Salvar</span></button>
+    <button type="button" class="tbtn ghost" id="btn-reload" title="Descartar edições locais e recarregar da nuvem">
+      <svg class="ic"><use href="#i-refresh"/></svg><span class="lbl">Recarregar</span></button>
+    <button type="button" class="tbtn icon" id="btn-panel" aria-pressed="true" title="Mostrar/ocultar detalhes (P)" aria-label="Painel de detalhes">
+      <svg class="ic"><use href="#i-panel"/></svg></button>
+  </header>
 
-    <!-- MOBILE BOTTOM SHEET -->
-    <div id="mobile-sheet">
-      <div id="sheet-handle"></div>
-      <div id="sheet-hdr">
-        <span id="sheet-title">Detalhes</span>
-        <button class="panel-x" id="sheet-x" onclick="closeSheet()" aria-label="Fechar"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
-      </div>
-      <div id="sheet-body">
-        <div class="ph"><span class="mark ico" role="img" aria-label=""><i></i><b></b></span><p>Clique em um nó para ver detalhes.</p></div>
-      </div>
-      <div id="sheet-legend">
-        <div class="legend-lbl">Categorias</div>
-        <div class="legend-grid">
-          <div class="legend-item"><div class="legend-dot cat-estado"></div>Estado</div>
-          <div class="legend-item"><div class="legend-dot cat-equacao"></div>Equação</div>
-          <div class="legend-item"><div class="legend-dot cat-parametro"></div>Parâmetro</div>
-          <div class="legend-item"><div class="legend-dot cat-ambiente"></div>Ambiente</div>
-          <div class="legend-item"><div class="legend-dot cat-input"></div>Input</div>
+  <div id="main">
+
+    <!-- ÁREA DO DIAGRAMA -->
+    <div id="stage">
+      <div id="viewport" data-tool="select">
+        <div id="world">
+          <svg id="edges" aria-hidden="true">
+            <defs>
+              <marker id="m-n" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                <path d="M1.5 1.8 8.5 5l-7 3.2z" style="fill:var(--edge)"/></marker>
+              <marker id="m-pos" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                <path d="M1.5 1.8 8.5 5l-7 3.2z" style="fill:var(--pos)"/></marker>
+              <marker id="m-neg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                <path d="M1.5 1.8 8.5 5l-7 3.2z" style="fill:var(--neg)"/></marker>
+            </defs>
+            <g id="edge-layer"></g>
+          </svg>
+          <div id="nodes"></div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- DESKTOP RIGHT PANEL -->
-  <div id="right-panel">
-    <div class="panel-hdr">
-      <span class="panel-title">Detalhes</span>
-      <span id="panel-badge">SELECIONAR</span>
-      <button class="panel-x" onclick="togglePanel()" title="Fechar painel" aria-label="Fechar painel"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
-    </div>
-    <div class="panel-body" id="panel-content">
-      <div class="ph"><span class="mark ico" role="img" aria-label=""><i></i><b></b></span><p>Clique em um nó para ver seus detalhes, relações e equação.</p></div>
-    </div>
-    <div class="panel-legend">
-      <div class="legend-lbl">Categorias</div>
-      <div class="legend-grid">
-        <div class="legend-item"><div class="legend-dot cat-estado"></div>Estado</div>
-        <div class="legend-item"><div class="legend-dot cat-equacao"></div>Equação</div>
-        <div class="legend-item"><div class="legend-dot cat-parametro"></div>Parâmetro</div>
-        <div class="legend-item"><div class="legend-dot cat-ambiente"></div>Ambiente</div>
-        <div class="legend-item"><div class="legend-dot cat-input"></div>Input</div>
+      <div id="hint" hidden></div>
+      <div id="empty" hidden>
+        <p>O diagrama está vazio.</p>
+        <button type="button" class="btn primary" id="btn-empty-add">Criar o primeiro nó</button>
       </div>
-    </div>
-  </div>
-</div><!-- /main -->
-</div><!-- /shell -->
 
-<!-- MODALS -->
-<div class="modal-overlay" id="modal-add">
-  <div class="modal">
-    <div class="modal-title">Novo Nó</div>
-    <div class="modal-sub">Crie uma nova variável no sistema</div>
-    <div class="frow"><label class="flabel">Nome *</label><input class="finput" id="nn-name" placeholder="ex: Taxa_Adocao"></div>
-    <div class="frow"><label class="flabel">Categoria</label>
-      <select class="fselect" id="nn-cat">
-        <option value="Estado">Estado</option><option value="Equação">Equação</option>
-        <option value="Parâmetro">Parâmetro</option><option value="Ambiente">Ambiente</option>
-        <option value="Input">Input</option>
-      </select>
-    </div>
-    <div class="frow"><label class="flabel">Valor Inicial</label><input class="finput" id="nn-val" type="number" value="0" step="any"></div>
-    <div class="frow"><label class="flabel">Equação (opcional)</label><textarea class="ftextarea" id="nn-eq" placeholder="ex: A * B + C"></textarea></div>
-    <div class="frow"><label class="flabel">Descrição</label><textarea class="ftextarea" id="nn-desc" placeholder="Descreva o papel desta variável..."></textarea></div>
-    <div class="mact">
-      <button class="btn-cancel" onclick="closeModal('modal-add')">Cancelar</button>
-      <button class="btn-ok" onclick="addNode()">Criar Nó</button>
-    </div>
-  </div>
-</div>
+      <div id="dock">
+        <div id="legend" role="group" aria-label="Filtrar por categoria"></div>
+        <div id="zoombar" role="group" aria-label="Zoom">
+          <button type="button" class="tbtn icon" id="z-out" title="Diminuir (−)" aria-label="Diminuir zoom"><svg class="ic"><use href="#i-minus"/></svg></button>
+          <output id="z-val" title="Nível de zoom">100%</output>
+          <button type="button" class="tbtn icon" id="z-in" title="Aumentar (+)" aria-label="Aumentar zoom"><svg class="ic"><use href="#i-plus"/></svg></button>
+          <i class="sep"></i>
+          <button type="button" class="tbtn icon" id="z-fit" title="Ajustar à tela (F)" aria-label="Ajustar à tela"><svg class="ic"><use href="#i-fit"/></svg></button>
+          <button type="button" class="tbtn icon" id="z-tidy" title="Afastar nós sobrepostos" aria-label="Afastar nós sobrepostos"><svg class="ic"><use href="#i-spread"/></svg></button>
+        </div>
+      </div>
 
-<div class="modal-overlay" id="modal-edit">
-  <div class="modal">
-    <div class="modal-title">Editar Variável</div>
-    <div class="modal-sub">Altere os atributos da variável selecionada</div>
-    <input type="hidden" id="en-id">
-    <div class="frow"><label class="flabel">Nome</label><input class="finput" id="en-name"></div>
-    <div class="frow"><label class="flabel">Categoria</label>
-      <select class="fselect" id="en-cat">
-        <option value="Estado">Estado</option><option value="Equação">Equação</option>
-        <option value="Parâmetro">Parâmetro</option><option value="Ambiente">Ambiente</option>
-        <option value="Input">Input</option>
-      </select>
+      <div id="toasts" aria-live="polite"></div>
     </div>
-    <div class="frow"><label class="flabel">Valor Atual</label><input class="finput" id="en-val" type="number" step="any"></div>
-    <div class="frow"><label class="flabel">Equação</label><textarea class="ftextarea" id="en-eq"></textarea></div>
-    <div class="frow"><label class="flabel">Descrição</label><textarea class="ftextarea" id="en-desc"></textarea></div>
-    <div class="mact">
-      <button class="btn-cancel" onclick="closeModal('modal-edit')">Cancelar</button>
-      <button class="btn-ok" onclick="saveEdit()">Salvar</button>
-    </div>
+
+    <!-- PAINEL DE DETALHES (barra lateral no desktop, gaveta no celular) -->
+    <aside id="side" aria-label="Detalhes da variável">
+      <div class="side-hdr">
+        <h2>Detalhes</h2>
+        <button type="button" class="tbtn icon" id="side-x" title="Fechar painel" aria-label="Fechar painel"><svg class="ic"><use href="#i-x"/></svg></button>
+      </div>
+      <div class="side-body" id="panel-content"></div>
+    </aside>
   </div>
 </div>
 
-<div class="modal-overlay" id="modal-link">
-  <div class="modal">
-    <div class="modal-title">Nova Ligação</div>
-    <div class="modal-sub">Defina a relação causal entre variáveis</div>
-    <div class="lhint" id="link-hint">Selecione a origem e o destino da ligação.</div>
-    <div class="frow"><label class="flabel">De (Origem)</label><input class="finput" id="lk-from" readonly></div>
-    <div class="frow"><label class="flabel">Para (Destino)</label><select class="fselect" id="lk-to"></select></div>
-    <div class="frow"><label class="flabel">Sinal da Relação</label>
-      <select class="fselect" id="lk-sign">
-        <option value="+">+ Positiva — A aumenta, B aumenta</option>
-        <option value="-">− Negativa — A aumenta, B diminui</option>
-      </select>
+<!-- DIÁLOGO: NÓ (criar / editar) -->
+<dialog id="dlg-node" aria-labelledby="dn-title">
+  <form id="f-node" class="dlg-card" autocomplete="off" novalidate>
+    <h2 id="dn-title">Novo nó</h2>
+    <p class="dlg-sub" id="dn-sub">Crie uma nova variável no sistema.</p>
+    <div class="field"><label for="nn-name">Nome</label>
+      <input class="input" id="nn-name" placeholder="ex.: Taxa_Adocao" spellcheck="false">
+      <p class="ferr" id="nn-err" hidden></p></div>
+    <div class="row2">
+      <div class="field"><label for="nn-cat">Categoria</label>
+        <select class="input" id="nn-cat"></select></div>
+      <div class="field"><label for="nn-val">Valor</label>
+        <input class="input" id="nn-val" type="number" step="any" value="0"></div>
     </div>
-    <div class="frow"><label class="flabel">Descrição (opcional)</label><textarea class="ftextarea" id="lk-desc" placeholder="ex: Maior preço reduz o volume vendido"></textarea></div>
-    <div class="mact">
-      <button class="btn-cancel" onclick="closeModal('modal-link')">Cancelar</button>
-      <button class="btn-ok" onclick="confirmLink()">Criar Ligação</button>
+    <div class="field"><label for="nn-eq">Equação <span class="opt">(opcional)</span></label>
+      <textarea class="input mono" id="nn-eq" rows="2" placeholder="ex.: A * B + C" spellcheck="false"></textarea></div>
+    <div class="field"><label for="nn-desc">Descrição</label>
+      <textarea class="input" id="nn-desc" rows="2" placeholder="Qual é o papel desta variável?"></textarea></div>
+    <div class="dlg-actions">
+      <button type="button" class="btn" data-close>Cancelar</button>
+      <button type="submit" class="btn primary" id="nn-ok">Criar nó</button>
     </div>
-  </div>
-</div>
+  </form>
+</dialog>
 
-<script>
-__THEME_BRIDGE__
-</script>
+<!-- DIÁLOGO: LIGAÇÃO -->
+<dialog id="dlg-link" aria-labelledby="dl-title">
+  <form id="f-link" class="dlg-card" autocomplete="off" novalidate>
+    <h2 id="dl-title">Nova ligação</h2>
+    <p class="dlg-sub">Defina como uma variável influencia a outra.</p>
+    <div class="row2">
+      <div class="field"><label for="lk-from">De</label><input class="input" id="lk-from" readonly></div>
+      <div class="field"><label for="lk-to">Para</label><select class="input" id="lk-to"></select></div>
+    </div>
+    <div class="field"><label id="lk-sign-l">Efeito</label>
+      <div class="seg" role="radiogroup" aria-labelledby="lk-sign-l">
+        <label class="pos"><input type="radio" name="lk-sign" value="+" checked><span>+ Reforça <small>(A sobe → B sobe)</small></span></label>
+        <label class="neg"><input type="radio" name="lk-sign" value="-"><span>− Reduz <small>(A sobe → B desce)</small></span></label>
+      </div></div>
+    <div class="field"><label for="lk-desc">Descrição <span class="opt">(opcional)</span></label>
+      <textarea class="input" id="lk-desc" rows="2" placeholder="ex.: Preço maior reduz o volume vendido"></textarea>
+      <p class="ferr" id="lk-err" hidden></p></div>
+    <div class="dlg-actions">
+      <button type="button" class="btn" data-close>Cancelar</button>
+      <button type="submit" class="btn primary">Criar ligação</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- DIÁLOGO: CONFIRMAÇÃO -->
+<dialog id="dlg-confirm" aria-labelledby="dc-title">
+  <form id="f-confirm" class="dlg-card" method="dialog">
+    <h2 id="dc-title">Confirmar</h2>
+    <p class="dlg-sub" id="dc-text"></p>
+    <div class="dlg-actions">
+      <button type="button" class="btn" data-close>Cancelar</button>
+      <button type="submit" class="btn primary" id="dc-ok" value="ok">Confirmar</button>
+    </div>
+  </form>
+</dialog>
+
 <script>
 __SCRIPT__
 </script>

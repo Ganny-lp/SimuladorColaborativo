@@ -10,6 +10,12 @@ PRICE_VARIABLE = "Pt"
 PRICE_SYNC_KEY = "pt_hidden_sync"
 PRICE_RULER_KEY = "pt_ruler"
 
+# Fontes da marca (Open Sans = alternativa livre da USP ao Univers; Montserrat = wordmark).
+FONTS_URL = (
+    "https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700"
+    "&family=Open+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
+)
+
 
 @dataclass(frozen=True)
 class DecisionInput:

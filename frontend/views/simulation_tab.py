@@ -6,16 +6,17 @@ from backend.application.dto import PersistenceOutcome, SimulationSnapshot
 from backend.application.use_cases.advance_cycle import AdvanceCycleUseCase
 from backend.application.use_cases.change_input import ChangeInputUseCase
 from backend.application.use_cases.restart_simulation import RestartSimulationUseCase
-from frontend.compat import STRETCH
+from frontend.compat import STRETCH, keyed_container
 from frontend.components.cycle_charts import CycleCharts
 from frontend.components.kpi_cards import KpiCards
 from frontend.components.price_slider import PriceSlider
+from frontend.components.section import SectionHeader
 from frontend.config import DECISION_INPUTS, PRICE_VARIABLE
 from frontend.views.tab import Tab
 
 
 class SimulationTab(Tab):
-    title = ":material/play_circle: Simulação"
+    title = ":material/monitoring: Simulação"
 
     def __init__(
         self,
@@ -32,53 +33,60 @@ class SimulationTab(Tab):
         self._change_input = change_input
         self._advance_cycle = advance_cycle
         self._restart = restart
+        self._section = SectionHeader()
 
     def render(self, snapshot: SimulationSnapshot) -> None:
-        st.markdown("### KPIs do Ciclo Atual")
+        self._section.render("KPIs do ciclo atual", chip=f"Ciclo {snapshot.cycle}")
         self._kpi_cards.render(snapshot.kpis)
 
-        st.markdown("### Decisões de Input")
-        self._render_price_decision(snapshot)
-        self._render_other_decisions(snapshot)
-        self._render_controls(snapshot)
+        self._section.render("Decisões", hint="Ajuste as variáveis de decisão e avance o ciclo para ver o efeito.")
+        changed = self._render_price_decision(snapshot)
+        changed = self._render_other_decisions(snapshot) or changed
+        if changed:
+            # o snapshot foi tirado antes de aplicar a decisão: recarrega para os KPIs não ficarem defasados
+            st.rerun()
+        self._render_controls()
+        self._section.render("Evolução", hint="Histórico dos ciclos já simulados.")
         self._charts.render(snapshot.history)
 
     # ── decisões ────────────────────────────────────────────────────────────
-    def _render_price_decision(self, snapshot: SimulationSnapshot) -> None:
+    def _render_price_decision(self, snapshot: SimulationSnapshot) -> bool:
         price = snapshot.variable(PRICE_VARIABLE)
         if price is None:
-            return
-        chosen = self._price_slider.render(snapshot.price_scale, price.value)
-        self._apply_input(PRICE_VARIABLE, chosen)
+            return False
+        with keyed_container("lumina-card-price"):
+            chosen = self._price_slider.render(snapshot.price_scale, price.value)
+        return self._apply_input(PRICE_VARIABLE, chosen)
 
-    def _render_other_decisions(self, snapshot: SimulationSnapshot) -> None:
-        with st.container(key="lumina-decisions"):  # colunas que quebram de linha em telas estreitas
-            columns = st.columns(len(DECISION_INPUTS))
-            for column, decision in zip(columns, DECISION_INPUTS):
-                variable = snapshot.variable(decision.variable)
-                if variable is None:
-                    continue
-                step = 100.0 if variable.value > 10 else 0.01
-                new_value = column.number_input(
-                    decision.label, value=float(variable.value), step=step, format="%.4g"
-                )
-                self._apply_input(decision.variable, new_value)
+    def _render_other_decisions(self, snapshot: SimulationSnapshot) -> bool:
+        changed = False
+        columns = st.columns(len(DECISION_INPUTS))
+        for column, decision in zip(columns, DECISION_INPUTS):
+            variable = snapshot.variable(decision.variable)
+            if variable is None:
+                continue
+            step = 100.0 if variable.value > 10 else 0.01
+            new_value = column.number_input(
+                decision.label, value=float(variable.value), step=step, format="%.4g",
+                help=variable.description or None,
+            )
+            changed = self._apply_input(decision.variable, new_value) or changed
+        return changed
 
-    def _apply_input(self, name: str, value: float) -> None:
+    def _apply_input(self, name: str, value: float) -> bool:
         result = self._change_input.execute(name, value)
         if result.changed and result.persistence is PersistenceOutcome.FAILED:
             st.toast("Não foi possível salvar o modelo na nuvem.", icon=":material/warning:")
+        return result.changed
 
     # ── ciclo ───────────────────────────────────────────────────────────────
-    def _render_controls(self, snapshot: SimulationSnapshot) -> None:
-        st.markdown(f"**Ciclo atual:** {snapshot.cycle}")
-        with st.container(key="lumina-controls"):
-            advance_col, restart_col = st.columns([3, 1])
-            with advance_col:
-                if st.button("Avançar Ciclo", icon=":material/play_arrow:", **STRETCH):
-                    self._advance_cycle.execute()
-                    st.rerun()
-            with restart_col:
-                if st.button("Reiniciar", icon=":material/restart_alt:", **STRETCH):
-                    self._restart.execute()
-                    st.rerun()
+    def _render_controls(self) -> None:
+        advance_col, restart_col = st.columns([3, 1], vertical_alignment="center")
+        with advance_col:
+            if st.button("Avançar ciclo", type="primary", icon=":material/play_arrow:", **STRETCH):
+                self._advance_cycle.execute()
+                st.rerun()
+        with restart_col:
+            if st.button("Reiniciar", icon=":material/restart_alt:", **STRETCH):
+                self._restart.execute()
+                st.rerun()
