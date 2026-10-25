@@ -710,11 +710,19 @@ try { window.parent.addEventListener('resize', debounce(fitFrameHeight, 80)); } 
 
 let firstShow = true;
 function handleFocusRequest() {
-  if (!FOCUS || !FOCUS.name || !SYS.nodes[FOCUS.name]) return false;
+  if (!FOCUS || !FOCUS.name) return false;
   if (store.get(KEYS.focus) === FOCUS.nonce) return false;      // cada pedido é atendido uma vez
   store.set(KEYS.focus, FOCUS.nonce);
+  if (!SYS.nodes[FOCUS.name]) { toast(`“${FOCUS.name}” não é um nó deste diagrama`); return false; }
+  if (S.off.has(catKey(SYS.nodes[FOCUS.name].cat))) { S.off.clear(); renderLegend(); applyCats(); }   // categoria oculta: mostra
   selectNode(FOCUS.name, { center: true });
+  pingNode(FOCUS.name);
   return true;
+}
+function pingNode(id) {   // pulso curto para o olho achar o nó escolhido na lista de variáveis
+  const n = nodeEls.get(id); if (!n) return;
+  n.classList.remove('ping'); void n.offsetWidth; n.classList.add('ping');
+  setTimeout(() => n.classList.remove('ping'), 2600);
 }
 new ResizeObserver(() => {
   const r = vpRect();

@@ -23,9 +23,10 @@
   --usp-blue:#1094ab; --usp-blue-light:#64c4d2; --usp-yellow:#fcb421;
   --pos:#2fa56b; --neg:#e0584d;
 
-  /* categorias do diagrama: matizes distintos entre si, saturação contida */
-  --cat-estado:#1094ab; --cat-equacao:#5b72d6; --cat-parametro:#7d8fa0;
-  --cat-ambiente:#32a06c; --cat-input:#f0a30a;
+  /* categorias do diagrama: matizes bem separados e saturados (lidos de relance, nos dois temas).
+     O azul-turquesa é o da marca; o amarelo, o da USP. Rosa evita confusão com o verde/vermelho dos sinais. */
+  --cat-estado:#0aa0bf; --cat-equacao:#7a5af8; --cat-parametro:#5b7fa6;
+  --cat-ambiente:#e4488f; --cat-input:#f5a000;
 
   /* tipografia */
   --sans:'Open Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
@@ -48,6 +49,7 @@
   --edge:rgba(66,92,110,.40); --grid:rgba(24,52,70,.16);
   --shadow:0 1px 2px rgba(18,33,43,.06),0 6px 20px rgba(18,33,43,.07);
   --thumb:#ffffff; --thumb-ring:#12212b; --wordmark:#3b5568;
+  --node-tint:20%;
   --mark:var(--mark-light);
 }
 
@@ -64,6 +66,7 @@
   --edge:rgba(160,188,204,.34); --grid:rgba(170,198,214,.18);
   --shadow:0 1px 2px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.30);
   --thumb:#e4edf2; --thumb-ring:#0d151b; --wordmark:#b0c6d4;
+  --node-tint:30%;
   --mark:var(--mark-dark);
 }
 
@@ -80,6 +83,7 @@
     --edge:rgba(160,188,204,.34); --grid:rgba(170,198,214,.18);
     --shadow:0 1px 2px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.30);
     --thumb:#e4edf2; --thumb-ring:#0d151b; --wordmark:#b0c6d4;
+    --node-tint:30%;
     --mark:var(--mark-dark);
   }
 }

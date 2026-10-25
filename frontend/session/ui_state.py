@@ -1,3 +1,4 @@
+import time
 from typing import Any, MutableMapping
 
 
@@ -6,6 +7,7 @@ class UiState:
 
     PICKER_KEY = "lumina.variable_picker"
     _FOCUS = "lumina.focus_request"
+    _FOCUS_SEQ = "lumina.focus_seq"
     _EPOCH = "lumina.diagram_epoch"
 
     def __init__(self, session_state: MutableMapping) -> None:
@@ -17,10 +19,21 @@ class UiState:
         return self._state.get(self.PICKER_KEY) or None
 
     def request_focus(self) -> None:
-        """Callback do seletor: pede ao diagrama que destaque a variável escolhida (uma vez)."""
+        """Pede ao diagrama que destaque a variável escolhida (uma vez por pedido).
+
+        O ``nonce`` identifica o pedido e o diagrama o guarda no navegador para não repeti-lo a cada
+        rerun. Por isso ele nunca pode se repetir: antes, limpar o seletor zerava a contagem e o pedido
+        seguinte reaproveitava um nonce já consumido (e o diagrama o ignorava em silêncio). Agora há um
+        contador que nunca volta atrás, misturado ao relógio para sobreviver a um F5 (a sessão do
+        Streamlit recomeça, mas o sessionStorage da aba continua com o último nonce).
+        """
         name = self.selected_variable
-        previous = self._state.get(self._FOCUS) or {}
-        self._state[self._FOCUS] = {"name": name, "nonce": int(previous.get("nonce", 0)) + 1} if name else None
+        if not name:
+            self._state[self._FOCUS] = None
+            return
+        seq = int(self._state.get(self._FOCUS_SEQ, 0)) + 1
+        self._state[self._FOCUS_SEQ] = seq
+        self._state[self._FOCUS] = {"name": name, "nonce": f"{time.time_ns()}-{seq}"}
 
     @property
     def focus_request(self) -> dict[str, Any] | None:

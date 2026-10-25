@@ -1,6 +1,7 @@
 import streamlit as st
 
 from backend.application.dto import SimulationSnapshot
+from frontend.compat import STRETCH
 from frontend.components.section import SectionHeader
 from frontend.components.variables_table import VariablesTable
 from frontend.session.ui_state import UiState
@@ -32,8 +33,22 @@ class VariablesTab(Tab):
             options=names, index=None, placeholder="Escolha uma variável…",
             key=UiState.PICKER_KEY, on_change=self._ui_state.request_focus,
         )
-        if self._ui_state.selected_variable:
-            st.info(
-                f"**{self._ui_state.selected_variable}** será destacada ao abrir a aba Diagrama.",
-                icon=":material/hub:",
-            )
+        selected = self._ui_state.selected_variable
+        if selected:
+            in_diagram = selected in (snapshot.model_payload or {}).get("nodes", {})
+            if in_diagram:
+                info_col, again_col = st.columns([4, 1], vertical_alignment="center")
+                info_col.info(
+                    f"**{selected}** será destacada ao abrir a aba Diagrama CLD.", icon=":material/hub:"
+                )
+                again_col.button(
+                    "Destacar de novo", icon=":material/center_focus_strong:", key="lumina.refocus",
+                    on_click=self._ui_state.request_focus,
+                    help="Útil se você já abriu o diagrama e selecionou outro nó nele.", **STRETCH,
+                )
+            else:
+                st.warning(
+                    f"**{selected}** não é um nó do diagrama (é uma variável calculada ou auxiliar), "
+                    "então não há o que destacar.",
+                    icon=":material/info:",
+                )

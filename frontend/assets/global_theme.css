@@ -4,20 +4,30 @@
 html{font-size:clamp(15px,.55vw + 9px,20px);}
 html,body,[class*="css"],.stApp{font-family:var(--sans);}
 button,input,textarea,select{font-family:inherit;}
-.stApp{background:var(--bg);color:var(--text);}
-[data-testid="stHeader"]{background:transparent;}
+.stApp{color:var(--text);
+  background:
+    radial-gradient(1100px 620px at 4% -8%,color-mix(in srgb,var(--usp-blue) 12%,transparent),transparent 70%),
+    radial-gradient(900px 560px at 100% 0%,color-mix(in srgb,var(--usp-yellow) 9%,transparent),transparent 72%),
+    var(--bg);
+  background-attachment:fixed;}
+/* Cabeçalho do Streamlit: é transparente e fica FIXO por cima da página (z-index altíssimo, largura total).
+   Sem isto ele engole os cliques: ao rolar a tela, as abas passam por baixo dele e ficam impossíveis de clicar.
+   Deixa o cabeçalho "vazado" e reativa só o que é dele (botões, links, menu). */
+[data-testid="stHeader"]{background:transparent;pointer-events:none;}
+[data-testid="stHeader"] :is(button,a,input,select,[role="button"],[role="menuitem"]){pointer-events:auto;}
+[data-testid="stDecoration"]{pointer-events:none;}
 ::selection{background:rgba(252,180,33,.35);}
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px;}
 
 /* conteúdo com largura máxima: em telas enormes (ou zoom out) não se espalha por 2700px */
 [data-testid="stMainBlockContainer"],.stMainBlockContainer,.block-container{
   max-width:min(100%,88rem);
-  padding:clamp(3rem,5vw,4rem) clamp(1rem,3vw,2.5rem) 3rem;
+  padding:clamp(4.25rem,5vw,5rem) clamp(1rem,3vw,2.5rem) 3rem;   /* ≥ altura do cabeçalho do Streamlit (3.75rem) */
 }
 
 /* faixa institucional (azul · azul claro · amarelo) no topo da página */
 .stApp::before{
-  content:'';position:fixed;top:0;left:0;right:0;height:3px;z-index:999991;
+  content:'';position:fixed;top:0;left:0;right:0;height:3px;z-index:999991;pointer-events:none;
   background:linear-gradient(90deg,var(--usp-blue) 0 45%,var(--usp-blue-light) 45% 70%,var(--usp-yellow) 70% 100%);
 }
 
@@ -52,7 +62,7 @@ button,input,textarea,select{font-family:inherit;}
 [role="tab"] p,[role="tab"]{font-family:var(--display);font-weight:600;font-size:.9rem;}
 [role="tab"] p{color:var(--text3) !important;margin:0;}
 [role="tab"]:hover p{color:var(--text) !important;}
-[role="tab"][aria-selected="true"] p{color:var(--text) !important;}
+[role="tab"][aria-selected="true"] p{color:var(--accent) !important;}
 .react-aria-SelectionIndicator,[data-baseweb="tab-highlight"]{background:var(--usp-yellow) !important;
   background-color:var(--usp-yellow) !important;height:3px !important;border-radius:3px 3px 0 0;}
 [data-baseweb="tab-border"]{background-color:transparent !important;}
@@ -75,8 +85,13 @@ button,input,textarea,select{font-family:inherit;}
 
 /* ── KPIs (grid próprio: quebra sozinho de 4 → 2 → 1 coluna) ── */
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,10.5rem),1fr));gap:.9rem;}
-.kpi{display:flex;flex-direction:column;gap:.4rem;min-width:0;padding:1.1rem 1.3rem 1.15rem;
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow);}
+.kpi{position:relative;overflow:hidden;display:flex;flex-direction:column;gap:.4rem;min-width:0;padding:1.1rem 1.3rem 1.15rem;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--usp-blue) 7%,var(--surface)),var(--surface) 60%);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow);}
+.kpi::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:var(--usp-blue);}
+.kpi:nth-child(2)::before{background:var(--cat-equacao);}
+.kpi:nth-child(3)::before{background:var(--usp-yellow);}
+.kpi:nth-child(4)::before{background:var(--cat-ambiente);}
+.kpi[data-tone="pos"]::before{background:var(--pos);} .kpi[data-tone="neg"]::before{background:var(--neg);}
 .kpi-label{font-size:.85rem;font-weight:600;color:var(--text2);}
 .kpi-value{font-family:var(--display);font-weight:600;font-size:clamp(1.4rem,2.1vw,1.85rem);line-height:1.15;
   color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
