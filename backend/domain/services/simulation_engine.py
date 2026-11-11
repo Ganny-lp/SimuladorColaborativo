@@ -27,15 +27,14 @@ class SimulationEngine:
         Avança um ciclo. Nós são calculados em ordem topológica, cada um lendo o
         valor JÁ ATUALIZADO das suas causas. Nós 'Estado' acumulam (anterior + equação).
         """
+        # All rates read the same opening-of-month state. Commit stocks together.
+        self.recompute_derived(system)
         values = system.values()
-        previous = dict(values)
-        for name in DependencyGraph(system).topological_order():
-            node = system.node(name)
-            if not node.has_expression:
-                continue
-            result = self._evaluate(node.expression, values)
-            node.value = previous[name] + result if node.is_state else result
-            values[name] = node.value
+        updates = {}
+        for name, node in system.nodes.items():
+            if node.is_state and node.has_expression:
+                updates[name] = values[name] + self._evaluate(node.expression, values)
+        system.apply_values(updates.items())
 
     def recompute_derived(self, system: CausalSystem) -> None:
         """Recalcula as variáveis derivadas a partir do estado atual, SEM avançar os estados."""

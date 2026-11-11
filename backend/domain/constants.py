@@ -12,6 +12,5 @@ class NodeNames:
     PRECO: Final = "Pt"
     QUANTIDADE: Final = "Qt"
     MARKET_SHARE: Final = "St"
-    PRECO_MERCADO: Final = "Pm"
     CUSTO_PECAS: Final = "Cp"
     CUSTO_MAO_DE_OBRA: Final = "C_Mao_Obra"

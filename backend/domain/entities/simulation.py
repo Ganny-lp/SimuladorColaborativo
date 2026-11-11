@@ -21,6 +21,8 @@ class Simulation:
 
     def set_input(self, name: str, value: float) -> None:
         """Altera uma decisão de entrada e a torna o novo ponto de partida do 'Reiniciar'."""
+        from backend.domain.services.input_validation import validate_input
+        value = validate_input(self.system.node(name), value)
         self.system.set_value(name, value)
         self.baseline[name] = float(value)
 

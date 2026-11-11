@@ -21,7 +21,7 @@ def _button(app, text):
 
 def test_renders_without_errors(app):
     assert not app.exception
-    assert [t.label for t in app.tabs] == ["⬡ Diagrama CLD", "▶ Simulação", "≋ Variáveis"]
+    assert [t.label for t in app.tabs] == [":material/hub: Diagrama CLD", ":material/monitoring: Simulação", ":material/table_rows: Variáveis"]
     assert len(app.dataframe) == 1
 
 
@@ -30,16 +30,16 @@ def test_advance_and_restart_flow(app):
         _button(app, "Avançar").click()
         app.run()
     assert not app.exception
-    assert any("Ciclo atual:** 2" in m.value for m in app.markdown)
+    assert any("Ciclo 2" in m.value for m in app.markdown)
 
     _button(app, "Reiniciar").click()
     app.run()
-    assert any("Ciclo atual:** 0" in m.value for m in app.markdown)
+    assert any("Ciclo 0" in m.value for m in app.markdown)
 
 
 def test_changing_a_decision_input_persists_in_session(app):
-    next(n for n in app.number_input if n.label == "Marketing").set_value(20000.0).run()
+    next(n for n in app.number_input if n.label == "budget_promo").set_value(20000.0).run()
     _button(app, "Avançar").click()
     app.run()
-    assert next(n for n in app.number_input if n.label == "Marketing").value == 20000.0
+    assert next(n for n in app.number_input if n.label == "budget_promo").value == 20000.0
     assert not app.exception

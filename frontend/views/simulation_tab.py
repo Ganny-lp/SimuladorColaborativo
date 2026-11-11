@@ -60,21 +60,22 @@ class SimulationTab(Tab):
 
     def _render_other_decisions(self, snapshot: SimulationSnapshot) -> bool:
         changed = False
-        columns = st.columns(len(DECISION_INPUTS))
-        for column, decision in zip(columns, DECISION_INPUTS):
-            variable = snapshot.variable(decision.variable)
-            if variable is None:
-                continue
-            step = 100.0 if variable.value > 10 else 0.01
-            new_value = column.number_input(
-                decision.label, value=float(variable.value), step=step, format="%.4g",
-                help=variable.description or None,
-            )
-            changed = self._apply_input(decision.variable, new_value) or changed
+        variables = [v for v in snapshot.variables if v.category == "Input" and not v.expression and v.name != PRICE_VARIABLE]
+        for start in range(0, len(variables), 3):
+            for column, variable in zip(st.columns(3), variables[start:start + 3]):
+                new_value = column.number_input(
+                    variable.name, value=float(variable.value), step=0.01,
+                    key=f"decision_{variable.name}", help=variable.description or None,
+                )
+                changed = self._apply_input(variable.name, new_value) or changed
         return changed
 
     def _apply_input(self, name: str, value: float) -> bool:
-        result = self._change_input.execute(name, value)
+        try:
+            result = self._change_input.execute(name, value)
+        except ValueError as exc:
+            st.error(str(exc))
+            return False
         if result.changed and result.persistence is PersistenceOutcome.FAILED:
             st.toast("Não foi possível salvar o modelo na nuvem.", icon=":material/warning:")
         return result.changed

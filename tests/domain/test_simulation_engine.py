@@ -6,27 +6,29 @@ from backend.domain.entities.simulation import Simulation
 
 
 def test_migration_starts_clean(migrated_system):
-    assert migrated_system.value_of("Rentabilidade") == 0.0
-    assert str(migrated_system.value_of("Rentabilidade")) == "0.0"  # sem '-0.0'
-    assert migrated_system.value_of("B") == 10000.0
-    assert migrated_system.value_of("Dpt") == pytest.approx(1000.0)
-    assert migrated_system.value_of("St") == pytest.approx(0.0016816540258471277)
+    assert migrated_system.value_of("Rentabilidade") == -52500
+    assert migrated_system.value_of("B") == 10000
+    assert 0 < migrated_system.value_of("St") < 1
 
 
-def test_first_cycle_golden_values(migrated_system, engine):
-    """Valores de referência validados contra o sim.py original (com o bug do MIN corrigido)."""
+def test_first_cycle_cash_and_stock_conservation(migrated_system, engine):
+    before = migrated_system.values()
     engine.advance_cycle(migrated_system)
-    assert migrated_system.value_of("Qt") == pytest.approx(1.6816540258471278)
-    assert migrated_system.value_of("Receita Líquida") == pytest.approx(214.41088829550878)
-    assert migrated_system.value_of("Custos") == pytest.approx(26474.735921904525)
-    assert migrated_system.value_of("Rentabilidade") == pytest.approx(-26260.325033609017)
+    now = migrated_system.values()
+    assert now["Backlog_Servicos"] == pytest.approx(before["Backlog_Servicos"] + now["Demanda_Captada"] - now["Qt"])
+    assert now["Estoque_Pecas"] == pytest.approx(before["Estoque_Pecas"] + now["Reposicao_Pecas"] - now["Qt"])
+    assert now["Rentabilidade"] == pytest.approx(before["Rentabilidade"] + now["Fluxo_Caixa"])
+    assert now["Caixa_Disponivel"] == pytest.approx(before["Caixa_Disponivel"] + now["Fluxo_Caixa"])
 
 
 def test_state_accumulates_across_cycles(migrated_system, engine):
-    engine.advance_cycle(migrated_system)
-    first = migrated_system.value_of("Rentabilidade")
-    engine.advance_cycle(migrated_system)
-    assert migrated_system.value_of("Rentabilidade") == pytest.approx(2 * first, rel=1e-6)
+    total = migrated_system.value_of("Rentabilidade")
+    for _ in range(24):
+        engine.advance_cycle(migrated_system)
+        total += migrated_system.value_of("Fluxo_Caixa")
+        assert migrated_system.value_of("Rentabilidade") == pytest.approx(total)
+        assert migrated_system.value_of("Estoque_Pecas") >= -1e-9
+        assert migrated_system.value_of("Backlog_Servicos") >= -1e-9
 
 
 def test_capacity_caps_served_quantity(migrated_system, engine):
@@ -62,5 +64,5 @@ def test_simulation_restart_restores_baseline_and_keeps_decisions(migrated_syste
     simulation.clear_progress()
 
     assert simulation.cycle == 0 and simulation.history == []
-    assert migrated_system.value_of("Rentabilidade") == 0.0
+    assert migrated_system.value_of("Rentabilidade") == -52500
     assert migrated_system.value_of("budget_promo") == 20000

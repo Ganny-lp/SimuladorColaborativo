@@ -31,18 +31,18 @@ class PriceScale:
         return tuple(sorted(self.stops, key=lambda s: s.value))
 
     @classmethod
-    def derive(cls, market_price: float, variable_cost: float) -> "PriceScale":
-        """Régua padrão derivada do preço da concorrência e do custo variável unitário."""
-        upper = max(market_price * 2.2, variable_cost * 3, 100)
+    def derive(cls, reference_price: float, variable_cost: float) -> "PriceScale":
+        """Régua padrão derivada do preço sugerido por custos e do custo variável unitário."""
+        upper = max(reference_price * 2.2, variable_cost * 3, 100)
         return cls(
             minimum=0,
             maximum=round(upper, -1) or 300,
             stops=(
                 PriceStop(0, "#e06060", "Prejuízo"),
                 PriceStop(variable_cost, "#e8825a", "Custo variável"),
-                PriceStop(market_price * 0.6, "#e8a94a", "Abaixo do mercado"),
-                PriceStop(market_price, "#52c97a", "Alinhado ao mercado"),
-                PriceStop(market_price * 1.4, "#e8a94a", "Acima do mercado"),
+                PriceStop(reference_price * 0.6, "#e8a94a", "Abaixo do preço sugerido"),
+                PriceStop(reference_price, "#52c97a", "Preço sugerido por custos"),
+                PriceStop(reference_price * 1.4, "#e8a94a", "Acima do preço sugerido"),
                 PriceStop(upper, "#e06060", "Preço muito alto"),
             ),
         )
