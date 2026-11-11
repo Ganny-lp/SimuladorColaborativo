@@ -56,7 +56,7 @@ class TestStartSimulation:
         start.execute()
         system = store.simulation.system
         assert system.value_of("Pt") == 111          # modelo/inputs vêm da nuvem
-        assert system.value_of("Rentabilidade") == -52500  # estado NÃO
+        assert system.value_of("Rentabilidade") == 0  # estado NÃO
 
     def test_is_idempotent_unless_forced(self, start, store):
         start.execute()
@@ -74,7 +74,7 @@ class TestAdvanceAndRestart:
         simulation = started.simulation
         assert simulation.cycle == 2
         assert [r.cycle for r in simulation.history] == [1, 2]
-        assert simulation.history[0].profit == pytest.approx(-11407.537834433462)
+        assert simulation.history[0].profit == pytest.approx(-10468.22184744551)
 
     def test_restart_clears_progress_but_keeps_inputs(self, started, engine, repository):
         publisher = ModelPublisher(repository, InitialStateCalculator(engine._evaluator))
@@ -83,7 +83,7 @@ class TestAdvanceAndRestart:
         RestartSimulationUseCase(started, engine).execute()
         simulation = started.simulation
         assert simulation.cycle == 0 and simulation.history == []
-        assert simulation.system.value_of("Rentabilidade") == -52500
+        assert simulation.system.value_of("Rentabilidade") == 0
         assert simulation.system.value_of("budget_promo") == 12345
 
 
@@ -102,7 +102,7 @@ class TestChangeInput:
         assert result.changed and result.persistence is PersistenceOutcome.SAVED
         published = repository.saved[-1]
         assert published.value_of("Pt") == 120.0
-        assert published.value_of("Rentabilidade") == -52500          # cloud nunca acumula ciclos
+        assert published.value_of("Rentabilidade") == 0          # cloud nunca acumula ciclos
         assert started.simulation.system.value_of("Rentabilidade") != 0  # sessão local intacta
 
     def test_reports_failure_and_skip(self, started, engine):
@@ -125,7 +125,7 @@ class TestSnapshot:
         assert snapshot.kpis.served_quantity == pytest.approx(63.64832908654286)
         assert snapshot.variable("Pt").value == 150.0
         assert snapshot.variable("inexistente") is None
-        assert len(snapshot.variables) == 92
+        assert len(snapshot.variables) == 93
         assert len(snapshot.history) == 1
         assert set(snapshot.model_payload) >= {"nodes", "links", "schema_version"}
 

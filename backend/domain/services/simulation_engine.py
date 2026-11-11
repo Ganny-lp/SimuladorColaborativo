@@ -33,6 +33,10 @@ class SimulationEngine:
         for name, node in working.nodes.items():
             if node.is_state and node.has_expression:
                 updates[name] = values[name] + self._evaluate(node.expression, values)
+        if working.value_of("Simular_Abertura") == 1 and values.get("Mes_Operacao") == 0:
+            # Opening assets/reserve are funded once; borrowing enters cash once.
+            updates["Rentabilidade"] -= self._initial_state._opening_investment(working)
+            updates["Caixa_Disponivel"] += working.value_of("Emprestimo")
         working.apply_values(updates.items())
         system.apply_values(working.values().items())
 

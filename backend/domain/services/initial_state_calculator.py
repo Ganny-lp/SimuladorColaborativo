@@ -33,11 +33,13 @@ class InitialStateCalculator:
         if system.extras.get("schema_version") == 2:
             initial.update(B=system.value_of("Base_Instalada_Inicial", 10000),
                            Estoque_Pecas=system.value_of("Estoque_Inicial", 150),
-                           Caixa_Disponivel=system.value_of("Caixa_Reserva") + system.value_of("Emprestimo"),
+                           Caixa_Disponivel=system.value_of("Caixa_Reserva"),
                            Reinvestimento_Disponivel=0, Mes_Operacao=0)
         if NodeNames.RENTABILIDADE not in overrides:
             investment = self._opening_investment(system)
-            initial[NodeNames.RENTABILIDADE] = -investment if investment else 0.0  # evita -0.0
+            initial[NodeNames.RENTABILIDADE] = 0.0 if system.has_node("Simular_Abertura") else (-investment if investment else 0.0)  # evita -0.0
+        if system.has_node("Simular_Abertura"):
+            initial[NodeNames.RENTABILIDADE] = 0.0
         return {name: float(v) for name, v in initial.items() if system.has_node(name)}
 
     def _opening_investment(self, system: CausalSystem) -> float:

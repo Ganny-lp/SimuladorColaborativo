@@ -33,6 +33,7 @@ def test_more_technicians_increase_capacity_and_payroll(migrated_system,engine):
     assert high.value_of('Custo_Fixo') > migrated_system.value_of('Custo_Fixo')
 
 def test_finance_zero_interest_and_term(migrated_system,engine):
+    migrated_system.set_value('Simular_Abertura',1)
     migrated_system.set_value('Juros_Base',0);migrated_system.set_value('Inflacao',0)
     for i in range(14):
         engine.advance_cycle(migrated_system)

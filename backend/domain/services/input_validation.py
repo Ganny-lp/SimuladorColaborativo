@@ -11,6 +11,8 @@ def validate_input(node: Node, value: float) -> float:
     if node.category is not NodeCategory.INPUT or node.has_expression:
         raise InvalidModelError('A variável não é uma entrada editável.')
     value = float(value)
+    if node.name == "Simular_Abertura" and value not in (0,1):
+        raise InvalidModelError("Escolha sim ou não para abertura.")
     if not math.isfinite(value):
         raise InvalidModelError('Informe um número finito.')
     if node.name in FRACTIONS and not 0 <= value <= 1:
@@ -22,8 +24,10 @@ def validate_input(node: Node, value: float) -> float:
     # Shipped monetary/count inputs never accept negative values.
     if node.name in NONNEGATIVE and value < 0:
         raise InvalidModelError('Informe um valor não negativo.')
-    if node.name in {'Juros_Base','Inflacao'} and not 0 <= value <= 1:
+    if node.name == 'Juros_Base' and not 0 <= value <= 1:
         raise InvalidModelError('Informe uma taxa entre 0 e 1.')
+    if node.name == 'Inflacao' and not -0.99 <= value <= 1:
+        raise InvalidModelError('Inflação fora do intervalo suportado.')
     return value
 
 NONNEGATIVE = FRACTIONS | INTEGERS | POSITIVE | {

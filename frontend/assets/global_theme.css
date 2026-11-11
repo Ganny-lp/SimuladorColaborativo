@@ -169,3 +169,10 @@ hr{border-color:var(--border) !important;}
   [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {min-width:min(100%,280px);flex:1 1 100%;}
   [class*="st-key-decision-card-"] {padding:.85rem;}
 }
+
+/* Equal-height decision rows, including widgets without a visual scale. */
+[class*="st-key-decision-card-"] {min-height:255px;box-sizing:border-box;}
+.st-key-budget-summary,.st-key-market-context {padding:1.4rem;border:1px solid var(--border);border-radius:20px;background:var(--surface);margin-block:1.2rem;}
+.budget-track {display:flex;height:18px;overflow:hidden;border-radius:12px;background:var(--inset);margin:.7rem 0 1.3rem;}
+.budget-track span {height:100%;display:block;}
+@media(max-width:640px){[class*="st-key-decision-card-"] {min-height:0;}.st-key-budget-summary,.st-key-market-context{padding:1rem;}}

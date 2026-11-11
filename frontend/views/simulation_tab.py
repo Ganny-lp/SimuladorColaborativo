@@ -28,6 +28,7 @@ class SimulationTab(Tab):
         change_input: ChangeInputUseCase,
         advance_cycle: AdvanceCycleUseCase,
         restart: RestartSimulationUseCase,
+        market_data=None,
     ) -> None:
         self._kpi_cards = kpi_cards
         self._price_slider = price_slider
@@ -35,6 +36,7 @@ class SimulationTab(Tab):
         self._change_input = change_input
         self._advance_cycle = advance_cycle
         self._restart = restart
+        self._market_data = market_data
         self._section = SectionHeader()
         self._decision_control = DecisionControl()
 
@@ -75,22 +77,35 @@ class SimulationTab(Tab):
     def _render_other_decisions(self, snapshot: SimulationSnapshot) -> bool:
         changed = False
         variables = [v for v in snapshot.variables if v.category == "Input" and not v.expression and v.name != PRICE_VARIABLE]
-        for group in ("Operação e equipe", "Investimentos e estratégia", "Mercado e ambiente", "Abertura e financiamento"):
-            members = [v for v in variables if group_for(v.name) == group]
-            with st.expander(group, expanded=group == "Investimentos e estratégia"):
-                if group == "Abertura e financiamento":
-                    st.caption("Valores iniciais: reinicie a simulação para aplicar mudanças após o primeiro ciclo.")
-                for start in range(0, len(members), 2):
-                    for column, variable in zip(st.columns(2), members[start:start + 2]):
-                        with column:
-                            new_value = self._decision_control.render(variable)
-                        changed = self._apply_input(variable.name, new_value) or changed
-        budgets = [v for v in variables if v.name.startswith("budget_")]
-        total = sum(v.value for v in budgets)
-        if total > 0:
-            st.caption(f"Distribuição do orçamento mensal · R$ {total:,.2f}")
-            for variable in budgets:
-                st.progress(min(1.0,max(0.0,variable.value/total)), text=f"{variable.name.replace('budget_','')} · {variable.value/total:.0%}")
+        enabled = snapshot.variable("Simular_Abertura")
+        if enabled:
+            if snapshot.cycle == 0:
+                opening = st.toggle("Simular abertura da empresa?", value=bool(enabled.value))
+                changed = self._apply_input("Simular_Abertura", float(opening)) or changed
+            else:
+                opening = bool(enabled.value)
+                st.caption("Configuração inicial encerrada. Reinicie para simular outra abertura.")
+        else:
+            opening = False
+        primary = {"Numero_Tecnicos", "Estoque_Alvo", "budget_training", "budget_update", "budget_infra", "budget_promo"}
+        def render_members(members):
+            nonlocal changed
+            for start in range(0,len(members),2):
+                for column,variable in zip(st.columns(2),members[start:start+2]):
+                    with column:
+                        chosen = self._decision_control.render(variable)
+                    changed = self._apply_input(variable.name,chosen) or changed
+        render_members([v for v in variables if v.name in primary])
+        if opening and snapshot.cycle == 0:
+            with st.expander("Preparar abertura e financiamento",expanded=True):
+                st.caption("Desembolso inicial e crédito ocorrem uma única vez no primeiro ciclo. As parcelas do empréstimo continuam até o prazo contratado.")
+                render_members([v for v in variables if group_for(v.name)=="Abertura e financiamento" and v.name!="Simular_Abertura"])
+        with st.expander("Ajustes operacionais avançados"):
+            render_members([v for v in variables if v.name not in primary and group_for(v.name) not in {"Mercado e ambiente","Abertura e financiamento"}])
+        from frontend.components.market_context import render_market_context
+        changed = render_market_context(snapshot,self._apply_input,self._market_data) or changed
+        from frontend.components.budget_summary import render_budget_summary
+        render_budget_summary(variables)
         return changed
 
     def _apply_input(self, name: str, value: float) -> bool:

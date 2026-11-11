@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 # Mude APP_VERSION sempre que alterar equações/estado inicial: sessões abertas antes
 # do deploy (que ainda guardam o estado antigo) são recarregadas.
-APP_VERSION = "2026-11-11-model-v2"
+APP_VERSION = "2026-11-11-opening-opt-in"
 
 PAGE_TITLE = "LUMINA · Simulador de Laços Causais · PUB USP"
 PRICE_VARIABLE = "Pt"

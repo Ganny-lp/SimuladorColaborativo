@@ -46,7 +46,7 @@ def test_all_initial_financial_inputs_reapply_on_restart(migrated_system,engine)
     engine.advance_cycle(s.system);s.set_input('Infra_Reforma',18000);s.set_input('Estoque_Inicial',42)
     RestartSimulationUseCase(store,engine).execute()
     assert s.system.value_of('Estoque_Pecas') == 42
-    assert s.system.value_of('Rentabilidade') == -(52500+10000-108*20)
+    assert s.system.value_of('Rentabilidade') == 0
 
 
 def test_input_change_recomputes_without_advancing_state(migrated_system,engine):

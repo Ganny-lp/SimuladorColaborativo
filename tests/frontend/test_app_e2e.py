@@ -22,7 +22,7 @@ def _button(app, text):
 def test_renders_without_errors(app):
     assert not app.exception
     assert [t.label for t in app.tabs] == [":material/hub: Diagrama CLD", ":material/monitoring: Simulação", ":material/table_rows: Variáveis"]
-    assert len(app.dataframe) == 1
+    assert len(app.dataframe) == 2
 
 
 def test_advance_and_restart_flow(app):
@@ -46,20 +46,22 @@ def test_changing_a_decision_input_persists_in_session(app):
 
 
 def test_fraction_scale_and_exact_entry_are_synchronized(app):
-    number = next(n for n in app.number_input if n.label == "Carga Tributaria")
+    number = next(n for n in app.number_input if n.label == "Taxa Reinvestimento")
     number.set_value(20.0).run()
     assert not app.exception
-    slider = next(s for s in app.slider if s.label == "Escala · Carga Tributaria")
+    slider = next(s for s in app.slider if s.label == "Escala · Taxa Reinvestimento")
     assert slider.value == 20
     slider.set_value(10.0).run()
-    assert next(n for n in app.number_input if n.label == "Carga Tributaria").value == 10
+    assert next(n for n in app.number_input if n.label == "Taxa Reinvestimento").value == 10
 
 
-def test_every_input_is_rendered(app):
-    from backend.infrastructure.persistence.json_default_model_provider import JsonDefaultModelProvider
-    from backend.application.mappers.model_mapper import ModelMapper
-    inputs = [n for n in JsonDefaultModelProvider(ModelMapper()).provide().nodes.values() if n.category.value == "Input"]
-    assert len(app.number_input) == len(inputs)
+def test_opening_fields_are_opt_in_and_disappear_after_first_cycle(app):
+    assert not any(n.label == "Emprestimo" for n in app.number_input)
+    app.toggle[0].set_value(True).run()
+    assert any(n.label == "Emprestimo" for n in app.number_input)
+    _button(app,"Avançar").click().run()
+    assert not app.exception
+    assert not any(n.label == "Emprestimo" for n in app.number_input)
 
 
 def test_price_change_updates_model_and_restart_keeps_decision(app):

@@ -59,7 +59,7 @@
     "Emprestimos_Mensal": {
       "cat": "Equação",
       "val": 0,
-      "expr": "PMT(Emprestimo,Tx_Juros_Emprestimo,Prazo)*MIN(1,MAX(0,Prazo-Mes_Operacao))",
+      "expr": "Simular_Abertura*PMT(Emprestimo,Tx_Juros_Emprestimo,Prazo)*MIN(1,MAX(0,Prazo-Mes_Operacao))",
       "desc": "Prestação calculada pelo motor financeiro em função do prazo restante.",
       "x": 603.5506260697024,
       "y": 553.2852785868773
@@ -735,6 +735,14 @@
       "desc": "Contador de meses para limitar pagamentos do financiamento ao prazo contratado.",
       "x": 690,
       "y": 1650
+    },
+    "Simular_Abertura": {
+      "cat": "Input",
+      "val": 0,
+      "expr": "",
+      "desc": "Simular abertura da empresa? Ativa desembolso inicial e contratação única de financiamento no primeiro ciclo.",
+      "x": 1100,
+      "y": 300
     }
   },
   "links": [
