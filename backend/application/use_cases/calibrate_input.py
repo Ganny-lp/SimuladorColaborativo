@@ -15,7 +15,7 @@ class CalibrateInputUseCase:
         if name not in ALLOWED: raise InvalidModelError("Parâmetro fora da calibração.")
         if not isinstance(source,str) or len(source.strip())<8 or len(source)>2000:
             raise InvalidModelError("Informe a fonte verificável (URL ou documento e recorte).")
-        if method not in {"Observação local declarada","Estimativa empírica declarada","Série oficial consultada"}:
+        if method not in {"Observação local declarada","Estimativa empírica declarada","Série oficial consultada","Cálculo normativo condicionado","Contagem cadastral declarada"}:
             raise InvalidModelError("Método inválido.")
         try: observed=date.fromisoformat(reference)
         except (ValueError,TypeError): raise InvalidModelError("Data de referência inválida.")

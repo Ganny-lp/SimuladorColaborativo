@@ -107,3 +107,24 @@ Instaladores já existentes em `build/` e `installer/` podem estar desatualizado
 [LICENSE](LICENSE) reserva provisoriamente os direitos sobre o material original aos respectivos titulares. O texto não atribui titularidade exclusiva ao mantenedor nem elimina eventuais direitos de coautores ou instituições. Dependências, dados e marcas de terceiros mantêm suas próprias condições. Permissões anteriores válidas não são revogadas retroativamente.
 
 Nenhuma licença impede tecnicamente que um código público seja copiado. O GitHub permite visualização e forks nos limites dos seus termos; um fork não concede automaticamente outros direitos de exploração. Veja [orientação oficial do GitHub](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository). Proteção de software e registro são descritos pelo [INPI](https://www.gov.br/inpi/pt-br/acesso-a-informacao/perguntas-frequentes/programas-de-computador). A definição final de titularidade e licenciamento deve respeitar os contratos e vínculos do projeto.
+
+
+## Calculadoras de fontes e amostras
+
+No contexto de mercado, **Calcular a partir de fontes e amostras** oferece caminhos executáveis para os sete parâmetros restantes, sem aplicar amostras fictícias.
+
+| Parâmetro | Fonte e operação | Limite |
+|---|---|---|
+| Carga tributária | [Resolução CGSN 140, arts. 21–22/Anexo III](https://normas.receita.fazenda.gov.br/sijut2consulta/link.action?idAto=92278), fórmula efetiva com RBT12 | Só cenário confirmado no Anexo III em 2026, RBT12 até R$ 3,6 milhões, sem exceções/ISS fora do DAS. Não substitui apuração fiscal. |
+| Nc | Recorte completo do arquivo Estabelecimentos, [layout RFB](https://www.gov.br/receitafederal/dados/cnpj-metadados.pdf) | Filtra ativos, UF, código municipal Receita e CNAE principal; deduplica CNPJ e permite excluir a própria empresa. Não cobre informalidade nem CNAE secundário. |
+| Preço de equipamento novo | Mediana de cotações novas de uma mesma especificação | Exige amostra datada e origem; não usa preços de concorrentes de reparo. |
+| Alfa | Falhas / equipamento-mês observado | Não confundir fracasso de um reparo com falha na população de equipamentos. |
+| Beta | Ajuste da própria equação de captação com no mínimo três observações e variação de preço | Exige participação captada sobre demanda potencial, não quantidade concluída limitada por capacidade. Associação, sem identificação causal. |
+| Influência de avaliações | Ajuste da equação de reputação, com satisfação e marketing controlados | Exige escala de reputação compatível, no mínimo três meses não saturados. Não é uma elasticidade de receita por estrela do Google. |
+| Inovação | Inversão da equação de disponibilidade de peças | Proxy de obsolescência ajustada, não uma medição direta de lançamentos ou inovação dos fabricantes. |
+
+As calculadoras CSV fornecem cabeçalho para download. Use UTF-8, vírgulas e decimal com ponto. Os resultados registram tamanho da amostra e SHA-256 do arquivo, junto com fonte e data. O arquivo original não é publicado no modelo. Não há autenticação automática da origem de arquivos declarados pelo responsável.
+
+Para Nc, o importador espera Latin-1, separador `;`, 30 campos e nenhum cabeçalho conforme o layout oficial. Um fragmento nacional da base NÃO é um recorte municipal completo; a interface exige confirmação de cobertura. O código municipal da Receita não deve ser substituído pelo código IBGE. O endereço de download da RFB pode mudar; use a [página oficial de CNPJ](https://www.gov.br/receitafederal/pt-br/assuntos/orientacao-tributaria/cadastros/cnpj) para localizar os dados.
+
+Fonte setorial pública pesquisada: [Open Repair Alliance / ORDS](https://openrepair.org/open-data/open-standard/) publica tentativas e desfechos em eventos comunitários. Ela não oferece a exposição de toda a base instalada nem todas as variáveis econômicas deste simulador; por isso não foi usada para inventar Alfa, Beta ou efeitos de avaliações brasileiros. Fontes de referência não equivalem a valores calibrados.

@@ -32,15 +32,27 @@ def render_market_context(snapshot,apply_input,query,calibration=None):
             st.caption("Inflação ainda não consultada nesta sessão: premissa do cenário, não dado atualizado.")
         st.markdown("[Fonte: IPCA mensal no SGS/BCB](https://www3.bcb.gov.br/sgspub/consultarValoresSeries.do?method=consultarSeries&series=433)")
         st.caption("O IPCA é referência macroeconômica, não índice exclusivo de assistências técnicas. Preço de equipamento, concorrentes e coeficientes de demanda continuam premissas até calibração local; não são estimativas oficiais.")
+        from frontend.components.source_tools import render_source_tools
+        changed = render_source_tools(snapshot,calibration) or changed
         with st.expander("Premissas e fontes para calibração"):
             names={"Nc","Beta_1","Alfa","Preco_Equipamento_Novo","Carga_Tributaria","Inovacao_Fabricantes","Influencia_Avaliacoes_Online"}
             evidence=snapshot.model_payload.get("calibration",{})
+            paths={
+                "Carga_Tributaria":"Resolução CGSN 140 / Anexo III; calculadora condicionada ao regime e RBT12",
+                "Nc":"RFB / Estabelecimentos: importar recorte completo por município e CNAE",
+                "Alfa":"Histórico de falhas e exposição equipamento-mês: importar CSV",
+                "Beta_1":"Histórico de captação, preços e concorrentes: importar CSV",
+                "Preco_Equipamento_Novo":"Cotações comparáveis datadas de equipamentos novos: importar CSV",
+                "Influencia_Avaliacoes_Online":"Série local de reputação, satisfação e marketing: importar CSV",
+                "Inovacao_Fabricantes":"Estoque, demanda e disponibilidade: proxy de obsolescência, não inovação observada",
+                "Inflacao":"BCB / SGS 433: consulta oficial",
+            }
             rows=[]
             for v in snapshot.variables:
                 if v.name not in names | {"Inflacao"}: continue
                 item=evidence.get(v.name,{})
                 valid=bool(item) and item.get("value")==v.value
-                rows.append({"Parâmetro":v.name.replace("_"," "),"Valor":v.value,"Origem":item.get("method") if valid else "Hipótese sem evidência vinculada","Referência":item.get("reference","") if valid else "","Fonte":item.get("source","") if valid else ""})
+                rows.append({"Parâmetro":v.name.replace("_"," "),"Valor":v.value,"Origem":item.get("method") if valid else "Hipótese sem evidência vinculada","Referência":item.get("reference","") if valid else "Aguardando evidência","Fonte":item.get("source","") if valid else paths[v.name]})
             st.dataframe(rows,hide_index=True)
             if calibration and snapshot.cycle==0:
                 from datetime import date
