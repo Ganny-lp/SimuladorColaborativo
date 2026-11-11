@@ -47,7 +47,8 @@ class SimulationTab(Tab):
         self._section.render("Resultados realizados", chip=f"Ciclo {snapshot.cycle}")
         self._kpi_cards.render(snapshot.kpis)
         if snapshot.cycle == 0:
-            st.info("Preparação: nenhum mês foi simulado. Receita e serviços concluídos começam em zero.")
+            with keyed_container("preparation-note"):
+                st.info("Preparação: nenhum mês foi simulado. Receita e serviços concluídos começam em zero.")
 
         self._section.render("Decisões", hint="Ajuste as variáveis de decisão e avance o ciclo para ver o efeito.")
         self._render_decision_context(snapshot)
