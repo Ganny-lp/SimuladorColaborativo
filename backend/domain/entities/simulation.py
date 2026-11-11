@@ -15,6 +15,8 @@ class Simulation:
     cycle: int = 0
     history: list[CycleRecord] = field(default_factory=list)
 
+    completed_values: dict[str, float] = field(default_factory=dict)
+
     @classmethod
     def begin(cls, system: CausalSystem) -> "Simulation":
         return cls(system=system, baseline=system.values())
@@ -27,6 +29,7 @@ class Simulation:
         self.baseline[name] = float(value)
 
     def register_cycle(self, profit: float, accumulated_profitability: float) -> CycleRecord:
+        self.completed_values = self.system.values()
         self.cycle += 1
         record = CycleRecord(self.cycle, profit, accumulated_profitability)
         self.history.append(record)
@@ -38,3 +41,4 @@ class Simulation:
     def clear_progress(self) -> None:
         self.cycle = 0
         self.history = []
+        self.completed_values = {}

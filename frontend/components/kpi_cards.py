@@ -18,8 +18,8 @@ class KpiCards:
         return (
             ("Rentabilidade acumulada", formatters.thousands_currency(profit), "desembolso inicial + fluxo acumulado", tone),
             ("Receita do ciclo", formatters.currency(kpis.net_revenue), "receita líquida no ciclo atual", "neutral"),
-            ("Quantidade atendida", formatters.integer(kpis.served_quantity), "unidades vendidas no ciclo", "neutral"),
-            ("Market share", formatters.percent(kpis.market_share), "fatia do mercado capturada", "neutral"),
+            ("Quantidade atendida", formatters.decimal_number(kpis.served_quantity), "serviços equivalentes concluídos", "neutral"),
+            ("Captação estimada no ciclo", formatters.percent(kpis.market_share), "fração modelada de novos pedidos", "neutral"),
         )
 
     def html(self, kpis: KpiDTO) -> str:

@@ -27,3 +27,7 @@ def integer(value: float) -> str:
 
 def percent(fraction: float) -> str:
     return f"{_pt(fraction * 100, 2)}%"
+
+
+def decimal_number(value: float) -> str:
+    return _pt(value, 1)

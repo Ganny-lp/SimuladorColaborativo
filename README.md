@@ -1,57 +1,109 @@
-# LUMINA · Simulador de Laços Causais
+# LUMINA · Simulador Colaborativo
 
-Simulador didático mensal de uma assistência técnica, com diagrama editável e decisões de preço, investimentos, equipe, estoque e ambiente.
+Simulador didático mensal de uma assistência técnica, com diagrama causal editável, decisões operacionais e acompanhamento financeiro. O modelo permite explorar cenários; não constitui previsão de mercado nem recomendação de investimento.
+
+**Situação jurídica:** código disponibilizado para visualização, sob [licença provisória restritiva](LICENSE). Não é um projeto com licença de código aberto. Uso adicional depende de autorização dos titulares competentes.
+
+## Começar
+
+Recomendado: Python 3.12, ambiente virtual e execução a partir da raiz. CI cobre Python 3.11 e 3.12.
 
 ```bash
+python -m venv .venv
+# Linux/macOS
+source .venv/bin/activate
+# Windows PowerShell: .venv\Scripts\Activate.ps1
 python -m pip install -r requirements-dev.txt
 python -m streamlit run app.py
-python -m pytest -q
 ```
 
-`streamlit run sim.py` abre a mesma aplicação; o motor duplicado antigo foi retirado.
+Para executar sem ferramentas de desenvolvimento, instale `requirements.txt`. `streamlit run sim.py` usa a mesma aplicação. Os requisitos atuais são intervalos mínimos; não são um lockfile reproduzível. Antes de distribuir uma versão, registre as versões efetivamente testadas em ambiente limpo.
 
-## Modelo e premissas
+## Entender a simulação
 
-Veja [modelo-simulacao.md](docs/modelo-simulacao.md) para o mapeamento dos pontos da análise de 11/11/2026 para equações e comportamentos executáveis.
+| Etapa | Comportamento |
+|---|---|
+| Ciclo 0 | Preparação: receita, serviços concluídos e captação realizados são zero. Variáveis derivadas e preço sugerido são projeções. |
+| Avançar ciclo | Calcula o mês com os estados iniciais, aplica os estoques simultaneamente e registra um resultado imutável. |
+| Mudar decisão | Recalcula projeções para o próximo mês. Não altera o resultado do mês já concluído. |
+| Reiniciar | Reaplica a configuração inicial e limpa os resultados e o histórico. |
+| Simular abertura | Desativado por padrão. Ative antes de iniciar para configurar investimento e financiamento. |
 
-O modelo padrão não utiliza preços de outras assistências. Pt é o preço praticado, escolhido pelo participante; o preço sugerido considera custos, impostos, margem e volume. O preço de equipamento novo representa a alternativa de substituir o produto.
+A quantidade atendida representa **serviços equivalentes** em um modelo contínuo: pode ser fracionária. Não representa contagem observada de ordens de serviço reais. A captação é uma fração calculada de novos pedidos, não uma participação de mercado empiricamente medida.
 
-As variáveis Input são descobertas pelo frontend e exibidas por tema. Frações aparecem como porcentagens, com escala e campo exato sincronizados. A digitação e o teclado continuam disponíveis. Alterar uma entrada recalcula os indicadores sem avançar estados. Estoques e desembolsos iniciais são reaplicados ao reiniciar; mudanças após o primeiro ciclo não retroagem sobre o histórico.
+Pt é o preço praticado, escolhido pelo participante. A sugestão de preço considera custos, volume e margem; não altera Pt automaticamente. Preço de equipamento novo representa a alternativa ao reparo, sem utilizar preços de outras assistências.
 
-Cada ciclo calcula taxas com os estoques iniciais do mês e atualiza todos os estados simultaneamente. Fila, estoque e caixa obedecem a balanços. Resultados com divisão por zero, nomes inexistentes, ciclos algébricos ou números não finitos interrompem a operação sem aplicar um ciclo parcial.
+### Abertura, caixa e resultado
 
-Os coeficientes comportamentais são hipóteses didáticas e precisam de calibração para uso empírico. Nc é uma contagem regional fornecida pelo participante: não há conexão a uma base municipal.
+O investimento de abertura afeta o acumulado uma única vez no primeiro ciclo, se ativado. O financiamento entra no caixa uma vez; parcelas continuam até o prazo contratado. Reserva e estoque iniciais são os saldos operacionais do cenário. Sem abertura, não se contrata nova dívida nem se desconta investimento inicial.
 
-## Persistência opcional
+Resultado mensal, fluxo de caixa, saldo operacional e rentabilidade acumulada são conceitos distintos. Compras de peças afetam caixa; o consumo é ajustado para não cobrar o mesmo estoque duas vezes. Veja [modelo e laços](docs/modelo-simulacao.md) e [configuração inicial e fontes](docs/experiencia-e-fontes.md).
 
-Crie `.streamlit/secrets.toml` (arquivo local ignorado pelo Git):
+## Dados, premissas e calibração
+
+O programa não pode inferir parâmetros locais confiáveis apenas pelo tipo de negócio. Os valores padrão são hipóteses didáticas, não estimativas calibradas.
+
+| Entrada | Evidência apropriada | Tratamento |
+|---|---|---|
+| Inflação | IPCA mensal IBGE, distribuído pelo BCB/SGS 433 | Consulta oficial antes de iniciar; converte porcentagem para fração, aceita deflação e registra referência/fonte. |
+| Concorrentes | Estabelecimentos ativos por município e CNAE, base CNPJ | Contagem regional ainda exige apuração externa; registre fonte, recorte e data. |
+| Carga tributária | Tributos efetivos / receita no período e regime da empresa | Observação contábil declarada, não alíquota universal. |
+| Preço de equipamento | Cotações datadas de produtos comparáveis | Observação local declarada; explicitar amostra e critério de agregação. |
+| Alfa e coeficientes comportamentais | Histórico de falhas/pedidos e estimação documentada | Estimativa empírica declarada, com amostra e método. Não há ajuste estatístico automático. |
+
+No painel **Registrar evidência do cenário**, informe parâmetro, valor, fonte/recorte, referência e método. Taxas são frações (0,15 = 15%). A evidência é persistida junto do modelo e vinculada ao valor exato. Se o valor for alterado, a evidência anterior não o valida. Dados declarados não são verificados automaticamente; o aplicativo distingue observação, estimação e série oficial, sem rotular tudo como modelo validado.
+
+Calibrar entradas não substitui validar o modelo em dados fora da amostra. Para uso empírico: definir município/CNAE e período, coletar dados auditáveis, estimar coeficientes, executar análise de sensibilidade e comparar previsões com resultados observados. Evite publicar documentos com dados pessoais ou segredos comerciais no campo de fonte; registre uma referência segura.
+
+Fontes: [SGS 433 / BCB](https://www3.bcb.gov.br/sgspub/consultarValoresSeries.do?method=consultarSeries&series=433), [dados CNPJ / Receita Federal](https://www.gov.br/receitafederal/pt-br/assuntos/orientacao-tributaria/cadastros/cnpj). IPCA é referência macroeconômica, não índice específico de oficinas. Falha na consulta mantém o valor anterior e informa indisponibilidade.
+
+## Persistência e segurança
+
+Sem credenciais, o aplicativo funciona com estado da sessão e modelo padrão. Para JSONBin, crie `.streamlit/secrets.toml`, ignorado pelo Git:
 
 ```toml
 [jsonbin]
-api_key = "SUA_CHAVE"
+api_key = "SUA_CHAVE_RESTRITA"
 bin_id = "SEU_BIN_ID"
 ```
 
-Sem configuração, o modelo padrão funciona localmente. Edições estruturais feitas no diagrama requerem Salvar e Recarregar modelo para chegar à simulação. Estados de simulação não são publicados ao avançar ou reiniciar.
+Nunca versionar credenciais, dados pessoais, relatórios privados ou chaves de produção. Não incluir chaves em logs, screenshots ou relatos de bugs. Se uma chave for exposta, revogue-a.
 
-O editor de diagrama ainda acessa JSONBin pelo navegador e recebe a chave configurada. Essa é uma limitação da arquitetura existente: use credencial restrita ao bin. A revisão não altera o protocolo de persistência do editor.
+**Limitação existente:** o editor de diagrama acessa JSONBin pelo navegador e recebe a chave configurada. Use credencial restrita ao bin, não uma chave mestra; não hospede modelos confidenciais nessa arquitetura. A migração da escrita do editor para backend autenticado é pendente. Alterações na simulação e edições do diagrama compartilham o modelo remoto: evite edição concorrente sem coordenação.
 
-## Organização
+Salvar no diagrama e Recarregar modelo sincronizam edições estruturais. Avançar e Reiniciar não publicam ciclos no modelo remoto. Evidências de calibração acompanham o JSON do modelo; sem persistência, duram apenas a sessão.
 
-| Área | Responsabilidade |
+## Arquitetura e padrões de implementação
+
+| Camada | Responsabilidade e regra |
 |---|---|
-| `backend/domain` | Entidades, avaliação segura de equações, ordem causal e balanços |
-| `backend/application` | Casos de uso, contratos, publicação e mapeamento JSON |
-| `backend/infrastructure` | Modelo padrão e repositórios JSONBin/local |
-| `frontend/components` | Controles, indicadores, diagrama, tabelas e gráficos |
-| `frontend/views` | Abas de simulação, diagrama e variáveis |
-| `composition_root.py` | Montagem das dependências |
-| `packaging` | Empacotamento Windows com PyInstaller |
+| `backend/domain` | Entidades, avaliação AST, dependências, estoques; sem Streamlit nem acesso à rede. |
+| `backend/application` | Casos de uso, DTOs, validação de operações, publicação; dependências concretas injetadas. |
+| `backend/infrastructure` | JSONBin, modelo padrão e acesso a dados externos, com timeout e validação. |
+| `frontend` | Apresentação e estado visual; usa casos de uso e DTOs. |
+| `composition_root.py` | Monta o grafo de dependências. |
 
-O modelo 2 substitui as equações padrão dos modelos antigos durante a migração, preservando decisões e posições existentes. Nós adicionais são preservados; fórmulas que dependam do parâmetro de preço retirado precisam ser reformuladas.
+Regras para mudanças: separar resultado concluído de projeção; preservar atomicidade em falhas; usar nós Estado para atrasos em laços; rejeitar ciclos algébricos, valores não finitos e referências inválidas; não executar equações com `eval`; validar unidades e proveniência dos dados. Mudanças no contrato de sessão exigem atualizar `APP_VERSION`.
 
-## Validação
+## Testar e revisar
 
-A suíte cobre cenários de inflação, sobrecarga, estoque/fornecedores, técnicos, reinvestimento e financiamento; conservação de caixa/estoque; migração; validação de modelos; transações de ciclo; busca literal e fluxos reais do Streamlit com AppTest. O workflow de CI executa Python 3.11/3.12 e verifica a sintaxe do editor JavaScript.
+```bash
+python -m pytest -q
+python -m compileall -q backend frontend
+node --check frontend/assets/cld_simulator.js
+git diff --check
+```
 
-Os testes de interface automatizados não substituem a inspeção visual em navegadores e dispositivos. Os instaladores já presentes em `build/` e `installer/` são versões antigas: devem ser reconstruídos pelo processo em `packaging/` para distribuir as mudanças.
+A suíte cobre balanços, abertura única, financiamento, cenários, snapshots, interface Streamlit e fontes externas simuladas. Testes de rede usam mocks para serem determinísticos. CI é definida em `.github/workflows/tests.yml`.
+
+Antes de mesclar: descrever problema e comportamento final, registrar validações e limitações, revisar efeitos em equações/migração/persistência e conferir visualmente desktop e mobile. AppTest não verifica alinhamento em navegador real. Casos essenciais: iniciar, mudar decisões, avançar, reiniciar, ativar/desativar abertura, falhar ao consultar/salvar e recarregar o modelo.
+
+Contribuições devem ser previamente coordenadas com o mantenedor, inclusive permissões de uso e direitos sobre código enviado. Reporte bugs em Issues com passos para reproduzir, versão do Python/app e resultado esperado, sem credenciais ou dados sensíveis.
+
+## Distribuição e direitos
+
+Instaladores já existentes em `build/` e `installer/` podem estar desatualizados. Reconstrua via [instruções de build](packaging/LEIA-ME-BUILD.md) antes de distribuir; esta mudança não reconstrói binários Windows.
+
+[LICENSE](LICENSE) reserva provisoriamente os direitos sobre o material original aos respectivos titulares. O texto não atribui titularidade exclusiva ao mantenedor nem elimina eventuais direitos de coautores ou instituições. Dependências, dados e marcas de terceiros mantêm suas próprias condições. Permissões anteriores válidas não são revogadas retroativamente.
+
+Nenhuma licença impede tecnicamente que um código público seja copiado. O GitHub permite visualização e forks nos limites dos seus termos; um fork não concede automaticamente outros direitos de exploração. Veja [orientação oficial do GitHub](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository). Proteção de software e registro são descritos pelo [INPI](https://www.gov.br/inpi/pt-br/acesso-a-informacao/perguntas-frequentes/programas-de-computador). A definição final de titularidade e licenciamento deve respeitar os contratos e vínculos do projeto.
