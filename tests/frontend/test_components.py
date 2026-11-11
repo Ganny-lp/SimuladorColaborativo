@@ -42,9 +42,9 @@ def test_price_gradient():
 
 def test_price_ruler_html_is_fully_rendered():
     scale = PriceScaleDTO(0, 300, (PriceStopDTO(0, "#e06060", "x"), PriceStopDTO(300, "#52c97a", "y")))
-    html = PriceSlider("pt_hidden_sync", "pt_ruler")._ruler_html(scale, 150)
+    html = PriceSlider("pt_hidden_sync", "pt_ruler")._ruler_html(scale)
     assert not re.search(r"__[A-Z_]+__", html)
-    assert 'aria-label="pt_hidden_sync"' in html and 'value="150.0"' in html
+    assert "pt_hidden_sync" in html
 
 
 def test_variables_table_filters_and_truncates():

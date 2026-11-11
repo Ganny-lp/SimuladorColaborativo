@@ -30,13 +30,16 @@ class DependencyGraph:
             if name in done or name in visiting:
                 return
             visiting.add(name)
-            for dependency in self._dependencies[name]:
-                if self._system.nodes[dependency].has_expression:
+            for dependency in sorted(self._dependencies[name]):
+                if self._system.nodes[dependency].has_expression and not self._system.nodes[dependency].is_state:
                     visit(dependency)
             visiting.discard(name)
             done.add(name)
             order.append(name)
 
+        for name in self._system.nodes:
+            if not self._system.nodes[name].is_state:
+                visit(name)
         for name in self._system.nodes:
             visit(name)
         return order

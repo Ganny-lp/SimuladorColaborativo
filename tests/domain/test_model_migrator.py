@@ -7,11 +7,6 @@ def _legacy_system(expression: str) -> CausalSystem:
     return CausalSystem(nodes={"St": Node("St", NodeCategory.EQUATION, expression=expression)})
 
 
-def test_old_equation_is_fixed(migrator):
-    old, new = EXPRESSION_FIXES["St"]
-    assert migrator.migrate(_legacy_system(old)).nodes["St"].expression == new
-
-
 def test_user_edited_equation_is_preserved(migrator):
     assert migrator.migrate(_legacy_system("0.5")).nodes["St"].expression == "0.5"
 

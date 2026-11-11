@@ -3,466 +3,1618 @@
     "Rentabilidade": {
       "cat": "Estado",
       "val": 0,
-      "expr": "Receita Líquida - Custos",
-      "desc": "Acumulado de receitas menos custos.",
-      "x": 760,
-      "y": 300
-    },
-    "Receita Líquida": {
-      "cat": "Equação",
-      "val": 0,
-      "expr": "(Pt*Qt)*(1-Carga_Tributaria)",
-      "desc": "Receita líquida.",
-      "x": 560,
-      "y": 200
+      "expr": "Fluxo_Caixa",
+      "desc": "Fluxo de caixa acumulado após o desembolso inicial; reserva é capital de giro, não despesa mensal.",
+      "x": 800.5758814369696,
+      "y": 284.64696378060614
     },
     "Custos": {
       "cat": "Equação",
-      "val": 0,
+      "val": 45484.52056440197,
       "expr": "Custo_Fixo+Custo_Variavel_t+Emprestimos_Mensal",
       "desc": "Custo total.",
-      "x": 560,
-      "y": 400
+      "x": 659.7099832342632,
+      "y": 365.1807346441092
     },
     "Pt": {
       "cat": "Input",
       "val": 150,
       "expr": "",
-      "desc": "Preço de venda.",
-      "x": 360,
-      "y": 130
+      "desc": "Preço praticado por serviço (R$); decisão manual. A sugestão de preço considera custos, impostos e margem, sem ajuste automático.",
+      "x": 409.0648548097331,
+      "y": 70.28126321520031
     },
     "Qt": {
       "cat": "Equação",
       "val": 0,
-      "expr": "MIN(Dpt*St, Cap)",
-      "desc": "Demanda capturada.",
-      "x": 360,
-      "y": 270
+      "expr": "MIN(Backlog_Servicos+Demanda_Captada,Cap,Capacidade_Operacional,Estoque_Pecas)",
+      "desc": "Serviços concluídos; limitados por capacidade, peças disponíveis e fila.",
+      "x": 363.31292779267227,
+      "y": 326.47688905118434
     },
     "Carga_Tributaria": {
-      "cat": "Parâmetro",
+      "cat": "Input",
       "val": 0.15,
       "expr": "",
       "desc": "Percentual de impostos.",
-      "x": 560,
-      "y": 100
+      "x": 763.0219710925991,
+      "y": 133.1735246883332
     },
     "Custo_Fixo": {
       "cat": "Equação",
-      "val": 500,
-      "expr": "500+budget_update+budget_training+budget_infra+budget_promo",
+      "val": 0,
+      "expr": "500+budget_update+budget_training+budget_infra+budget_promo+Despesas+Pró-Labore+Numero_Tecnicos*Salarios_Beneficios+Servicos_Terceiros_Consultoria+Manutencao+Reinvestimento_Disponivel*2/3",
       "desc": "Custos fixos.",
-      "x": 360,
-      "y": 430
+      "x": 825.1102986633128,
+      "y": 419.25442842370484
     },
     "Custo_Variavel_t": {
       "cat": "Equação",
       "val": 0,
-      "expr": "CVt*(1+Inflacao)",
+      "expr": "CVt",
       "desc": "Custo variável ajustado.",
-      "x": 360,
-      "y": 520
+      "x": 403.6460398490601,
+      "y": 439.3597117425088
     },
     "Emprestimos_Mensal": {
       "cat": "Equação",
       "val": 0,
-      "expr": "Emprestimo/a_ni",
-      "desc": "Parcela mensal.",
-      "x": 560,
-      "y": 520
+      "expr": "PMT(Emprestimo,Tx_Juros_Emprestimo,Prazo)*MIN(1,MAX(0,Prazo-Mes_Operacao))",
+      "desc": "Prestação calculada pelo motor financeiro em função do prazo restante.",
+      "x": 603.5506260697024,
+      "y": 553.2852785868773
     },
     "Dpt": {
       "cat": "Equação",
       "val": 0,
       "expr": "B*Alfa*Teta_1",
       "desc": "Demanda Potencial.",
-      "x": 160,
-      "y": 270
+      "x": 164,
+      "y": 332.79999999999995
     },
     "St": {
       "cat": "Equação",
       "val": 0,
-      "expr": "1/(1+Nc*EXP(Beta_1*(Pt-Pm)))",
-      "desc": "Market share (logit, sempre entre 0 e 1).",
-      "x": 360,
-      "y": 200
+      "expr": "1/((1+Nc)*(1+Beta_1*Preco_Percebido))",
+      "desc": "Fração captada, limitada a [0,1], sensível ao preço praticado e ao número de concorrentes.",
+      "x": 385.17352468833315,
+      "y": 218.76255185366676
     },
     "B": {
-      "cat": "Ambiente",
+      "cat": "Estado",
       "val": 10000,
-      "expr": "",
-      "desc": "Base instalada.",
-      "x": 80,
-      "y": 180
+      "expr": "B*(Taxa_Retorno_Clientes-Taxa_Perda_Clientes)*0.02",
+      "desc": "Base regional ajustada por retenção/perda; variação mensal limitada a 2%.",
+      "x": 30.777154782424383,
+      "y": 229.1123571018179
     },
     "Alfa": {
-      "cat": "Ambiente",
+      "cat": "Input",
       "val": 1,
       "expr": "",
       "desc": "Taxa de falha.",
-      "x": 80,
-      "y": 350
+      "x": -41.129474068594426,
+      "y": 314.10978546115723
     },
     "Teta_1": {
-      "cat": "Ambiente",
-      "val": 0.1,
-      "expr": "",
-      "desc": "Confiança.",
-      "x": 160,
-      "y": 430
-    },
-    "Pm": {
-      "cat": "Ambiente",
-      "val": 140,
-      "expr": "",
-      "desc": "Preço concorrência.",
-      "x": 200,
-      "y": 130
+      "cat": "Equação",
+      "val": 0,
+      "expr": "MAX(0.02,MIN(0.5,0.1*(0.5+Reputacao_Empresa)))",
+      "desc": "Confiança do mercado. Agora reage à Reputacao_Empresa do ciclo anterior.",
+      "x": -39.2973291629432,
+      "y": 417.5211322147997
     },
     "Beta_1": {
-      "cat": "Parâmetro",
-      "val": 0.5,
+      "cat": "Input",
+      "val": 2,
       "expr": "",
       "desc": "Sensibilidade.",
-      "x": 200,
-      "y": 200
+      "x": 209.28858691273328,
+      "y": 166.82647531166683
     },
     "Nc": {
-      "cat": "Ambiente",
-      "val": 4,
+      "cat": "Input",
+      "val": 7,
       "expr": "",
-      "desc": "Nº concorrentes.",
-      "x": 200,
-      "y": 310
+      "desc": "Número de concorrentes na região/município. Informe a contagem da base local; não há consulta automática nem coleta de preços.",
+      "x": 176.0191770374,
+      "y": 223.98812123686676
     },
     "Cap": {
-      "cat": "Parâmetro",
+      "cat": "Input",
       "val": 300,
       "expr": "",
       "desc": "Capacidade máx.",
-      "x": 460,
-      "y": 310
+      "x": 519.9743766274432,
+      "y": 348.4489941479239
     },
     "CVt": {
       "cat": "Equação",
       "val": 0,
-      "expr": "Qt*(Cp+C_Mao_Obra)",
+      "expr": "Qt*(Cp_Corrigido+C_Mao_Obra+Logistica_Unitario*(1+Inflacao))",
       "desc": "Custo variável base.",
       "x": 160,
       "y": 560
     },
     "Cp": {
-      "cat": "Ambiente",
+      "cat": "Input",
       "val": 20,
       "expr": "",
       "desc": "Custo peças.",
-      "x": 80,
-      "y": 520
+      "x": -33.571690835380664,
+      "y": 497.47338363595753
     },
     "C_Mao_Obra": {
-      "cat": "Parâmetro",
+      "cat": "Input",
       "val": 10,
       "expr": "",
       "desc": "Mão de obra.",
-      "x": 280,
-      "y": 580
+      "x": -30.895914092499577,
+      "y": 642.7630702271542
     },
     "Inflacao": {
-      "cat": "Ambiente",
+      "cat": "Input",
       "val": 0.035,
       "expr": "",
       "desc": "Inflação.",
-      "x": 460,
-      "y": 520
+      "x": 378.29520368367804,
+      "y": 631.3939340417494
     },
     "Emprestimo": {
-      "cat": "Parâmetro",
+      "cat": "Input",
       "val": 10000,
       "expr": "",
       "desc": "Valor empréstimo.",
-      "x": 660,
-      "y": 580
+      "x": 483.74748301599607,
+      "y": 604.6957437999278
     },
     "a_ni": {
       "cat": "Equação",
       "val": 0,
-      "expr": "((1+Tx_Juros_Emprestimo)^Prazo-1)/((1+Tx_Juros_Emprestimo)^Prazo*Tx_Juros_Emprestimo)",
-      "desc": "Fator anuidade.",
-      "x": 760,
-      "y": 520
+      "expr": "1/MAX(0.000001,PMT(1,Tx_Juros_Emprestimo,Prazo))",
+      "desc": "Compatibilidade de visualização; a prestação é calculada diretamente, inclusive com juros zero.",
+      "x": 755.607672927639,
+      "y": 563.0448053091377
     },
     "Tx_Juros_Emprestimo": {
-      "cat": "Parâmetro",
-      "val": 0.016,
-      "expr": "",
+      "cat": "Equação",
+      "val": 0,
+      "expr": "Juros_Base+MAX(0,Inflacao)/12",
       "desc": "Juros mensais.",
-      "x": 860,
-      "y": 580
+      "x": 757.801939519794,
+      "y": 648.7113422859239
     },
     "Prazo": {
-      "cat": "Parâmetro",
+      "cat": "Input",
       "val": 12,
       "expr": "",
       "desc": "Prazo.",
-      "x": 960,
-      "y": 520
+      "x": 870.2094400343699,
+      "y": 612.5758682823383
     },
     "budget_update": {
       "cat": "Input",
-      "val": 5000,
+      "val": 500,
       "expr": "",
       "desc": "P&D.",
-      "x": 560,
-      "y": 380
+      "x": 1124.537861434159,
+      "y": 535.9242242547283
     },
     "budget_training": {
       "cat": "Input",
-      "val": 5000,
+      "val": 500,
       "expr": "",
       "desc": "Treinamento.",
-      "x": 660,
-      "y": 430
+      "x": 1220.2337842007346,
+      "y": 468.61761973682786
     },
     "budget_infra": {
       "cat": "Input",
-      "val": 5000,
+      "val": 300,
       "expr": "",
       "desc": "Infraestrutura.",
-      "x": 760,
-      "y": 430
+      "x": 1107.2926879529314,
+      "y": 417.910401647751
     },
     "budget_promo": {
       "cat": "Input",
-      "val": 10000,
+      "val": 800,
       "expr": "",
       "desc": "Marketing.",
-      "x": 860,
-      "y": 380
+      "x": 1055.2062821858026,
+      "y": 368.0864057671285
+    },
+    "Receita Líquida": {
+      "cat": "Equação",
+      "val": 33915,
+      "expr": "(Pt*Qt)*(1-Carga_Tributaria)",
+      "desc": "Receita líquida.",
+      "x": 605.7600235370244,
+      "y": 180.4581613490126
+    },
+    "Custos Abertura": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "Custos_Legalizacao+Maquinas_Equipamentos+Recursos_Tecnologicos+Infra_Reforma+Marketing_Abertura+Mobiliario+Caixa_Reserva+Estoque_Inicial*Cp",
+      "desc": "Investimento total para abertura do negócio.",
+      "x": 1025.3049207473505,
+      "y": 270.5345860192269
+    },
+    "Despesas": {
+      "cat": "Input",
+      "val": 700,
+      "expr": "",
+      "desc": "Aluguel, luz, água, gás, telefone e internet",
+      "x": 283.93727416672914,
+      "y": 594.4435856834223
+    },
+    "Pró-Labore": {
+      "cat": "Input",
+      "val": 3000,
+      "expr": "",
+      "desc": "Remuneração destinada aos sócios",
+      "x": 930.3977086354072,
+      "y": 212.92031990122652
+    },
+    "Custos_Legalizacao": {
+      "cat": "Input",
+      "val": 3000,
+      "expr": "",
+      "desc": "Assessoria jurídica/administrativa, registro de contrato, razão social e CNPJ.",
+      "x": 1150,
+      "y": 130
+    },
+    "Maquinas_Equipamentos": {
+      "cat": "Input",
+      "val": 15000,
+      "expr": "",
+      "desc": "Equipamentos, aparelhagem para oficina, materiais de teste e veículos.",
+      "x": 1220,
+      "y": 190
+    },
+    "Recursos_Tecnologicos": {
+      "cat": "Input",
+      "val": 6000,
+      "expr": "",
+      "desc": "Computadores, softwares, impressoras e sistemas de segurança.",
+      "x": 1250,
+      "y": 250
+    },
+    "Infra_Reforma": {
+      "cat": "Input",
+      "val": 8000,
+      "expr": "",
+      "desc": "Melhorias e reformas no estabelecimento, iluminação e decoração.",
+      "x": 1250,
+      "y": 310
+    },
+    "Marketing_Abertura": {
+      "cat": "Input",
+      "val": 4000,
+      "expr": "",
+      "desc": "Desenvolvimento da marca e criação de website para divulgação.",
+      "x": 1220,
+      "y": 370
+    },
+    "Mobiliario": {
+      "cat": "Input",
+      "val": 3500,
+      "expr": "",
+      "desc": "Cadeiras, mesas, armários e materiais de escritório.",
+      "x": 1150,
+      "y": 430
+    },
+    "Caixa_Reserva": {
+      "cat": "Input",
+      "val": 10000,
+      "expr": "",
+      "desc": "Capital destinado a eventuais problemas.",
+      "x": 1080,
+      "y": 480
+    },
+    "Salarios_Beneficios": {
+      "cat": "Input",
+      "val": 2500,
+      "expr": "",
+      "desc": "Salário e benefícios mensais por técnico (R$).",
+      "x": 950,
+      "y": 470
+    },
+    "Servicos_Terceiros_Consultoria": {
+      "cat": "Input",
+      "val": 1500,
+      "expr": "",
+      "desc": "Prestadores de serviço técnico, manutenção, assessoria jurídica e administrativa.",
+      "x": 1000,
+      "y": 530
+    },
+    "Manutencao": {
+      "cat": "Input",
+      "val": 1000,
+      "expr": "",
+      "desc": "Garantia do bom funcionamento de equipamentos e máquinas.",
+      "x": 914.9339120460274,
+      "y": 568.038364638195
+    },
+    "Qualidade_Percebida": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "MAX(0,MIN(1,Nivel_Qualificacao_Tecnica*(1-Taxa_Retrabalho)))",
+      "desc": "Percepção de qualidade do serviço pelo cliente.",
+      "x": -150,
+      "y": 50
+    },
+    "Influencia_Avaliacoes_Online": {
+      "cat": "Input",
+      "val": 1.1,
+      "expr": "",
+      "desc": "Fator multiplicador de reputação a partir de avaliações online.",
+      "x": -150,
+      "y": 130
+    },
+    "Tempo_Atendimento": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "Tempo_Medio_Reparo+Tempo_Medio_Diagnostico+8*Backlog_Servicos/MAX(1,Capacidade_Operacional)+8*Prazo_Fornecedor*(1-Disponibilidade_Pecas)",
+      "desc": "Prazo em horas úteis: reparo, diagnóstico, fila e espera de peças.",
+      "x": 49.485802093202224,
+      "y": 713.5283673828719
+    },
+    "Satisfacao_Cliente": {
+      "cat": "Estado",
+      "val": 0.5,
+      "expr": "(MAX(0,MIN(1,Qualidade_Percebida-Tempo_Atendimento/320-Inflacao*0.1))-Satisfacao_Cliente)*0.3",
+      "desc": "Satisfação do cliente — agora com inércia: se ajusta 30% por ciclo em direção ao valor instantâneo, limitada a [0,1].",
+      "x": -220,
+      "y": 200
+    },
+    "Reputacao_Empresa": {
+      "cat": "Estado",
+      "val": 0.5,
+      "expr": "(MIN(1,Satisfacao_Cliente*Influencia_Avaliacoes_Online+budget_promo/100000)-Reputacao_Empresa)*0.2",
+      "desc": "Reputação da empresa — agora com inércia (20%/ciclo) e considerando budget_promo, limitada a [0,2].",
+      "x": -260,
+      "y": 270
+    },
+    "Taxa_Retorno_Clientes": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "MAX(0,MIN(1,Satisfacao_Cliente))",
+      "desc": "Taxa de retorno (recompra) de clientes.",
+      "x": -300,
+      "y": 20
+    },
+    "Taxa_Perda_Clientes": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "1-Taxa_Retorno_Clientes",
+      "desc": "Taxa de perda (churn) de clientes.",
+      "x": -300,
+      "y": 90
+    },
+    "Preco_Percebido": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "Pt/MAX(1,Preco_Novo_Corrigido)",
+      "desc": "Custo do reparo como fração do preço de um equipamento novo.",
+      "x": 300,
+      "y": 20
+    },
+    "Numero_Tecnicos": {
+      "cat": "Input",
+      "val": 3,
+      "expr": "",
+      "desc": "Número de técnicos na equipe de assistência técnica.",
+      "x": 59.44147272670424,
+      "y": 890.1595629748139
+    },
+    "Complexidade_Reparo": {
+      "cat": "Input",
+      "val": 3,
+      "expr": "",
+      "desc": "Complexidade média dos reparos realizados.",
+      "x": 20,
+      "y": 780
+    },
+    "Disponibilidade_Pecas": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "MIN(1,Estoque_Pecas/MAX(1,Demanda_Captada))*(1-Obsolescencia_Tecnologica)",
+      "desc": "Disponibilidade de peças e fornecedores. Agora reage à Obsolescencia_Tecnologica.",
+      "x": 225.21114520380334,
+      "y": 804.5970316052217
+    },
+    "Tempo_Medio_Diagnostico": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "MAX(0.1,0.5-Investimento_Tecnologia_Diagnostico/100000)",
+      "desc": "Tempo médio de diagnóstico. Agora reage ao Investimento_Tecnologia_Diagnostico.",
+      "x": -188.98935867758257,
+      "y": 685.5053206612087
+    },
+    "Nivel_Qualificacao_Tecnica": {
+      "cat": "Estado",
+      "val": 0.6,
+      "expr": "MAX(0.3,MIN(1,Nivel_Qualificacao_Tecnica+(budget_training+Reinvestimento_Disponivel/3)/500000-0.01))-Nivel_Qualificacao_Tecnica",
+      "desc": "Nível de qualificação técnica — cresce com budget_training e sofre atrito natural (0.01/ciclo), limitado a [0.3,1.5].",
+      "x": -291.70445330676756,
+      "y": 593.8916999003783
+    },
+    "Experiencia_Acumulada": {
+      "cat": "Estado",
+      "val": 1,
+      "expr": "MAX(0.1,MIN(10,Experiencia_Acumulada+0.05-Rotatividade_Tecnicos*Experiencia_Acumulada))-Experiencia_Acumulada",
+      "desc": "Experiência acumulada (anos) — cresce 0.05/ciclo, corroída pela Rotatividade_Tecnicos. Antes travada em 1 pra sempre (elo morto); agora reage de verdade.",
+      "x": -324.25177260604545,
+      "y": 882.0425425450907
+    },
+    "Tempo_Medio_Reparo": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "Complexidade_Reparo/MAX(0.03,Nivel_Qualificacao_Tecnica*Experiencia_Acumulada)/MAX(0.1,Disponibilidade_Pecas)",
+      "desc": "Tempo médio para concluir um reparo (horas).",
+      "x": -285.32800319521675,
+      "y": 774.2021282644835
+    },
+    "Produtividade_Tecnico": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "160/MAX(0.1,Tempo_Medio_Reparo+Tempo_Medio_Diagnostico)",
+      "desc": "Ordens de serviço processadas por técnico por mês (160h úteis).",
+      "x": -123.01416947607409,
+      "y": 850.9663119559194
+    },
+    "Capacidade_Operacional": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "Numero_Tecnicos*Produtividade_Tecnico*(1-Taxa_Retrabalho)*(0.5+0.5*Motivacao)",
+      "desc": "Capacidade de atendimento mensal da equipe técnica.",
+      "x": -117.97871735516517,
+      "y": 998.2712684294729
+    },
+    "Backlog_Servicos": {
+      "cat": "Estado",
+      "val": 0,
+      "expr": "Demanda_Captada-Qt",
+      "desc": "Fila: pedidos novos menos serviços concluídos; o atendimento pode consumir a fila anterior.",
+      "x": 152.18084561964866,
+      "y": 943.191486942066
+    },
+    "Eficiencia_Operacional": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "Qt/MAX(1,Capacidade_Operacional)",
+      "desc": "Eficiência de utilização da capacidade operacional.",
+      "x": 387.2162977405576,
+      "y": 1006.9680760327477
+    },
+    "Taxa_Retrabalho": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "MAX(0,MIN(1,(1-Nivel_Qualificacao_Tecnica)*0.2))",
+      "desc": "Percentual de reparos que precisam ser refeitos.",
+      "x": -360.083343757932,
+      "y": 470.68354291019375
+    },
+    "Carga_Trabalho": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "Backlog_Servicos/MAX(1,Numero_Tecnicos)",
+      "desc": "Carga de trabalho média por técnico.",
+      "x": 285.75354236901853,
+      "y": 851.9326239118388
+    },
+    "Motivacao": {
+      "cat": "Estado",
+      "val": 0.7,
+      "expr": "(MAX(0,MIN(1,Nivel_Qualificacao_Tecnica+budget_training/100000-MIN(1,Carga_Trabalho/100)))-Motivacao)*0.4",
+      "desc": "Motivação da equipe — inércia de 40%/ciclo em direção ao valor instantâneo, limitada a [0,1].",
+      "x": -541.0281564397111,
+      "y": 725.723224266575
+    },
+    "Rotatividade_Tecnicos": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "(1-Motivacao)*0.3",
+      "desc": "Taxa de rotatividade (turnover) de técnicos.",
+      "x": -540,
+      "y": 640
+    },
+    "Margem_Lucro": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "Resultado_Mensal/MAX(1,Receita Líquida)",
+      "desc": "Margem de lucro líquida (%).",
+      "x": 900,
+      "y": 150
+    },
+    "ROI": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "Rentabilidade/MAX(1,Custos Abertura)",
+      "desc": "Retorno sobre o investimento inicial.",
+      "x": 1000,
+      "y": 100
+    },
+    "Inovacao_Fabricantes": {
+      "cat": "Input",
+      "val": 0.15,
+      "expr": "",
+      "desc": "Ritmo de inovação dos fabricantes de equipamentos.",
+      "x": 250,
+      "y": 700
+    },
+    "Obsolescencia_Tecnologica": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "MIN(0.9,Inovacao_Fabricantes*0.5)",
+      "desc": "Grau de obsolescência tecnológica do setor.",
+      "x": 350,
+      "y": 750
+    },
+    "Investimento_Tecnologia_Diagnostico": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "budget_update+budget_infra+Reinvestimento_Disponivel/3",
+      "desc": "Investimento em tecnologia de diagnóstico.",
+      "x": 850.6608795397261,
+      "y": 731.5651076379694
+    },
+    "Preco_Equipamento_Novo": {
+      "cat": "Input",
+      "val": 1500,
+      "expr": "",
+      "desc": "Preço de um equipamento novo (R$), alternativa ao reparo; não é preço de outra assistência.",
+      "x": 1380,
+      "y": 1200
+    },
+    "Logistica_Unitario": {
+      "cat": "Input",
+      "val": 5,
+      "expr": "",
+      "desc": "Custo de logística por serviço (R$).",
+      "x": 1610,
+      "y": 1200
+    },
+    "Prazo_Fornecedor": {
+      "cat": "Input",
+      "val": 5,
+      "expr": "",
+      "desc": "Prazo médio do fornecedor (dias úteis).",
+      "x": 0,
+      "y": 1350
+    },
+    "Estoque_Alvo": {
+      "cat": "Input",
+      "val": 150,
+      "expr": "",
+      "desc": "Meta de estoque de peças (unidades); reposição limitada pelo caixa disponível.",
+      "x": 230,
+      "y": 1350
+    },
+    "Margem_Alvo": {
+      "cat": "Input",
+      "val": 0.2,
+      "expr": "",
+      "desc": "Margem desejada sobre a receita líquida (fração).",
+      "x": 460,
+      "y": 1350
+    },
+    "Taxa_Reinvestimento": {
+      "cat": "Input",
+      "val": 0.1,
+      "expr": "",
+      "desc": "Fração do resultado mensal positivo destinada ao treinamento, tecnologia e reposição no próximo ciclo.",
+      "x": 690,
+      "y": 1350
+    },
+    "Juros_Base": {
+      "cat": "Input",
+      "val": 0.016,
+      "expr": "",
+      "desc": "Taxa mensal básica do financiamento; a inflação aumenta a taxa efetiva.",
+      "x": 920,
+      "y": 1350
+    },
+    "Base_Instalada_Inicial": {
+      "cat": "Input",
+      "val": 10000,
+      "expr": "",
+      "desc": "Equipamentos na região no início da simulação.",
+      "x": 1150,
+      "y": 1350
+    },
+    "Preco_Novo_Corrigido": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "Preco_Equipamento_Novo*(1+Inflacao)",
+      "desc": "Preco_Novo_Corrigido",
+      "x": 1380,
+      "y": 1350
+    },
+    "Cp_Corrigido": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "Cp*(1+Inflacao)",
+      "desc": "Cp_Corrigido",
+      "x": 1610,
+      "y": 1350
+    },
+    "Demanda_Captada": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "Dpt*St",
+      "desc": "Novos pedidos mensais antes do limite de capacidade.",
+      "x": 0,
+      "y": 1500
+    },
+    "Estoque_Pecas": {
+      "cat": "Estado",
+      "val": 150,
+      "expr": "Reposicao_Pecas-Qt",
+      "desc": "Peças em estoque; reposição limitada ao caixa e ao prazo do fornecedor.",
+      "x": 230,
+      "y": 1500
+    },
+    "Capital_Imobilizado": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "Estoque_Pecas*Cp_Corrigido",
+      "desc": "Capital_Imobilizado",
+      "x": 460,
+      "y": 1500
+    },
+    "Reposicao_Pecas": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "MIN(MAX(0,Estoque_Alvo-Estoque_Pecas+Qt)/MAX(1,Prazo_Fornecedor/20),MAX(0,Caixa_Disponivel)/MAX(0.01,Cp_Corrigido))",
+      "desc": "Reposição mensal, paga no ciclo; limitada por caixa e prazo de entrega.",
+      "x": 690,
+      "y": 1500
+    },
+    "Resultado_Mensal": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "Receita Líquida-Custos",
+      "desc": "Resultado do mês; usado na margem, separado do acumulado.",
+      "x": 920,
+      "y": 1500
+    },
+    "Fluxo_Caixa": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "Resultado_Mensal+Qt*Cp_Corrigido-Reposicao_Pecas*Cp_Corrigido",
+      "desc": "Resultado ajustado por consumo e compra de estoque (não contabiliza peças duas vezes).",
+      "x": 1150,
+      "y": 1500
+    },
+    "Caixa_Disponivel": {
+      "cat": "Estado",
+      "val": 10000,
+      "expr": "Fluxo_Caixa",
+      "desc": "Caixa operacional, iniciado pela reserva e financiamento; estoque inicial é desembolso de abertura.",
+      "x": 1380,
+      "y": 1500
+    },
+    "Reinvestimento_Disponivel": {
+      "cat": "Estado",
+      "val": 0,
+      "expr": "MAX(0,MIN(MAX(0,Caixa_Disponivel),Resultado_Mensal*Taxa_Reinvestimento))-Reinvestimento_Disponivel",
+      "desc": "Orçamento adicional financiado pelo resultado anterior, limitado ao caixa.",
+      "x": 1610,
+      "y": 1500
+    },
+    "Custo_Unitario_Total": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "Cp_Corrigido+C_Mao_Obra+Logistica_Unitario*(1+Inflacao)+Custo_Fixo/MAX(1,Qt)",
+      "desc": "Custo_Unitario_Total",
+      "x": 0,
+      "y": 1650
+    },
+    "Preco_Sugerido": {
+      "cat": "Equação",
+      "val": 0,
+      "expr": "Custo_Unitario_Total/MAX(0.01,(1-Carga_Tributaria)*(1-Margem_Alvo))",
+      "desc": "Sugestão a partir de custos e volume do ciclo; empreendedor decide se altera Pt. Fecha o retorno decisório preço–resultado.",
+      "x": 230,
+      "y": 1650
+    },
+    "Estoque_Inicial": {
+      "cat": "Input",
+      "val": 150,
+      "expr": "",
+      "desc": "Peças compradas na abertura (unidades).",
+      "x": 460,
+      "y": 1650
+    },
+    "Mes_Operacao": {
+      "cat": "Estado",
+      "val": 0,
+      "expr": "1",
+      "desc": "Contador de meses para limitar pagamentos do financiamento ao prazo contratado.",
+      "x": 690,
+      "y": 1650
     }
   },
   "links": [
     {
-      "from": "Receita Líquida",
+      "from": "Fluxo_Caixa",
       "to": "Rentabilidade",
       "sign": "+",
-      "desc": "Receita → Rentabilidade"
-    },
-    {
-      "from": "Custos",
-      "to": "Rentabilidade",
-      "sign": "-",
-      "desc": "Custos → Rentabilidade"
-    },
-    {
-      "from": "Pt",
-      "to": "Receita Líquida",
-      "sign": "+",
-      "desc": "Preço → Receita"
-    },
-    {
-      "from": "Qt",
-      "to": "Receita Líquida",
-      "sign": "+",
-      "desc": "Qt → Receita"
-    },
-    {
-      "from": "Carga_Tributaria",
-      "to": "Receita Líquida",
-      "sign": "-",
-      "desc": "Imposto → Receita"
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
     },
     {
       "from": "Custo_Fixo",
       "to": "Custos",
       "sign": "+",
-      "desc": "Fixo → Custos"
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
     },
     {
       "from": "Custo_Variavel_t",
       "to": "Custos",
       "sign": "+",
-      "desc": "Variável → Custos"
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
     },
     {
       "from": "Emprestimos_Mensal",
       "to": "Custos",
       "sign": "+",
-      "desc": "Parcela → Custos"
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
     },
     {
-      "from": "Dpt",
+      "from": "Backlog_Servicos",
       "to": "Qt",
       "sign": "+",
-      "desc": "Demanda → Qt"
-    },
-    {
-      "from": "St",
-      "to": "Qt",
-      "sign": "+",
-      "desc": "Share → Qt"
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
     },
     {
       "from": "Cap",
       "to": "Qt",
-      "sign": "-",
-      "desc": "Capacidade → Qt"
-    },
-    {
-      "from": "B",
-      "to": "Dpt",
       "sign": "+",
-      "desc": "Base → Dpt"
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
     },
     {
-      "from": "Alfa",
-      "to": "Dpt",
+      "from": "Capacidade_Operacional",
+      "to": "Qt",
       "sign": "+",
-      "desc": "Falha → Dpt"
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
     },
     {
-      "from": "Teta_1",
-      "to": "Dpt",
+      "from": "Demanda_Captada",
+      "to": "Qt",
       "sign": "+",
-      "desc": "Confiança → Dpt"
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
     },
     {
-      "from": "Pm",
-      "to": "St",
+      "from": "Estoque_Pecas",
+      "to": "Qt",
       "sign": "+",
-      "desc": "Preço médio → St"
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
     },
     {
-      "from": "Pt",
-      "to": "St",
-      "sign": "-",
-      "desc": "Preço → St"
-    },
-    {
-      "from": "Beta_1",
-      "to": "St",
-      "sign": "-",
-      "desc": "Sensibilidade → St"
-    },
-    {
-      "from": "Nc",
-      "to": "St",
-      "sign": "-",
-      "desc": "Concorrentes → St"
-    },
-    {
-      "from": "Qt",
-      "to": "CVt",
-      "sign": "+",
-      "desc": "Qt → CVt"
-    },
-    {
-      "from": "Cp",
-      "to": "CVt",
-      "sign": "+",
-      "desc": "Peças → CVt"
-    },
-    {
-      "from": "C_Mao_Obra",
-      "to": "CVt",
-      "sign": "+",
-      "desc": "Mão de obra → CVt"
-    },
-    {
-      "from": "CVt",
-      "to": "Custo_Variavel_t",
-      "sign": "+",
-      "desc": "CVt → Custo Var"
-    },
-    {
-      "from": "Inflacao",
-      "to": "Custo_Variavel_t",
-      "sign": "+",
-      "desc": "Inflação → Custo Var"
-    },
-    {
-      "from": "Emprestimo",
-      "to": "Emprestimos_Mensal",
-      "sign": "+",
-      "desc": "Empréstimo → Parcela"
-    },
-    {
-      "from": "a_ni",
-      "to": "Emprestimos_Mensal",
-      "sign": "-",
-      "desc": "Anuidade → Parcela"
-    },
-    {
-      "from": "Tx_Juros_Emprestimo",
-      "to": "a_ni",
-      "sign": "+",
-      "desc": "Juros → a_ni"
-    },
-    {
-      "from": "Prazo",
-      "to": "a_ni",
-      "sign": "+",
-      "desc": "Prazo → a_ni"
-    },
-    {
-      "from": "budget_update",
+      "from": "Despesas",
       "to": "Custo_Fixo",
       "sign": "+",
-      "desc": "P&D → Fixo"
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
     },
     {
-      "from": "budget_training",
+      "from": "Manutencao",
       "to": "Custo_Fixo",
       "sign": "+",
-      "desc": "Treinamento → Fixo"
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Numero_Tecnicos",
+      "to": "Custo_Fixo",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Pró-Labore",
+      "to": "Custo_Fixo",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Reinvestimento_Disponivel",
+      "to": "Custo_Fixo",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Salarios_Beneficios",
+      "to": "Custo_Fixo",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Servicos_Terceiros_Consultoria",
+      "to": "Custo_Fixo",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
     },
     {
       "from": "budget_infra",
       "to": "Custo_Fixo",
       "sign": "+",
-      "desc": "Infra → Fixo"
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
     },
     {
       "from": "budget_promo",
       "to": "Custo_Fixo",
       "sign": "+",
-      "desc": "Marketing → Fixo"
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "budget_training",
+      "to": "Custo_Fixo",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "budget_update",
+      "to": "Custo_Fixo",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "CVt",
+      "to": "Custo_Variavel_t",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Emprestimo",
+      "to": "Emprestimos_Mensal",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Mes_Operacao",
+      "to": "Emprestimos_Mensal",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Prazo",
+      "to": "Emprestimos_Mensal",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Tx_Juros_Emprestimo",
+      "to": "Emprestimos_Mensal",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Alfa",
+      "to": "Dpt",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "B",
+      "to": "Dpt",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Teta_1",
+      "to": "Dpt",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Beta_1",
+      "to": "St",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Nc",
+      "to": "St",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Preco_Percebido",
+      "to": "St",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Taxa_Perda_Clientes",
+      "to": "B",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Taxa_Retorno_Clientes",
+      "to": "B",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Reputacao_Empresa",
+      "to": "Teta_1",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "C_Mao_Obra",
+      "to": "CVt",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Cp_Corrigido",
+      "to": "CVt",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Inflacao",
+      "to": "CVt",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Logistica_Unitario",
+      "to": "CVt",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Qt",
+      "to": "CVt",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Prazo",
+      "to": "a_ni",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Tx_Juros_Emprestimo",
+      "to": "a_ni",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Inflacao",
+      "to": "Tx_Juros_Emprestimo",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Juros_Base",
+      "to": "Tx_Juros_Emprestimo",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Carga_Tributaria",
+      "to": "Receita Líquida",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Pt",
+      "to": "Receita Líquida",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Qt",
+      "to": "Receita Líquida",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Caixa_Reserva",
+      "to": "Custos Abertura",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Cp",
+      "to": "Custos Abertura",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Custos_Legalizacao",
+      "to": "Custos Abertura",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Estoque_Inicial",
+      "to": "Custos Abertura",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Infra_Reforma",
+      "to": "Custos Abertura",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Maquinas_Equipamentos",
+      "to": "Custos Abertura",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Marketing_Abertura",
+      "to": "Custos Abertura",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Mobiliario",
+      "to": "Custos Abertura",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Recursos_Tecnologicos",
+      "to": "Custos Abertura",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Nivel_Qualificacao_Tecnica",
+      "to": "Qualidade_Percebida",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Taxa_Retrabalho",
+      "to": "Qualidade_Percebida",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Backlog_Servicos",
+      "to": "Tempo_Atendimento",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Capacidade_Operacional",
+      "to": "Tempo_Atendimento",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Disponibilidade_Pecas",
+      "to": "Tempo_Atendimento",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Prazo_Fornecedor",
+      "to": "Tempo_Atendimento",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Tempo_Medio_Diagnostico",
+      "to": "Tempo_Atendimento",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Tempo_Medio_Reparo",
+      "to": "Tempo_Atendimento",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Inflacao",
+      "to": "Satisfacao_Cliente",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Qualidade_Percebida",
+      "to": "Satisfacao_Cliente",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Tempo_Atendimento",
+      "to": "Satisfacao_Cliente",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Influencia_Avaliacoes_Online",
+      "to": "Reputacao_Empresa",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Satisfacao_Cliente",
+      "to": "Reputacao_Empresa",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "budget_promo",
+      "to": "Reputacao_Empresa",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Satisfacao_Cliente",
+      "to": "Taxa_Retorno_Clientes",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Taxa_Retorno_Clientes",
+      "to": "Taxa_Perda_Clientes",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Preco_Novo_Corrigido",
+      "to": "Preco_Percebido",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Pt",
+      "to": "Preco_Percebido",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Demanda_Captada",
+      "to": "Disponibilidade_Pecas",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Estoque_Pecas",
+      "to": "Disponibilidade_Pecas",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Obsolescencia_Tecnologica",
+      "to": "Disponibilidade_Pecas",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Investimento_Tecnologia_Diagnostico",
+      "to": "Tempo_Medio_Diagnostico",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Reinvestimento_Disponivel",
+      "to": "Nivel_Qualificacao_Tecnica",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "budget_training",
+      "to": "Nivel_Qualificacao_Tecnica",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Rotatividade_Tecnicos",
+      "to": "Experiencia_Acumulada",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Complexidade_Reparo",
+      "to": "Tempo_Medio_Reparo",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Disponibilidade_Pecas",
+      "to": "Tempo_Medio_Reparo",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Experiencia_Acumulada",
+      "to": "Tempo_Medio_Reparo",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Nivel_Qualificacao_Tecnica",
+      "to": "Tempo_Medio_Reparo",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Tempo_Medio_Diagnostico",
+      "to": "Produtividade_Tecnico",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Tempo_Medio_Reparo",
+      "to": "Produtividade_Tecnico",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Motivacao",
+      "to": "Capacidade_Operacional",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Numero_Tecnicos",
+      "to": "Capacidade_Operacional",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Produtividade_Tecnico",
+      "to": "Capacidade_Operacional",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Taxa_Retrabalho",
+      "to": "Capacidade_Operacional",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Demanda_Captada",
+      "to": "Backlog_Servicos",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Qt",
+      "to": "Backlog_Servicos",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Capacidade_Operacional",
+      "to": "Eficiencia_Operacional",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Qt",
+      "to": "Eficiencia_Operacional",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Nivel_Qualificacao_Tecnica",
+      "to": "Taxa_Retrabalho",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Backlog_Servicos",
+      "to": "Carga_Trabalho",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Numero_Tecnicos",
+      "to": "Carga_Trabalho",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Carga_Trabalho",
+      "to": "Motivacao",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Nivel_Qualificacao_Tecnica",
+      "to": "Motivacao",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "budget_training",
+      "to": "Motivacao",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Motivacao",
+      "to": "Rotatividade_Tecnicos",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Receita Líquida",
+      "to": "Margem_Lucro",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Resultado_Mensal",
+      "to": "Margem_Lucro",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Custos",
+      "to": "ROI",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Custos Abertura",
+      "to": "ROI",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Rentabilidade",
+      "to": "ROI",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Inovacao_Fabricantes",
+      "to": "Obsolescencia_Tecnologica",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Reinvestimento_Disponivel",
+      "to": "Investimento_Tecnologia_Diagnostico",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "budget_infra",
+      "to": "Investimento_Tecnologia_Diagnostico",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "budget_update",
+      "to": "Investimento_Tecnologia_Diagnostico",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Inflacao",
+      "to": "Preco_Novo_Corrigido",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Preco_Equipamento_Novo",
+      "to": "Preco_Novo_Corrigido",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Cp",
+      "to": "Cp_Corrigido",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Inflacao",
+      "to": "Cp_Corrigido",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Dpt",
+      "to": "Demanda_Captada",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "St",
+      "to": "Demanda_Captada",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Qt",
+      "to": "Estoque_Pecas",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Reposicao_Pecas",
+      "to": "Estoque_Pecas",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Cp_Corrigido",
+      "to": "Capital_Imobilizado",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Estoque_Pecas",
+      "to": "Capital_Imobilizado",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Caixa_Disponivel",
+      "to": "Reposicao_Pecas",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Cp_Corrigido",
+      "to": "Reposicao_Pecas",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Estoque_Alvo",
+      "to": "Reposicao_Pecas",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Estoque_Pecas",
+      "to": "Reposicao_Pecas",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Prazo_Fornecedor",
+      "to": "Reposicao_Pecas",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Qt",
+      "to": "Reposicao_Pecas",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Custos",
+      "to": "Resultado_Mensal",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Receita Líquida",
+      "to": "Resultado_Mensal",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Cp_Corrigido",
+      "to": "Fluxo_Caixa",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Qt",
+      "to": "Fluxo_Caixa",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Reposicao_Pecas",
+      "to": "Fluxo_Caixa",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Resultado_Mensal",
+      "to": "Fluxo_Caixa",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Fluxo_Caixa",
+      "to": "Caixa_Disponivel",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Caixa_Disponivel",
+      "to": "Reinvestimento_Disponivel",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Resultado_Mensal",
+      "to": "Reinvestimento_Disponivel",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Taxa_Reinvestimento",
+      "to": "Reinvestimento_Disponivel",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "C_Mao_Obra",
+      "to": "Custo_Unitario_Total",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Cp_Corrigido",
+      "to": "Custo_Unitario_Total",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Custo_Fixo",
+      "to": "Custo_Unitario_Total",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Inflacao",
+      "to": "Custo_Unitario_Total",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Logistica_Unitario",
+      "to": "Custo_Unitario_Total",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Qt",
+      "to": "Custo_Unitario_Total",
+      "sign": "-",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Carga_Tributaria",
+      "to": "Preco_Sugerido",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Custo_Unitario_Total",
+      "to": "Preco_Sugerido",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
+    },
+    {
+      "from": "Margem_Alvo",
+      "to": "Preco_Sugerido",
+      "sign": "+",
+      "desc": "Efeito local no ponto inicial; limites podem neutralizar a relação."
     }
   ],
-  "price_scale": {
-    "min": 0,
-    "max": 300,
-    "stops": [
-      {
-        "value": 0,
-        "color": "#e06060",
-        "label": "Prejuízo"
-      },
-      {
-        "value": 30,
-        "color": "#e8825a",
-        "label": "Custo variável"
-      },
-      {
-        "value": 84,
-        "color": "#e8a94a",
-        "label": "Abaixo do mercado"
-      },
-      {
-        "value": 140,
-        "color": "#52c97a",
-        "label": "Alinhado ao mercado"
-      },
-      {
-        "value": 196,
-        "color": "#e8a94a",
-        "label": "Acima do mercado"
-      },
-      {
-        "value": 300,
-        "color": "#e06060",
-        "label": "Preço muito alto"
-      }
-    ]
+  "schema_version": 2,
+  "initial_state": {
+    "B": 10000,
+    "Estoque_Pecas": 150,
+    "Caixa_Disponivel": 20000,
+    "Reinvestimento_Disponivel": 0,
+    "Mes_Operacao": 0
   }
 }

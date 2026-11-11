@@ -5,7 +5,7 @@ class DomainError(Exception):
     """Base de todas as exceções de domínio."""
 
 
-class InvalidModelError(DomainError):
+class InvalidModelError(DomainError, ValueError):
     """O modelo causal recebido é estruturalmente inválido."""
 
 

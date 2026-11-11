@@ -44,7 +44,6 @@ def build_main_page(secrets: Any, session_state: MutableMapping) -> MainPage:
     evaluator = ExpressionEvaluator()
     initial_state = InitialStateCalculator(evaluator)
     engine = SimulationEngine(evaluator, initial_state)
-    migrator = ModelMigrator(engine)
 
     # ── backend: infraestrutura ─────────────────────────────────────────────
     mapper = ModelMapper()
@@ -53,6 +52,7 @@ def build_main_page(secrets: Any, session_state: MutableMapping) -> MainPage:
         JsonBinModelRepository(settings, mapper) if settings.is_configured else NullModelRepository()
     )
     defaults = JsonDefaultModelProvider(mapper)
+    migrator = ModelMigrator(engine, defaults.provide())
 
     # ── backend: aplicação ──────────────────────────────────────────────────
     store = SessionStateSimulationStore(session_state, APP_VERSION)

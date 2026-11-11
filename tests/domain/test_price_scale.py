@@ -10,7 +10,7 @@ def test_requires_two_stops():
 
 
 def test_derives_scale_from_market_price():
-    scale = PriceScale.derive(market_price=140, variable_cost=30)
+    scale = PriceScale.derive(reference_price=140, variable_cost=30)
     assert scale.minimum == 0 and scale.maximum == 310
     assert [s.value for s in scale.sorted_stops][0] == 0
 

@@ -52,10 +52,10 @@ class CausalSystem:
 
     # ── régua de preço ──────────────────────────────────────────────────────
     def effective_price_scale(self) -> PriceScale:
-        """Régua configurada no modelo ou, na ausência dela, uma derivada de Pm e do custo variável."""
+        """Régua configurada ou derivada do preço sugerido e custo unitário."""
         if self.price_scale is not None:
             return self.price_scale
-        market_price = self.value_of(NodeNames.PRECO_MERCADO, 140) or 140
+        market_price = self.value_of("Preco_Sugerido", 140) or 140
         variable_cost = (self.value_of(NodeNames.CUSTO_PECAS, 20) or 0) + (
             self.value_of(NodeNames.CUSTO_MAO_DE_OBRA, 10) or 0
         )

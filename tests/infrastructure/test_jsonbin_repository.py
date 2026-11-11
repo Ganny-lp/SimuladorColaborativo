@@ -45,7 +45,7 @@ def test_load_returns_entity(monkeypatch, repo, mapper, default_system):
 
     monkeypatch.setattr(module.requests, "get", fake_get)
     loaded = repo.load()
-    assert loaded is not None and len(loaded.nodes) == 30
+    assert loaded is not None and set(loaded.nodes) == set(default_system.nodes)
     assert calls["url"].endswith("/BIN/latest") and calls["headers"]["X-Master-Key"] == "KEY"
 
 

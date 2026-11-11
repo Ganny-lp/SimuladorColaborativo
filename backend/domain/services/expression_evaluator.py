@@ -8,8 +8,15 @@ from typing import Any, Callable, Mapping
 
 from backend.domain.exceptions import ExpressionEvaluationError
 
+def payment(principal: float, rate: float, months: float) -> float:
+    if rate == 0:
+        return principal / max(1, months)
+    return principal * rate / (1 - (1 + rate) ** (-max(1, months)))
+
+
 _FUNCTIONS: dict[str, Callable[..., float]] = {
     "EXP": math.exp,
+    "PMT": payment,
     "MIN": min,
     "MAX": max,
     "ABS": abs,

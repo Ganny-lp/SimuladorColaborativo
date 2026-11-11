@@ -27,7 +27,14 @@ class InitialStateCalculator:
 
     def calculate(self, system: CausalSystem) -> dict[str, float]:
         overrides = system.initial_state
-        initial = {**DEFAULT_INITIAL_STATE, **overrides}
+        initial = {name: node.value for name, node in system.nodes.items() if node.is_state}
+        initial.update(DEFAULT_INITIAL_STATE)
+        initial.update(overrides)
+        if system.extras.get("schema_version") == 2:
+            initial.update(B=system.value_of("Base_Instalada_Inicial", 10000),
+                           Estoque_Pecas=system.value_of("Estoque_Inicial", 150),
+                           Caixa_Disponivel=system.value_of("Caixa_Reserva") + system.value_of("Emprestimo"),
+                           Reinvestimento_Disponivel=0, Mes_Operacao=0)
         if NodeNames.RENTABILIDADE not in overrides:
             investment = self._opening_investment(system)
             initial[NodeNames.RENTABILIDADE] = -investment if investment else 0.0  # evita -0.0
