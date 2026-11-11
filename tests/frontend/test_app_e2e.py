@@ -38,8 +38,25 @@ def test_advance_and_restart_flow(app):
 
 
 def test_changing_a_decision_input_persists_in_session(app):
-    next(n for n in app.number_input if n.label == "budget_promo").set_value(20000.0).run()
+    next(n for n in app.number_input if n.label == "Marketing").set_value(20000.0).run()
     _button(app, "Avançar").click()
     app.run()
-    assert next(n for n in app.number_input if n.label == "budget_promo").value == 20000.0
+    assert next(n for n in app.number_input if n.label == "Marketing").value == 20000.0
     assert not app.exception
+
+
+def test_fraction_scale_and_exact_entry_are_synchronized(app):
+    number = next(n for n in app.number_input if n.label == "Carga Tributaria")
+    number.set_value(20.0).run()
+    assert not app.exception
+    slider = next(s for s in app.slider if s.label == "Escala · Carga Tributaria")
+    assert slider.value == 20
+    slider.set_value(10.0).run()
+    assert next(n for n in app.number_input if n.label == "Carga Tributaria").value == 10
+
+
+def test_every_input_is_rendered(app):
+    from backend.infrastructure.persistence.json_default_model_provider import JsonDefaultModelProvider
+    from backend.application.mappers.model_mapper import ModelMapper
+    inputs = [n for n in JsonDefaultModelProvider(ModelMapper()).provide().nodes.values() if n.category.value == "Input"]
+    assert len(app.number_input) == len(inputs)

@@ -153,3 +153,19 @@ hr{border-color:var(--border) !important;}
   font-size:.82rem;color:var(--gold);letter-spacing:.04em;}
 
 @media (prefers-reduced-motion:reduce){*{transition-duration:.01ms !important;animation-duration:.01ms !important;}}
+
+/* Decision studio: readable cards, generous touch targets and responsive columns. */
+[class*="st-key-decision-card-"] {
+  padding:1rem 1.1rem; border:1px solid var(--border); border-radius:18px;
+  background:linear-gradient(140deg,color-mix(in srgb,var(--usp-blue) 7%,var(--surface)),var(--surface));
+  box-shadow:0 5px 20px #00000006; margin-bottom:.65rem;
+}
+.decision-eyebrow {font-size:.68rem;letter-spacing:.12em;font-weight:700;color:var(--text2);margin-bottom:.45rem;overflow-wrap:anywhere;}
+[data-testid="stNumberInput"] input {min-height:44px;font-variant-numeric:tabular-nums;font-size:1.1rem;}
+[data-testid="stSlider"] {padding-top:.25rem;}
+[data-testid="stExpander"] {border-radius:18px;overflow:hidden;margin-block:.5rem;}
+@media(max-width:640px){
+  [data-testid="stHorizontalBlock"] {flex-wrap:wrap;}
+  [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {min-width:min(100%,280px);flex:1 1 100%;}
+  [class*="st-key-decision-card-"] {padding:.85rem;}
+}
