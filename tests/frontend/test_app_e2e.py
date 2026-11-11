@@ -79,3 +79,13 @@ def test_locate_variable_connects_focus_to_diagram(app):
     assert app.session_state['lumina.focus_request']['name'] == 'Pt'
     # The same UI state is injected in both tabs, so a focus nonce reaches the iframe.
     assert any('"name": "Pt"' in frame.proto.srcdoc for frame in app.get('iframe'))
+
+
+def test_tax_calculator_applies_value_and_normative_provenance(app):
+    app.selectbox(key='source-kind').select('Carga_Tributaria').run()
+    next(c for c in app.checkbox if c.label.startswith('Confirmo enquadramento')).set_value(True).run()
+    next(b for b in app.button if b.label=='Aplicar valor calculado com fonte').click().run()
+    assert not app.exception
+    system=app.session_state['lumina.simulation'].system
+    assert system.value_of('Carga_Tributaria')==.06
+    assert system.extras['calibration']['Carga_Tributaria']['method']=='Cálculo normativo condicionado'
