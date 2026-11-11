@@ -77,24 +77,13 @@ class PriceSlider:
         self._legend = PriceScaleLegend()
 
     def render(self, scale: PriceScaleDTO, current_value: float) -> float:
-        st.markdown(_HIDE_SYNC_INPUT_CSS.replace("__KEY__", self._sync_key), unsafe_allow_html=True)
-        synced_value = st.number_input(
-            self._sync_key,
-            min_value=float(scale.minimum),
-            max_value=float(scale.maximum),
-            value=float(current_value),
-            step=1.0,
-            key=self._sync_key,
-            label_visibility="collapsed",
-        )
-        st.markdown(
-            '<div class="price-head"><p class="card-title">Preço de venda <code>Pt</code></p>'
-            '<p class="card-hint">Arraste a régua ou use as setas do teclado</p></div>',
-            unsafe_allow_html=True,
-        )
-        render_html_frame(self._ruler_html(scale), height=self._IFRAME_HEIGHT)
+        from frontend.components.decision_control import scaled_number
+        st.markdown('<div class="decision-eyebrow">SUA DECISÃO · R$/SERVIÇO</div>',unsafe_allow_html=True)
+        chosen = scaled_number("Preço praticado", current_value, self._sync_key,
+                               maximum=max(scale.maximum,current_value), step=1.0,
+                               hint="Arraste a escala ou digite o valor exato. A sugestão usa os custos da sua operação.")
         self._legend.render(scale)
-        return float(synced_value)
+        return chosen
 
     def _ruler_html(self, scale: PriceScaleDTO) -> str:
         ordered = sorted(scale.stops, key=lambda s: s.value)
