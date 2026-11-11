@@ -14,6 +14,7 @@ from frontend.components.section import SectionHeader
 from frontend.config import PRICE_VARIABLE
 from frontend.components.decision_control import DecisionControl, group_for
 from frontend.views.tab import Tab
+from frontend.formatters import currency
 from backend.application.use_cases._base import SimulationError
 
 
@@ -29,6 +30,7 @@ class SimulationTab(Tab):
         advance_cycle: AdvanceCycleUseCase,
         restart: RestartSimulationUseCase,
         market_data=None,
+        calibration=None,
     ) -> None:
         self._kpi_cards = kpi_cards
         self._price_slider = price_slider
@@ -37,12 +39,15 @@ class SimulationTab(Tab):
         self._advance_cycle = advance_cycle
         self._restart = restart
         self._market_data = market_data
+        self._calibration = calibration
         self._section = SectionHeader()
         self._decision_control = DecisionControl()
 
     def render(self, snapshot: SimulationSnapshot) -> None:
-        self._section.render("KPIs do ciclo atual", chip=f"Ciclo {snapshot.cycle}")
+        self._section.render("Resultados realizados", chip=f"Ciclo {snapshot.cycle}")
         self._kpi_cards.render(snapshot.kpis)
+        if snapshot.cycle == 0:
+            st.info("Preparação: nenhum mês foi simulado. Receita e serviços concluídos começam em zero.")
 
         self._section.render("Decisões", hint="Ajuste as variáveis de decisão e avance o ciclo para ver o efeito.")
         self._render_decision_context(snapshot)
@@ -60,10 +65,10 @@ class SimulationTab(Tab):
             variable = snapshot.variable(name)
             return variable.value if variable else 0
         cols = st.columns(3)
-        cols[0].metric("Preço sugerido por custos", f"R$ {value('Preco_Sugerido'):,.2f}")
+        cols[0].metric("Preço sugerido · projeção", currency(value("Preco_Sugerido")))
         cols[1].metric("Fila de serviços", f"{value('Backlog_Servicos'):,.0f}")
-        cols[2].metric("Caixa operacional", f"R$ {value('Caixa_Disponivel'):,.2f}")
-        st.caption("Indicadores do último ciclo calculado. Use-os para ajustar decisões; coeficientes comportamentais são hipóteses didáticas.")
+        cols[2].metric("Caixa operacional", currency(value("Caixa_Disponivel")))
+        st.caption("Preço sugerido e variáveis calculadas são projeções para planejar o próximo ciclo; os resultados acima pertencem ao último mês concluído.")
 
     # ── decisões ────────────────────────────────────────────────────────────
     def _render_price_decision(self, snapshot: SimulationSnapshot) -> bool:
@@ -103,7 +108,7 @@ class SimulationTab(Tab):
         with st.expander("Ajustes operacionais avançados"):
             render_members([v for v in variables if v.name not in primary and group_for(v.name) not in {"Mercado e ambiente","Abertura e financiamento"}])
         from frontend.components.market_context import render_market_context
-        changed = render_market_context(snapshot,self._apply_input,self._market_data) or changed
+        changed = render_market_context(snapshot,self._apply_input,self._market_data,self._calibration) or changed
         from frontend.components.budget_summary import render_budget_summary
         render_budget_summary(variables)
         return changed

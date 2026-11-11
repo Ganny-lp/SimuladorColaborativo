@@ -17,7 +17,7 @@ class VariablesTab(Tab):
         self._section = SectionHeader()
 
     def render(self, snapshot: SimulationSnapshot) -> None:
-        self._section.render("Variáveis do sistema", hint="Valores do ciclo atual, com a equação de cada uma.")
+        self._section.render("Variáveis do sistema", hint="Estados atuais e cálculos de planejamento. Indicadores derivados podem projetar o próximo ciclo; resultados concluídos ficam na aba Simulação.")
         with st.container(border=True):
             cols=st.columns(3)
             cols[0].metric("Variáveis",len(snapshot.variables))

@@ -22,13 +22,14 @@ class SnapshotAssembler:
     def assemble(self, simulation: Simulation, cloud_enabled: bool) -> SimulationSnapshot:
         system = simulation.system
         scale = system.effective_price_scale()
+        completed = simulation.completed_values if simulation.cycle else {}
         return SimulationSnapshot(
             cycle=simulation.cycle,
             kpis=KpiDTO(
                 accumulated_profitability=system.value_of(NodeNames.RENTABILIDADE),
-                net_revenue=system.value_of(NodeNames.RECEITA_LIQUIDA),
-                served_quantity=system.value_of(NodeNames.QUANTIDADE),
-                market_share=system.value_of(NodeNames.MARKET_SHARE),
+                net_revenue=completed.get(NodeNames.RECEITA_LIQUIDA, 0.0),
+                served_quantity=completed.get(NodeNames.QUANTIDADE, 0.0),
+                market_share=completed.get(NodeNames.MARKET_SHARE, 0.0),
             ),
             variables=tuple(
                 VariableDTO(n.name, n.category.value, n.value, n.expression, n.description)

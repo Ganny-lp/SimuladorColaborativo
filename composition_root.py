@@ -66,6 +66,8 @@ def build_main_page(secrets: Any, session_state: MutableMapping) -> MainPage:
     from backend.application.use_cases.get_market_data import GetMarketDataUseCase
     from backend.infrastructure.market_data import fetch_ipca
     market_data = GetMarketDataUseCase(fetch_ipca)
+    from backend.application.use_cases.calibrate_input import CalibrateInputUseCase
+    calibration = CalibrateInputUseCase(store,publisher,engine)
 
     # ── frontend ────────────────────────────────────────────────────────────
     ui_state = UiState(session_state)
@@ -74,7 +76,7 @@ def build_main_page(secrets: Any, session_state: MutableMapping) -> MainPage:
         DiagramTab(CldDiagram(credentials), start, ui_state),
         SimulationTab(
             KpiCards(), PriceSlider(PRICE_SYNC_KEY, PRICE_RULER_KEY), CycleCharts(),
-            change_input, advance, restart, market_data,
+            change_input, advance, restart, market_data, calibration,
         ),
         VariablesTab(VariablesTable(), ui_state),
     ]
