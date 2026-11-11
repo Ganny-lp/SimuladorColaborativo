@@ -10,11 +10,18 @@ button,input,textarea,select{font-family:inherit;}
     radial-gradient(900px 560px at 100% 0%,color-mix(in srgb,var(--usp-yellow) 9%,transparent),transparent 72%),
     var(--bg);
   background-attachment:fixed;}
-/* Cabeçalho do Streamlit: é transparente e fica FIXO por cima da página (z-index altíssimo, largura total).
-   Sem isto ele engole os cliques: ao rolar a tela, as abas passam por baixo dele e ficam impossíveis de clicar.
-   Deixa o cabeçalho "vazado" e reativa só o que é dele (botões, links, menu). */
-[data-testid="stHeader"]{background:transparent;pointer-events:none;}
-[data-testid="stHeader"] :is(button,a,input,select,[role="button"],[role="menuitem"]){pointer-events:auto;}
+/* Header wrappers span the viewport. Streamlit's inner stToolbar explicitly sets
+   pointer-events:auto, so disabling only stHeader leaves an invisible hit target.
+   Make every wrapper transparent to pointer input; opt in only real controls.
+   Keep the header stacking order intact so menus, dialogs and tooltips still work. */
+[data-testid="stHeader"],
+[data-testid="stHeader"] *{
+  pointer-events:none !important;
+}
+[data-testid="stHeader"] :is(button,a[href],input,select,textarea,[role="button"],[role="menuitem"]),
+[data-testid="stHeader"] :is(button,a[href],input,select,textarea,[role="button"],[role="menuitem"]) *{
+  pointer-events:auto !important;
+}
 [data-testid="stDecoration"]{pointer-events:none;}
 ::selection{background:rgba(252,180,33,.35);}
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px;}
