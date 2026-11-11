@@ -59,18 +59,19 @@ def build_main_page(secrets: Any, session_state: MutableMapping) -> MainPage:
     publisher = ModelPublisher(repository, initial_state)
     start = StartSimulationUseCase(store, repository, defaults, migrator)
     snapshot = GetSimulationSnapshotUseCase(store, repository, SnapshotAssembler(mapper))
-    change_input = ChangeInputUseCase(store, publisher)
+    change_input = ChangeInputUseCase(store, publisher, engine)
     advance = AdvanceCycleUseCase(store, engine)
     restart = RestartSimulationUseCase(store, engine)
 
     # ── frontend ────────────────────────────────────────────────────────────
+    ui_state = UiState(session_state)
     credentials = CloudCredentials(settings.api_key, settings.bin_id)
     tabs = [
-        DiagramTab(CldDiagram(credentials), start),
+        DiagramTab(CldDiagram(credentials), start, ui_state),
         SimulationTab(
             KpiCards(), PriceSlider(PRICE_SYNC_KEY, PRICE_RULER_KEY), CycleCharts(),
             change_input, advance, restart,
         ),
-        VariablesTab(VariablesTable(), UiState(session_state)),
+        VariablesTab(VariablesTable(), ui_state),
     ]
     return MainPage(Theme(), PageHeader(), tabs, start, snapshot)

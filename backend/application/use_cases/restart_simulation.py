@@ -13,6 +13,7 @@ class RestartSimulationUseCase:
     def execute(self) -> None:
         simulation = require_simulation(self._store)
         simulation.restore_baseline()
+        self._engine.reset_state(simulation.system)
         self._engine.recompute_derived(simulation.system)
         simulation.clear_progress()
         self._store.put(simulation)

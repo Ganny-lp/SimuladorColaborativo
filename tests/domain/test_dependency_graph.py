@@ -25,7 +25,10 @@ def test_default_model_order_respects_every_equation(default_system):
 
 def test_feedback_cycle_does_not_hang():
     system = _system(A="B + 1", B="A + 1")
-    assert sorted(DependencyGraph(system).topological_order()) == ["A", "B"]
+    import pytest
+    from backend.domain.exceptions import InvalidModelError
+    with pytest.raises(InvalidModelError,match="Ciclo algébrico"):
+        DependencyGraph(system).topological_order()
 
 
 def test_state_nodes_are_category_state_or_self_referencing():

@@ -22,3 +22,5 @@ Os coeficientes comportamentais são hipóteses didáticas, não estimativas cal
 O financiamento entra no caixa inicial e suas prestações cessam no prazo. ROI mede fluxo acumulado em relação ao desembolso inicial; VPL, TIR e payback não são acrescentados nesta etapa, conforme o escopo da análise.
 
 Modelos antigos do simulador são migrados para a versão 2 ao carregar, preservando valores de entradas e posições dos nós existentes. Equações padrão são substituídas deliberadamente; equações de nós adicionais que dependiam do parâmetro removido precisam ser reformuladas. O modelo remoto só é publicado quando o participante altera uma entrada ou salva o diagrama.
+
+Na migração do payload antigo, a folha total é convertida em custo por técnico para evitar multiplicá-la novamente. Sinais das ligações do diagrama indicam efeito local no ponto inicial; saturações podem neutralizar relações.

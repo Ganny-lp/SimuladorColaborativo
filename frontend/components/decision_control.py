@@ -29,10 +29,11 @@ def scaled_number(label: str, value: float, key: str, *, minimum: float | None =
                   hint: str = '', suffix: str = '') -> float:
     """Two native widgets share a value through callbacks, including keyboard edits."""
     number_key, slider_key = f'{key}_number', f'{key}_scale'
-    if number_key not in st.session_state:
+    model_key = f'{key}_model'
+    if model_key not in st.session_state or st.session_state[model_key] != float(value):
         st.session_state[number_key] = float(value)
-    if slider_key not in st.session_state:
         st.session_state[slider_key] = float(value)
+        st.session_state[model_key] = float(value)
     if maximum is not None:
         maximum = max(float(maximum), float(st.session_state[number_key]), minimum + step)
     def from_number():

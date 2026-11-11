@@ -10,20 +10,6 @@ from frontend.compat import render_html_frame
 from frontend.config import FONTS_URL
 from frontend.formatters import currency
 
-# O input numérico nativo é a ponte Python↔JS. Fica no DOM (precisa receber foco/eventos),
-# mas invisível e fora do fluxo: sem isso ele abriria um espaço vazio entre os elementos.
-_HIDE_SYNC_INPUT_CSS = """
-<style>
-[data-testid="stElementContainer"]:has(input[aria-label="__KEY__"]),
-div[data-testid="stNumberInput"]:has(input[aria-label="__KEY__"]){
-    position:absolute !important; width:1px !important; height:1px !important;
-    padding:0 !important; margin:-1px !important; overflow:hidden !important;
-    clip:rect(0,0,0,0) !important; white-space:nowrap !important; border:0 !important;
-}
-</style>
-"""
-
-
 class PriceGradient:
     """Converte os pontos da régua num ``linear-gradient`` CSS."""
 
@@ -56,15 +42,7 @@ class PriceScaleLegend:
 
 
 class PriceSlider:
-    """
-    Régua de preço vermelho→verde.
-
-    Composta por (1) um ``st.number_input`` nativo e oculto, que é a ponte Python↔JS, e
-    (2) um ``<input type="range">`` em iframe que escreve nele. O HTML do iframe não contém o
-    valor atual (a régua o lê do input oculto), então não muda entre execuções: o Streamlit não
-    recria o iframe, e arraste e foco de teclado sobrevivem ao rerun.
-    Retorna o valor vigente do number_input; o chamador decide o que fazer quando ele muda.
-    """
+    """Escala nativa de preço com digitação exata e legenda de custos."""
 
     _IFRAME_HEIGHT = 88
 

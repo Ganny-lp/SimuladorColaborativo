@@ -42,9 +42,8 @@ class InitialStateCalculator:
 
     def _opening_investment(self, system: CausalSystem) -> float:
         node = system.nodes.get(NodeNames.CUSTOS_ABERTURA)
-        if node is None or not node.has_expression:
+        if node is None:
             return 0.0
-        try:
-            return self._evaluator.evaluate(node.expression, system.values())
-        except ExpressionEvaluationError:
-            return 0.0
+        if not node.has_expression:
+            return node.value
+        return self._evaluator.evaluate(node.expression, system.values())

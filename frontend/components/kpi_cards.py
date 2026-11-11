@@ -16,7 +16,7 @@ class KpiCards:
         profit = kpis.accumulated_profitability
         tone = "neg" if profit < 0 else "pos" if profit > 0 else "neutral"
         return (
-            ("Rentabilidade acumulada", formatters.thousands_currency(profit), "soma dos ciclos até agora", tone),
+            ("Rentabilidade acumulada", formatters.thousands_currency(profit), "desembolso inicial + fluxo acumulado", tone),
             ("Receita do ciclo", formatters.currency(kpis.net_revenue), "receita líquida no ciclo atual", "neutral"),
             ("Quantidade atendida", formatters.integer(kpis.served_quantity), "unidades vendidas no ciclo", "neutral"),
             ("Market share", formatters.percent(kpis.market_share), "fatia do mercado capturada", "neutral"),

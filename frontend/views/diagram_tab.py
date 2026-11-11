@@ -41,4 +41,5 @@ class DiagramTab(Tab):
                 self._start_simulation.execute(force_reload=True)
                 if ui:
                     ui.bump_diagram_epoch()
+                    ui.clear_decision_widgets()
                 st.rerun()

@@ -49,3 +49,15 @@ def test_state_updates_are_independent_of_insertion_order(migrated_system,engine
     for _ in range(8):
         engine.advance_cycle(migrated_system);engine.advance_cycle(reverse)
     assert reverse.values() == pytest.approx(migrated_system.values())
+
+
+def test_positive_result_funds_next_cycle_training(migrated_system,engine):
+    for k,v in {'Pt':500,'Salarios_Beneficios':100,'Pró-Labore':100,'Despesas':100,
+                'Servicos_Terceiros_Consultoria':100,'Manutencao':100,'Prazo_Fornecedor':1,
+                'Estoque_Pecas':500,'Estoque_Alvo':500,'Inflacao':0,'Numero_Tecnicos':6}.items():
+        migrated_system.set_value(k,v)
+    no_reinvestment=migrated_system.clone();no_reinvestment.set_value('Taxa_Reinvestimento',0)
+    for _ in range(3):
+        engine.advance_cycle(migrated_system);engine.advance_cycle(no_reinvestment)
+    assert migrated_system.value_of('Reinvestimento_Disponivel') > 0
+    assert migrated_system.value_of('Nivel_Qualificacao_Tecnica') > no_reinvestment.value_of('Nivel_Qualificacao_Tecnica')

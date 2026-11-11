@@ -85,3 +85,8 @@ def test_null_repository(default_system):
     null = NullModelRepository()
     assert not null.is_persistent and null.load() is None
     null.save(default_system)  # não faz nada, não levanta
+
+
+def test_non_object_cloud_response_falls_back(monkeypatch,repo):
+    monkeypatch.setattr(module.requests,'get',lambda *a,**k:FakeResponse(200,['invalid']))
+    assert repo.load() is None

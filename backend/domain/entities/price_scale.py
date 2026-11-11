@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
+import re
 
 from backend.domain.exceptions import InvalidModelError
 
@@ -23,6 +25,13 @@ class PriceScale:
     stops: tuple[PriceStop, ...]
 
     def __post_init__(self) -> None:
+        if not math.isfinite(self.minimum) or not math.isfinite(self.maximum) or self.minimum >= self.maximum:
+            raise InvalidModelError("Limites da régua inválidos.")
+        for stop in self.stops:
+            if not math.isfinite(stop.value) or not self.minimum <= stop.value <= self.maximum:
+                raise InvalidModelError("Ponto da régua fora dos limites.")
+            if not isinstance(stop.color, str) or not re.fullmatch(r"#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})",stop.color):
+                raise InvalidModelError("Cor inválida na régua.")
         if len(self.stops) < 2:
             raise InvalidModelError("A régua de preço precisa de ao menos 2 pontos.")
 
@@ -36,7 +45,7 @@ class PriceScale:
         upper = max(reference_price * 2.2, variable_cost * 3, 100)
         return cls(
             minimum=0,
-            maximum=round(upper, -1) or 300,
+            maximum=math.ceil(upper / 10) * 10,
             stops=(
                 PriceStop(0, "#e06060", "Prejuízo"),
                 PriceStop(variable_cost, "#e8825a", "Custo variável"),

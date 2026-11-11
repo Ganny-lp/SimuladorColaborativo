@@ -42,8 +42,15 @@ class UiState:
     # ── época do modelo no diagrama ─────────────────────────────────────────
     @property
     def diagram_epoch(self) -> int:
-        return int(self._state.get(self._EPOCH, 0))
+        if self._EPOCH not in self._state:
+            self._state[self._EPOCH] = time.time_ns() // 1000
+        return int(self._state[self._EPOCH])
 
     def bump_diagram_epoch(self) -> None:
         """Chamado ao recarregar o modelo da nuvem: invalida edições locais não salvas do diagrama."""
         self._state[self._EPOCH] = self.diagram_epoch + 1
+
+    def clear_decision_widgets(self) -> None:
+        for key in list(self._state):
+            if key.startswith(("decision_", "pt_hidden_sync")):
+                del self._state[key]

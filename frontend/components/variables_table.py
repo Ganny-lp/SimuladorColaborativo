@@ -32,9 +32,9 @@ class VariablesTable:
             columns=_COLUMNS,
         )
         if search:
-            mask = frame["Variável"].str.contains(search, case=False, na=False) | frame[
+            mask = frame["Variável"].str.contains(search, case=False, na=False, regex=False) | frame[
                 "Categoria"
-            ].str.contains(search, case=False, na=False)
+            ].str.contains(search, case=False, na=False, regex=False)
             frame = frame[mask]
         if categories:
             frame = frame[frame["Categoria"].isin(categories)]

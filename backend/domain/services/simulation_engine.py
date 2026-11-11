@@ -14,8 +14,6 @@ logger = logging.getLogger(__name__)
 class SimulationEngine:
     """Executa a dinâmica do modelo respeitando a cadeia causal completa."""
 
-    _DERIVED_PASSES = 2
-
     def __init__(
         self, evaluator: ExpressionEvaluator, initial_state: InitialStateCalculator
     ) -> None:
@@ -28,34 +26,31 @@ class SimulationEngine:
         valor JÁ ATUALIZADO das suas causas. Nós 'Estado' acumulam (anterior + equação).
         """
         # All rates read the same opening-of-month state. Commit stocks together.
-        self.recompute_derived(system)
-        values = system.values()
+        working = system.clone()
+        self.recompute_derived(working)
+        values = working.values()
         updates = {}
-        for name, node in system.nodes.items():
+        for name, node in working.nodes.items():
             if node.is_state and node.has_expression:
                 updates[name] = values[name] + self._evaluate(node.expression, values)
-        system.apply_values(updates.items())
+        working.apply_values(updates.items())
+        system.apply_values(working.values().items())
 
     def recompute_derived(self, system: CausalSystem) -> None:
         """Recalcula as variáveis derivadas a partir do estado atual, SEM avançar os estados."""
         graph = DependencyGraph(system)
-        states = graph.state_nodes()
         values = system.values()
-        for _ in range(self._DERIVED_PASSES):
-            for name in graph.topological_order():
-                node = system.node(name)
-                if name in states or not node.has_expression:
-                    continue
-                node.value = self._evaluate(node.expression, values)
-                values[name] = node.value
+        updates = {}
+        for name in graph.topological_order():
+            node = system.node(name)
+            if node.is_state or not node.has_expression:
+                continue
+            values[name] = updates[name] = self._evaluate(node.expression, values)
+        system.apply_values(updates.items())
 
     def reset_state(self, system: CausalSystem) -> None:
         """Devolve os nós com memória aos seus valores iniciais."""
         system.apply_values(self._initial_state.calculate(system).items())
 
     def _evaluate(self, expression: str, values: dict[str, float]) -> float:
-        try:
-            return self._evaluator.evaluate(expression, values)
-        except ExpressionEvaluationError as exc:
-            logger.debug("Equação ignorada (valor 0): %s", exc)
-            return 0.0
+        return self._evaluator.evaluate(expression, values)

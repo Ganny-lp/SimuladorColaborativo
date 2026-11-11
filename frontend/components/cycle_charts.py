@@ -30,13 +30,13 @@ class CycleCharts:
         with left, keyed_container("lumina-card-chart-acc"):
             st.markdown(
                 '<p class="chart-title">Rentabilidade acumulada</p>'
-                '<p class="chart-hint">Soma dos lucros até cada ciclo</p>',
+                '<p class="chart-hint">Desembolso inicial + fluxos de caixa até cada ciclo</p>',
                 unsafe_allow_html=True,
             )
             st.plotly_chart(self.accumulated_chart(cycles, [r.accumulated_profitability for r in history]), **STRETCH)
         with right, keyed_container("lumina-card-chart-profit"):
             st.markdown(
-                '<p class="chart-title">Lucro líquido por ciclo</p>'
+                '<p class="chart-title">Resultado líquido por ciclo</p>'
                 '<p class="chart-hint">Resultado de cada ciclo isoladamente</p>',
                 unsafe_allow_html=True,
             )
