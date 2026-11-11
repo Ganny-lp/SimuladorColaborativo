@@ -14,7 +14,7 @@ LABELS = {
 }
 FRACTIONS = {'Carga_Tributaria','Margem_Alvo','Taxa_Reinvestimento','Alfa','Inovacao_Fabricantes','Inflacao','Juros_Base'}
 COUNTS = {'Numero_Tecnicos','Nc','Prazo','Estoque_Alvo','Estoque_Inicial','Base_Instalada_Inicial'}
-OPENING = {'Estoque_Inicial','Base_Instalada_Inicial','Custos_Legalizacao','Maquinas_Equipamentos','Recursos_Tecnologicos','Infra_Reforma','Marketing_Abertura','Mobiliario','Caixa_Reserva','Emprestimo','Prazo','Juros_Base'}
+OPENING = {'Simular_Abertura','Estoque_Inicial','Base_Instalada_Inicial','Custos_Legalizacao','Maquinas_Equipamentos','Recursos_Tecnologicos','Infra_Reforma','Marketing_Abertura','Mobiliario','Caixa_Reserva','Emprestimo','Prazo','Juros_Base'}
 MARKET = {'Inflacao','Preco_Equipamento_Novo','Nc','Alfa','Beta_1','Carga_Tributaria','Inovacao_Fabricantes','Influencia_Avaliacoes_Online'}
 
 def group_for(name: str) -> str:

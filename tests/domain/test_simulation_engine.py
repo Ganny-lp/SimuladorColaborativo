@@ -6,7 +6,7 @@ from backend.domain.entities.simulation import Simulation
 
 
 def test_migration_starts_clean(migrated_system):
-    assert migrated_system.value_of("Rentabilidade") == -52500
+    assert migrated_system.value_of("Rentabilidade") == 0
     assert migrated_system.value_of("B") == 10000
     assert 0 < migrated_system.value_of("St") < 1
 
@@ -66,5 +66,5 @@ def test_simulation_restart_restores_baseline_and_keeps_decisions(migrated_syste
     simulation.clear_progress()
 
     assert simulation.cycle == 0 and simulation.history == []
-    assert migrated_system.value_of("Rentabilidade") == -52500
+    assert migrated_system.value_of("Rentabilidade") == 0
     assert migrated_system.value_of("budget_promo") == 20000

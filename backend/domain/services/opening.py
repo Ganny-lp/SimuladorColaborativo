@@ -1,0 +1,1 @@
+OPENING_INPUTS = {"Simular_Abertura","Custos_Legalizacao","Maquinas_Equipamentos","Recursos_Tecnologicos","Infra_Reforma","Marketing_Abertura","Mobiliario","Caixa_Reserva","Emprestimo","Prazo","Juros_Base","Estoque_Inicial","Base_Instalada_Inicial"}

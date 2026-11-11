@@ -63,6 +63,10 @@ def build_main_page(secrets: Any, session_state: MutableMapping) -> MainPage:
     advance = AdvanceCycleUseCase(store, engine)
     restart = RestartSimulationUseCase(store, engine)
 
+    from backend.application.use_cases.get_market_data import GetMarketDataUseCase
+    from backend.infrastructure.market_data import fetch_ipca
+    market_data = GetMarketDataUseCase(fetch_ipca)
+
     # ── frontend ────────────────────────────────────────────────────────────
     ui_state = UiState(session_state)
     credentials = CloudCredentials(settings.api_key, settings.bin_id)
@@ -70,7 +74,7 @@ def build_main_page(secrets: Any, session_state: MutableMapping) -> MainPage:
         DiagramTab(CldDiagram(credentials), start, ui_state),
         SimulationTab(
             KpiCards(), PriceSlider(PRICE_SYNC_KEY, PRICE_RULER_KEY), CycleCharts(),
-            change_input, advance, restart,
+            change_input, advance, restart, market_data,
         ),
         VariablesTab(VariablesTable(), ui_state),
     ]

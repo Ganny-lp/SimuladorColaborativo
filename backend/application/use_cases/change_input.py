@@ -21,6 +21,10 @@ class ChangeInputUseCase:
         value = validate_input(simulation.system.node(name), value)
         if simulation.system.node(name).value == value:
             return InputChangeResult(changed=False, persistence=PersistenceOutcome.SKIPPED)
+        from backend.domain.services.opening import OPENING_INPUTS
+        from backend.domain.exceptions import InvalidModelError
+        if simulation.cycle > 0 and name in OPENING_INPUTS:
+            raise InvalidModelError("Reinicie antes de alterar a configuração inicial.")
         simulation = copy.deepcopy(simulation)
         simulation.set_input(name, value)
         if self._engine is not None:

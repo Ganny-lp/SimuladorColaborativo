@@ -45,6 +45,10 @@ class ModelMigrator:
         from backend.domain.services.reference_finder import ReferenceFinder
         if system.has_node("Pm") or any(ReferenceFinder().find(node.expression,["Pm"]) for node in system.nodes.values()):
             raise InvalidModelError("O modelo contém parâmetro de preço removido; reformule-o antes de simular.")
+        if self._template and self._template.has_node("Simular_Abertura") and not system.has_node("Simular_Abertura"):
+            system.nodes["Simular_Abertura"] = self._template.clone().node("Simular_Abertura")
+            if system.has_node("Emprestimos_Mensal"):
+                system.node("Emprestimos_Mensal").expression = "Simular_Abertura*(" + system.node("Emprestimos_Mensal").expression + ")"
         self._engine.reset_state(system)
         self._engine.recompute_derived(system)
         return system
