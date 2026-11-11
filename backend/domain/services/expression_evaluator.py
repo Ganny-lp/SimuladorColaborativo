@@ -68,10 +68,12 @@ class ExpressionEvaluator:
     def evaluate(self, expression: str, variables: Mapping[str, float]) -> float:
         if not expression or not expression.strip():
             return 0.0
+        if len(expression) > 10000:
+            raise ExpressionEvaluationError("Equação excede 10000 caracteres.")
         source = self._substitute_variables(expression, variables).replace("^", "**")
         try:
             tree = ast.parse(source.strip(), mode="eval")
-            result = self._eval(tree.body)
+            result = float(self._eval(tree.body))
         except ExpressionEvaluationError:
             raise
         except _EVALUATION_ERRORS as exc:
@@ -87,7 +89,7 @@ class ExpressionEvaluator:
             return expression
         longest_first = sorted(variables, key=len, reverse=True)
         pattern = re.compile(r"\b(?:" + "|".join(re.escape(n) for n in longest_first) + r")\b")
-        return pattern.sub(lambda m: repr(float(variables[m.group(0)])), expression)
+        return pattern.sub(lambda m: f"({float(variables[m.group(0)])!r})", expression)
 
     def _eval(self, node: ast.AST) -> float:
         if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)) \

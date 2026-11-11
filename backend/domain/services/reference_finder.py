@@ -10,8 +10,8 @@ class ReferenceFinder:
     def find(self, expression: str, names: Iterable[str]) -> set[str]:
         if not expression:
             return set()
-        return {
-            name
-            for name in names
-            if re.search(r"\b" + re.escape(name) + r"\b", expression)
-        }
+        names = sorted(names, key=len, reverse=True)
+        if not names:
+            return set()
+        pattern = re.compile(r"(?<!\w)(?:" + "|".join(re.escape(n) for n in names) + r")(?!\w)")
+        return set(pattern.findall(expression))

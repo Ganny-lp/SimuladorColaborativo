@@ -58,3 +58,10 @@ def test_variables_table_filters_and_truncates():
     assert len(frame.iloc[0]["Descrição"]) == 90
     assert table.build_dataframe(variables).iloc[0]["Equação"] == "—"
     assert table.build_dataframe(variables).iloc[0]["Valor Atual"] == 150.123457
+
+
+def test_search_is_literal_including_invalid_regex():
+    table=VariablesTable()
+    variables=[VariableDTO('A[','Input',1,'','x')]
+    assert len(table.build_dataframe(variables,search='[')) == 1
+    assert len(table.build_dataframe([],search='[')) == 0

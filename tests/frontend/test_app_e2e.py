@@ -60,3 +60,20 @@ def test_every_input_is_rendered(app):
     from backend.application.mappers.model_mapper import ModelMapper
     inputs = [n for n in JsonDefaultModelProvider(ModelMapper()).provide().nodes.values() if n.category.value == "Input"]
     assert len(app.number_input) == len(inputs)
+
+
+def test_price_change_updates_model_and_restart_keeps_decision(app):
+    next(n for n in app.number_input if n.label == 'Preço praticado').set_value(200).run()
+    assert not app.exception
+    assert app.session_state['lumina.simulation'].system.value_of('Pt') == 200
+    _button(app,'Avançar').click().run()
+    _button(app,'Reiniciar').click().run()
+    assert next(n for n in app.number_input if n.label == 'Preço praticado').value == 200
+
+
+def test_locate_variable_connects_focus_to_diagram(app):
+    app.selectbox(key='lumina.variable_picker').select('Pt').run()
+    assert not app.exception
+    assert app.session_state['lumina.focus_request']['name'] == 'Pt'
+    # The same UI state is injected in both tabs, so a focus nonce reaches the iframe.
+    assert any('"name": "Pt"' in frame.proto.srcdoc for frame in app.get('iframe'))

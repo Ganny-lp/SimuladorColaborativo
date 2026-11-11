@@ -8,6 +8,7 @@ from frontend.components.page_header import PageHeader
 from frontend.branding import BrandAssets
 from frontend.components.theme import Theme
 from frontend.config import PAGE_TITLE
+from backend.application.use_cases._base import SimulationError
 from frontend.views.tab import Tab
 
 
@@ -37,7 +38,11 @@ class MainPage:
             initial_sidebar_state="collapsed",
         )
         self._theme.apply()
-        self._start_simulation.execute()
+        try:
+            self._start_simulation.execute()
+        except (SimulationError, ValueError) as exc:
+            st.error(f"Não foi possível carregar o modelo: {exc}")
+            return
         snapshot = self._get_snapshot.execute()
 
         self._header.render()

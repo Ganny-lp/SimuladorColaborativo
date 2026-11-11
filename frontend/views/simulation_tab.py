@@ -14,6 +14,7 @@ from frontend.components.section import SectionHeader
 from frontend.config import PRICE_VARIABLE
 from frontend.components.decision_control import DecisionControl, group_for
 from frontend.views.tab import Tab
+from backend.application.use_cases._base import SimulationError
 
 
 class SimulationTab(Tab):
@@ -95,7 +96,7 @@ class SimulationTab(Tab):
     def _apply_input(self, name: str, value: float) -> bool:
         try:
             result = self._change_input.execute(name, value)
-        except ValueError as exc:
+        except (SimulationError, ValueError) as exc:
             st.error(str(exc))
             return False
         if result.changed and result.persistence is PersistenceOutcome.FAILED:
@@ -107,8 +108,12 @@ class SimulationTab(Tab):
         advance_col, restart_col = st.columns([3, 1], vertical_alignment="center")
         with advance_col:
             if st.button("Avançar ciclo", type="primary", icon=":material/play_arrow:", **STRETCH):
-                self._advance_cycle.execute()
-                st.rerun()
+                try:
+                    self._advance_cycle.execute()
+                except (SimulationError, ValueError) as exc:
+                    st.error(f"O ciclo não foi aplicado: {exc}")
+                else:
+                    st.rerun()
         with restart_col:
             if st.button("Reiniciar", icon=":material/restart_alt:", **STRETCH):
                 self._restart.execute()

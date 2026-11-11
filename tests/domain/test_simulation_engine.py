@@ -38,10 +38,12 @@ def test_capacity_caps_served_quantity(migrated_system, engine):
     assert migrated_system.value_of("Qt") == 50.0
 
 
-def test_broken_equation_evaluates_to_zero_instead_of_crashing(engine):
+def test_broken_equation_is_reported_without_mutating_cycle(engine):
     system = CausalSystem(nodes={"X": Node("X", NodeCategory.EQUATION, value=5, expression="1/0")})
-    engine.advance_cycle(system)
-    assert system.value_of("X") == 0.0
+    from backend.domain.exceptions import ExpressionEvaluationError
+    with pytest.raises(ExpressionEvaluationError):
+        engine.advance_cycle(system)
+    assert system.value_of("X") == 5.0
 
 
 def test_recompute_derived_does_not_touch_state(migrated_system, engine):

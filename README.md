@@ -1,109 +1,57 @@
-# ⬡ LUMINA · Simulador de Laços Causais
+# LUMINA · Simulador de Laços Causais
 
-Reescrita do `sim.py` (script único de ~1.600 linhas) em **Clean Architecture**, orientada a
-objetos, com **backend e frontend separados**. Continua sendo um app **Streamlit**.
+Simulador didático mensal de uma assistência técnica, com diagrama editável e decisões de preço, investimentos, equipe, estoque e ambiente.
 
 ```bash
-pip install -r requirements.txt
-streamlit run app.py
+python -m pip install -r requirements-dev.txt
+python -m streamlit run app.py
+python -m pytest -q
 ```
 
-Persistência na nuvem (opcional): copie `.streamlit/secrets.toml.example` para
-`.streamlit/secrets.toml` e preencha `api_key` / `bin_id` do JSONBin. Sem isso o app roda
-normalmente com o modelo padrão.
+`streamlit run sim.py` abre a mesma aplicação; o motor duplicado antigo foi retirado.
 
-Testes: `pip install -r requirements-dev.txt && pytest`
+## Modelo e premissas
 
----
+Veja [modelo-simulacao.md](docs/modelo-simulacao.md) para o mapeamento dos pontos da análise de 11/11/2026 para equações e comportamentos executáveis.
 
-## Arquitetura
+O modelo padrão não utiliza preços de outras assistências. Pt é o preço praticado, escolhido pelo participante; o preço sugerido considera custos, impostos, margem e volume. O preço de equipamento novo representa a alternativa de substituir o produto.
 
-```
-                ┌───────────────────────── backend ─────────────────────────┐
-                │                                                           │
- frontend ───▶  │  application  ───▶  domain                                │
- (Streamlit)    │  casos de uso       entidades + serviços (regras puras)   │
-      │         │  portas (ABC)                  ▲                          │
-      │         │  DTOs / mappers                │ implementa portas        │
-      │         │                         infrastructure                    │
-      │         │                         JSONBin, modelo padrão (JSON)     │
-      │         └───────────────────────────────────────────────────────────┘
-      └── só enxerga application (use cases + DTOs). Nunca domain/infrastructure.
+As variáveis Input são descobertas pelo frontend e exibidas por tema. Frações aparecem como porcentagens, com escala e campo exato sincronizados. A digitação e o teclado continuam disponíveis. Alterar uma entrada recalcula os indicadores sem avançar estados. Estoques e desembolsos iniciais são reaplicados ao reiniciar; mudanças após o primeiro ciclo não retroagem sobre o histórico.
 
- composition_root.py  → único lugar que conhece todas as camadas (injeção de dependência)
- app.py               → entrypoint fino do Streamlit
+Cada ciclo calcula taxas com os estoques iniciais do mês e atualiza todos os estados simultaneamente. Fila, estoque e caixa obedecem a balanços. Resultados com divisão por zero, nomes inexistentes, ciclos algébricos ou números não finitos interrompem a operação sem aplicar um ciclo parcial.
+
+Os coeficientes comportamentais são hipóteses didáticas e precisam de calibração para uso empírico. Nc é uma contagem regional fornecida pelo participante: não há conexão a uma base municipal.
+
+## Persistência opcional
+
+Crie `.streamlit/secrets.toml` (arquivo local ignorado pelo Git):
+
+```toml
+[jsonbin]
+api_key = "SUA_CHAVE"
+bin_id = "SEU_BIN_ID"
 ```
 
-A regra de dependência é **verificada automaticamente** por `tests/test_architecture.py`
-(lê os imports de cada arquivo e falha se uma camada importar algo proibido).
+Sem configuração, o modelo padrão funciona localmente. Edições estruturais feitas no diagrama requerem Salvar e Recarregar modelo para chegar à simulação. Estados de simulação não são publicados ao avançar ou reiniciar.
 
-### Estrutura
+O editor de diagrama ainda acessa JSONBin pelo navegador e recebe a chave configurada. Essa é uma limitação da arquitetura existente: use credencial restrita ao bin. A revisão não altera o protocolo de persistência do editor.
 
-```
-app.py                         entrypoint Streamlit (3 linhas)
-composition_root.py            monta o grafo de objetos
-backend/
-  domain/                      ← regras de negócio, sem I/O nem framework
-    constants.py               nomes de variáveis do modelo (sem magic strings)
-    entities/                  Node, Link, CausalSystem, PriceScale, Simulation, CycleRecord
-    services/
-      expression_evaluator.py  avalia equações (AST + whitelist, sem eval)
-      reference_finder.py      quais variáveis uma equação usa
-      dependency_graph.py      ordem topológica + nós com memória
-      simulation_engine.py     advance_cycle / recompute_derived / reset_state
-      initial_state_calculator.py
-      model_migrator.py        correções de equações antigas + estado limpo
-  application/                 ← casos de uso
-    ports/                     ModelRepository, SimulationStore, DefaultModelProvider
-    use_cases/                 Start, GetSnapshot, ChangeInput, AdvanceCycle, Restart
-    services/model_publisher.py  publica só o MODELO (estado sempre no valor inicial)
-    mappers/                   dict JSON ⇄ domínio ; domínio → SimulationSnapshot
-    dto.py                     contratos imutáveis entregues ao frontend
-  infrastructure/              ← detalhes técnicos
-    persistence/               JsonBinModelRepository, NullModelRepository, default_model.json
-    config/settings.py         credenciais (lidas de st.secrets pela composition root)
-frontend/
-  config.py  formatters.py  compat.py
-  session/                     adaptador SimulationStore sobre st.session_state, UiState
-  assets/                      HTML/CSS/JS do diagrama, da régua e do tema (arquivos reais!)
-  components/                  Theme, PageHeader, KpiCards, PriceSlider, CldDiagram,
-                               CycleCharts, VariablesTable
-  views/                       Tab (ABC) → DiagramTab, SimulationTab, VariablesTab ; MainPage
-tests/                         domain · application · infrastructure · frontend · architecture
-```
+## Organização
 
-### Como estender
+| Área | Responsabilidade |
+|---|---|
+| `backend/domain` | Entidades, avaliação segura de equações, ordem causal e balanços |
+| `backend/application` | Casos de uso, contratos, publicação e mapeamento JSON |
+| `backend/infrastructure` | Modelo padrão e repositórios JSONBin/local |
+| `frontend/components` | Controles, indicadores, diagrama, tabelas e gráficos |
+| `frontend/views` | Abas de simulação, diagrama e variáveis |
+| `composition_root.py` | Montagem das dependências |
+| `packaging` | Empacotamento Windows com PyInstaller |
 
-| Quero…                                   | Mexo em…                                                        |
-|------------------------------------------|-----------------------------------------------------------------|
-| trocar JSONBin por outro banco           | nova classe em `infrastructure/persistence` + 1 linha na composition root |
-| novo operador/função em equações         | `domain/services/expression_evaluator.py`                       |
-| nova regra de simulação                  | `domain/services/simulation_engine.py`                          |
-| nova ação do usuário                     | novo caso de uso em `application/use_cases` + chamá-lo numa view |
-| nova aba                                 | subclasse de `Tab` + incluir na lista da composition root       |
-| expor o backend por API REST (FastAPI)   | os casos de uso já são o contrato; basta um adaptador HTTP      |
+O modelo 2 substitui as equações padrão dos modelos antigos durante a migração, preservando decisões e posições existentes. Nós adicionais são preservados; fórmulas que dependam do parâmetro de preço retirado precisam ser reformuladas.
 
----
+## Validação
 
-## ⚠️ Diferenças em relação ao `sim.py` original
+A suíte cobre cenários de inflação, sobrecarga, estoque/fornecedores, técnicos, reinvestimento e financiamento; conservação de caixa/estoque; migração; validação de modelos; transações de ciclo; busca literal e fluxos reais do Streamlit com AppTest. O workflow de CI executa Python 3.11/3.12 e verifica a sintaxe do editor JavaScript.
 
-1. **Bug corrigido: `MIN`, `MAX` e `ABS` nunca funcionavam.** O original executava o `eval` com
-   `__builtins__` vazio, então essas funções davam `NameError` → `0.0`. Na prática
-   `Qt = MIN(Dpt*St, Cap)` era **sempre 0** (receita sempre 0, KPI "Qt Atendida" sempre 0).
-   Agora funcionam. **Os resultados numéricos mudam por causa disso**; com o bug neutralizado
-   nos dois lados, os dois motores batem exatamente (validado em 6 cenários × 8 ciclos).
-2. `eval` substituído por um interpretador de AST com whitelist (equações não executam código).
-3. Não grava mais na nuvem a cada *Avançar Ciclo* / *Reiniciar* (o modelo não muda nesses
-   casos). Continua gravando ao alterar uma decisão de input.
-4. Rentabilidade inicial era `-0.0` (KPI "R$ -0.0k"); agora `0.0`.
-5. JS do diagrama: o formatador de valores transformava `100000` em `1` (removia zeros de
-   inteiros); corrigido. Textos com `</script>` no modelo não quebram mais o iframe.
-6. Falha ao salvar na nuvem agora avisa com um toast em vez de ser silenciosa.
-7. Camada de compatibilidade (`frontend/compat.py`) para as APIs depreciadas
-   (`components.html`, `use_container_width`).
-
-## Limitação conhecida (herdada do original)
-
-O diagrama roda no navegador e fala direto com o JSONBin, então a `api_key` é entregue ao
-cliente. Use uma *Access Key* restrita ao bin (não a Master Key) ou, melhor, faça o diagrama
-salvar via backend.
+Os testes de interface automatizados não substituem a inspeção visual em navegadores e dispositivos. Os instaladores já presentes em `build/` e `installer/` são versões antigas: devem ser reconstruídos pelo processo em `packaging/` para distribuir as mudanças.

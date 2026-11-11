@@ -36,4 +36,8 @@ class StartSimulationUseCase:
         if system is None:
             logger.info("Modelo remoto indisponível; usando o modelo padrão.")
             system = self._defaults.provide()
+        from backend.domain.services.input_validation import validate_input
+        for node in system.nodes.values():
+            if node.category.value == "Input":
+                validate_input(node,node.value)
         self._store.put(Simulation.begin(self._migrator.migrate(system)))

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from backend.domain.entities.causal_system import CausalSystem
 from backend.domain.services.reference_finder import ReferenceFinder
+from backend.domain.exceptions import InvalidModelError
 
 
 class DependencyGraph:
@@ -20,14 +21,18 @@ class DependencyGraph:
     def topological_order(self) -> list[str]:
         """
         Toda variável da qual um nó depende (e que possui equação) vem ANTES dele.
-        Ciclos de realimentação são tolerados: a aresta que fecha o ciclo é ignorada.
+        Estados quebram a dependência temporal. Ciclos algébricos são rejeitados.
         """
+        if any(not self._system.node(n).is_state for n in self._self_referencing):
+            raise InvalidModelError("Equação autorreferente: use um nó Estado com taxa de variação.")
         order: list[str] = []
         visiting: set[str] = set()
         done: set[str] = set()
 
         def visit(name: str) -> None:
-            if name in done or name in visiting:
+            if name in visiting:
+                raise InvalidModelError(f"Ciclo algébrico em {name}: introduza um nó Estado para representar o atraso.")
+            if name in done:
                 return
             visiting.add(name)
             for dependency in sorted(self._dependencies[name]):
@@ -40,8 +45,7 @@ class DependencyGraph:
         for name in self._system.nodes:
             if not self._system.nodes[name].is_state:
                 visit(name)
-        for name in self._system.nodes:
-            visit(name)
+        order.extend(name for name, node in self._system.nodes.items() if node.is_state)
         return order
 
     def state_nodes(self) -> set[str]:

@@ -24,5 +24,9 @@ class SessionStateSimulationStore(SimulationStore):
         return self._state.get(self._SIMULATION_KEY)
 
     def put(self, simulation: "Simulation") -> None:
+        if self._state.get(self._VERSION_KEY) != self._app_version:
+            for key in list(self._state):
+                if key.startswith(("decision_", "pt_hidden_sync")):
+                    del self._state[key]
         self._state[self._SIMULATION_KEY] = simulation
         self._state[self._VERSION_KEY] = self._app_version

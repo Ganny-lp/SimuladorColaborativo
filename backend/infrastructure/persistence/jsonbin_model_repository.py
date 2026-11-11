@@ -42,7 +42,7 @@ class JsonBinModelRepository(ModelRepository):
                 return None
             record: Any = response.json().get("record", {})
             return self._mapper.to_entity(record)
-        except (requests.RequestException, ValueError, InvalidModelError) as exc:
+        except (requests.RequestException, ValueError, InvalidModelError, AttributeError, TypeError) as exc:
             logger.warning("Não foi possível carregar o modelo do JSONBin: %s", exc)
             return None
 

@@ -38,3 +38,17 @@ def test_incomplete_price_scale_is_ignored(mapper):
     raw = _raw()
     raw["price_scale"] = {"min": 0, "max": 10, "stops": [{"value": 1, "color": "#fff"}]}
     assert mapper.to_entity(raw).price_scale is None
+
+@pytest.mark.parametrize('field,value',[('val',float('nan')),('x',float('inf')),('val',True),('expr',[]),('desc',{})])
+def test_rejects_invalid_node_data(mapper,field,value):
+    raw={'nodes':{'A':{'cat':'Input',field:value}},'links':[]}
+    with pytest.raises(InvalidModelError): mapper.to_entity(raw)
+
+
+def test_rejects_dangling_link(mapper):
+    with pytest.raises(InvalidModelError):
+        mapper.to_entity({'nodes':{},'links':[{'from':'A','to':'B','sign':'+'}]})
+
+@pytest.mark.parametrize('scale',[{'min':0,'max':0,'stops':[{'value':0,'color':'#fff'}]*2},{'min':0,'max':10,'stops':[{'value':0,'color':'red;background:url(x)'}]*2}, {'min':0,'max':10,'stops':[{}]*2}])
+def test_rejects_invalid_price_scales(mapper,scale):
+    with pytest.raises(InvalidModelError): mapper.to_entity({'nodes':{},'links':[],'price_scale':scale})

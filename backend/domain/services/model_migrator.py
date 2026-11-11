@@ -25,6 +25,8 @@ class ModelMigrator:
                     node.x, node.y = old.x, old.y
                     if not node.has_expression and not node.is_state:
                         node.value = old.value
+            if system.has_node("Salarios_Beneficios"):
+                canonical.node("Salarios_Beneficios").value = system.value_of("Salarios_Beneficios") / max(1, system.value_of("Numero_Tecnicos", 1))
             # Preserve custom nodes unless they use the removed price parameter.
             from backend.domain.exceptions import InvalidModelError
             from backend.domain.services.reference_finder import ReferenceFinder
@@ -33,7 +35,16 @@ class ModelMigrator:
                     if "Pm" in ReferenceFinder().find(node.expression, ["Pm"]):
                         raise InvalidModelError(f"Reformule a equação de {name}: parâmetro de preço removido.")
                     canonical.nodes[name] = node
+            for link in system.links:
+                if link.source in canonical.nodes and link.target in canonical.nodes and (link.source not in self._template.nodes or link.target not in self._template.nodes):
+                    canonical.links.append(link)
+            canonical.initial_state.update({k:v for k,v in system.initial_state.items() if k not in self._template.nodes and k in canonical.nodes})
+            canonical.extras.update({k:v for k,v in system.extras.items() if k != "schema_version"})
             system = canonical
+        from backend.domain.exceptions import InvalidModelError
+        from backend.domain.services.reference_finder import ReferenceFinder
+        if system.has_node("Pm") or any(ReferenceFinder().find(node.expression,["Pm"]) for node in system.nodes.values()):
+            raise InvalidModelError("O modelo contém parâmetro de preço removido; reformule-o antes de simular.")
         self._engine.reset_state(system)
         self._engine.recompute_derived(system)
         return system

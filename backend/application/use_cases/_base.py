@@ -11,3 +11,5 @@ def require_simulation(store: SimulationStore) -> Simulation:
     if simulation is None:
         raise SimulationNotStartedError("Nenhuma simulação iniciada.")
     return simulation
+
+from backend.domain.exceptions import DomainError as SimulationError

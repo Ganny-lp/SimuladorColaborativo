@@ -441,14 +441,18 @@ el.panel.addEventListener('click', e => {
 function structuralChange() { rebuild(); markDirty(); }
 function deleteNode(id) {
   const node = SYS.nodes[id]; if (!node) return;
+  const dependents = Object.entries(SYS.nodes).filter(([name, node]) => name !== id && referenceNames(node.expr).includes(id));
+  if (dependents.length) return toast(`Não é possível excluir: usado em ${dependents.map(([name]) => name).join(', ')}. Reformule as equações primeiro.`, { type: 'error' });
   const links = SYS.links.filter(l => l.from === id || l.to === id);
   SYS.links = SYS.links.filter(l => l.from !== id && l.to !== id);
   delete SYS.nodes[id];
+  const initial = SYS.initial_state?.[id];
+  if (SYS.initial_state) delete SYS.initial_state[id];
   if (S.sel === id) S.sel = null;
   if (S.hover === id) S.hover = null;
   structuralChange();
   toast(`“${id}” excluído`, { action: { label: 'Desfazer', fn: () => {
-    SYS.nodes[id] = node; SYS.links.push(...links); structuralChange(); selectNode(id); } } });
+    SYS.nodes[id] = node; if (initial !== undefined) (SYS.initial_state ||= {})[id] = initial; SYS.links.push(...links); structuralChange(); selectNode(id); } } });
 }
 function removeLink(from, to) {
   const i = SYS.links.findIndex(l => l.from === from && l.to === to); if (i < 0) return;
@@ -501,6 +505,17 @@ $('#dlg-link').addEventListener('close', () => { if (S.tool === 'link') setTool(
 const nnCat = $('#nn-cat');
 nnCat.innerHTML = CATS.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
 let editing = null;
+function referencePattern(names) {
+  const escaped = names.sort((a,b) => b.length-a.length).map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  return new RegExp(`(?<![\\p{L}\\p{N}_])(?:${escaped.join('|')})(?![\\p{L}\\p{N}_])`, 'gu');
+}
+function referenceNames(expression) {
+  const names = Object.keys(SYS.nodes);
+  return names.length ? [...(String(expression || '').match(referencePattern(names)) || [])] : [];
+}
+function renameReferences(expression, oldName, newName, names) {
+  return String(expression || '').replace(referencePattern(names), match => match === oldName ? newName : match);
+}
 const NAME_RE = /^[A-Za-z_][A-Za-z0-9_]*$/;
 function openNodeDialog(id = null) {
   editing = id;
@@ -522,7 +537,10 @@ $('#f-node').addEventListener('submit', e => {
   if ((editing === null || name !== editing) && !NAME_RE.test(name))
     return setErr(err, input, 'Use letras, números e _ (sem espaços), começando por letra ou _.');
   if (name !== editing && SYS.nodes[name]) return setErr(err, input, `“${name}” já existe.`);
-  const data = { cat: nnCat.value, val: parseFloat($('#nn-val').value) || 0, expr: $('#nn-eq').value.trim(),
+  const value = Number($('#nn-val').value);
+  if (!Number.isFinite(value)) return setErr(err, $('#nn-val'), 'Informe um valor finito.');
+  if (nnCat.value === 'Input' && $('#nn-eq').value.trim()) return setErr(err, $('#nn-eq'), 'Uma entrada não pode ter equação.');
+  const data = { cat: nnCat.value, val: value, expr: $('#nn-eq').value.trim(),
                  desc: $('#nn-desc').value.trim() || 'Sem descrição.' };
   if (editing === null) {
     const c = toWorld(vpRect().left + vpRect().width / 2, vpRect().top + vpRect().height / 2), j = () => (Math.random() - .5) * 60;
@@ -532,9 +550,15 @@ $('#f-node').addEventListener('submit', e => {
     if (name !== editing) {
       SYS.nodes[name] = nd; delete SYS.nodes[editing];
       SYS.links.forEach(l => { if (l.from === editing) l.from = name; if (l.to === editing) l.to = name; });
-      const re = new RegExp(`\\b${editing}\\b`, 'g');           // mantém as equações que citavam o nome antigo
+      const names = [...Object.keys(SYS.nodes), editing];
       let fixed = 0;
-      for (const o of Object.values(SYS.nodes)) if (o.expr && re.test(o.expr)) { o.expr = o.expr.replace(re, name); fixed++; re.lastIndex = 0; }
+      for (const node of Object.values(SYS.nodes)) {
+        const updated = renameReferences(node.expr, editing, name, names);
+        if (updated !== node.expr) { node.expr = updated; fixed++; }
+      }
+      if (SYS.initial_state && Object.hasOwn(SYS.initial_state, editing)) {
+        SYS.initial_state[name] = SYS.initial_state[editing]; delete SYS.initial_state[editing];
+      }
       if (S.sel === editing) S.sel = name;
       if (fixed) toast(`Nome atualizado em ${fixed} equaç${fixed > 1 ? 'ões' : 'ão'}`);
     }
@@ -731,7 +755,7 @@ new ResizeObserver(() => {
   if (firstShow) {
     firstShow = false;
     const v = store.get(KEYS.view);
-    if (v && v.touched && isFinite(v.x) && isFinite(v.k)) { Object.assign(V, { x: v.x, y: v.y, k: v.k }); S.touched = true; paintView(); S.fitted = true; }
+    if (v && v.touched && Number.isFinite(v.x) && Number.isFinite(v.y) && Number.isFinite(v.k) && v.k >= .15 && v.k <= 2.5) { Object.assign(V, { x: v.x, y: v.y, k: v.k }); S.touched = true; paintView(); S.fitted = true; }
     else fit({ animate: false });
     if (v && v.sel && SYS.nodes[v.sel]) selectNode(v.sel);
     handleFocusRequest();
