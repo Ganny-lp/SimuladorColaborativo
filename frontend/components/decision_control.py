@@ -53,8 +53,9 @@ def scaled_number(label: str, value: float, key: str, *, minimum: float | None =
 class DecisionControl:
     def render(self, variable: VariableDTO) -> float:
         label = LABELS.get(variable.name, variable.name.replace('_',' '))
+        category = 'Investimento mensal' if variable.name.startswith('budget_') else ('Equipe e capacidade' if variable.name == 'Numero_Tecnicos' else 'Decisão operacional')
         with keyed_container(f'decision-card-{variable.name}'):
-            st.markdown(f'<div class="decision-eyebrow">{escape(variable.name)}</div>',unsafe_allow_html=True)
+            st.markdown(f'<div class="decision-eyebrow">{escape(category)}</div>',unsafe_allow_html=True)
             if variable.name in FRACTIONS:
                 return scaled_number(label,variable.value*100,f'decision_{variable.name}',
                                      maximum=100,step=0.1,hint=variable.description,suffix='%')/100

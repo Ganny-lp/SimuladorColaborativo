@@ -1,7 +1,7 @@
 import streamlit as st
 
 from backend.application.dto import SimulationSnapshot
-from frontend.compat import STRETCH
+from frontend.compat import STRETCH, keyed_container
 from frontend.components.section import SectionHeader
 from frontend.components.variables_table import VariablesTable
 from frontend.session.ui_state import UiState
@@ -18,7 +18,7 @@ class VariablesTab(Tab):
 
     def render(self, snapshot: SimulationSnapshot) -> None:
         self._section.render("Variáveis do sistema", hint="Estados atuais e cálculos de planejamento. Indicadores derivados podem projetar o próximo ciclo; resultados concluídos ficam na aba Simulação.")
-        with st.container(border=True):
+        with keyed_container("lab-variable-summary",border=True):
             cols=st.columns(3)
             cols[0].metric("Variáveis",len(snapshot.variables))
             cols[1].metric("Indicadores calculados",sum(bool(v.expression) for v in snapshot.variables))
@@ -40,15 +40,25 @@ class VariablesTab(Tab):
             key=UiState.PICKER_KEY, on_change=self._ui_state.request_focus,
         )
         selected = self._ui_state.selected_variable
+        if not selected:
+            st.caption("Escolha uma variável em Localizar no diagrama para abrir sua ficha: definição, valor e equação.")
         if selected:
             variable=snapshot.variable(selected)
             if variable:
-                with st.container(border=True):
+                with keyed_container("lab-variable-detail",border=True):
                     st.markdown(f"### {variable.name.replace('_',' ')}")
                     st.caption(variable.category)
                     st.metric("Valor atual",f"{variable.value:,.4g}")
                     st.write(variable.description)
                     if variable.expression: st.code(variable.expression,language=None,wrap_lines=True)
+                    links=snapshot.model_payload.get("links",[])
+                    causes=sorted({link['from'] for link in links if link.get('to')==selected})
+                    effects=sorted({link['to'] for link in links if link.get('from')==selected})
+                    before,after=st.columns(2)
+                    before.caption("RECEBE INFLUÊNCIA DE")
+                    before.write(", ".join(causes) or "Sem ligações de entrada no diagrama.")
+                    after.caption("INFLUENCIA")
+                    after.write(", ".join(effects) or "Sem ligações de saída no diagrama.")
             in_diagram = selected in (snapshot.model_payload or {}).get("nodes", {})
             if in_diagram:
                 info_col, again_col = st.columns([4, 1], vertical_alignment="center")

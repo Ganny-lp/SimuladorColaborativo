@@ -29,7 +29,7 @@ def app_url():
         try:process.wait(timeout=10)
         except subprocess.TimeoutExpired:process.kill();process.wait()
 
-@pytest.mark.parametrize('width',[390,900,1366])
+@pytest.mark.parametrize('width',[320,390,900,1366])
 @pytest.mark.parametrize('theme',['light','dark'])
 def test_real_app_header_and_kpi_alignment(app_url,width,theme):
     from playwright.sync_api import sync_playwright
@@ -59,4 +59,19 @@ def test_real_app_header_and_kpi_alignment(app_url,width,theme):
         note=page.locator('.st-key-preparation-note [data-testid="stAlert"]').bounding_box()
         assert note['y']-max(b['y']+b['height'] for b in boxes)>=10
         assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+        assert page.locator('.lab-intro').is_visible()
+        assert page.locator('.lab-route li').count()==3
+        for card in page.locator('.pulse-item').all():
+            assert card.evaluate('(e)=>e.scrollWidth<=e.clientWidth+1')
+        if width<=480:
+            pulse_boxes=[page.locator('.pulse-item').nth(i).bounding_box() for i in range(3)]
+            assert pulse_boxes[1]['y']>pulse_boxes[0]['y']
+        page.get_by_text('Minha hipótese para o próximo ciclo',exact=True).click()
+        page.get_by_role('textbox',name='O que você espera observar?').fill('Observar a fila no próximo mês')
+        page.get_by_role('button',name='Avançar ciclo',exact=True).click()
+        page.get_by_text('Observar a fila no próximo mês',exact=True).first.wait_for()
+        assert page.get_by_role('button',name='Exportar caderno CSV').is_visible()
+        artifacts=Path(__file__).resolve().parents[2]/'test-artifacts'
+        artifacts.mkdir(exist_ok=True)
+        page.screenshot(path=str(artifacts/f'lab-{theme}-{width}.png'),full_page=True)
         browser.close()

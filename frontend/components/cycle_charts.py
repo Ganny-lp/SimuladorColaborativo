@@ -23,7 +23,7 @@ class CycleCharts:
 
     def render(self, history: Sequence[CycleRecordDTO]) -> None:
         if not history:
-            st.info("Avance alguns ciclos para ver a evolução aqui.", icon=":material/insights:")
+            st.markdown('<div class="lab-empty"><span>AINDA É O COMEÇO</span><h3>Uma decisão inicia uma trajetória.</h3><p>Avance o primeiro ciclo para acompanhar o resultado mensal e o fluxo acumulado.</p></div>',unsafe_allow_html=True)
             return
         cycles = [r.cycle for r in history]
         left, right = st.columns(2)
@@ -48,7 +48,7 @@ class CycleCharts:
         figure = go.Figure(
             go.Scatter(
                 x=x, y=y, mode="lines+markers", name="Rentabilidade",
-                line=dict(color=PALETTE.usp_blue, width=3, shape="spline", smoothing=.4),
+                line=dict(color=PALETTE.usp_blue, width=3, shape="linear"),
                 marker=dict(size=8, color=PALETTE.usp_blue, line=dict(width=2, color="rgba(255,255,255,.85)")),
                 fill="tozeroy", fillcolor="rgba(16,148,171,.12)",
                 hovertemplate="Ciclo %{x}<br><b>R$ %{y:,.0f}</b><extra></extra>",

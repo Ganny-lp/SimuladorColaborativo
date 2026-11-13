@@ -89,3 +89,15 @@ def test_tax_calculator_applies_value_and_normative_provenance(app):
     system=app.session_state['lumina.simulation'].system
     assert system.value_of('Carga_Tributaria')==.06
     assert system.extras['calibration']['Carga_Tributaria']['method']=='Cálculo normativo condicionado'
+
+
+def test_experiment_notebook_records_completed_cycle_and_clears_on_restart(app):
+    app.text_area(key='lab.hypothesis').set_value('Observar a fila após mudar o preço').run()
+    _button(app,'Avançar').click().run()
+    assert not app.exception
+    assert app.session_state['lab.completed_notes']['1']['hypothesis']=='Observar a fila após mudar o preço'
+    app.text_area(key='lab.hypothesis').set_value('Segunda hipótese').run()
+    assert app.session_state['lab.completed_notes']['1']['hypothesis']=='Observar a fila após mudar o preço'
+    _button(app,'Reiniciar').click().run()
+    assert not app.exception
+    assert 'lab.completed_notes' not in app.session_state
