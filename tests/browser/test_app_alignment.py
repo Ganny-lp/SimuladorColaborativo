@@ -66,11 +66,19 @@ def test_real_app_header_and_kpi_alignment(app_url,width,theme):
         if width<=480:
             pulse_boxes=[page.locator('.pulse-item').nth(i).bounding_box() for i in range(3)]
             assert pulse_boxes[1]['y']>pulse_boxes[0]['y']
+        artifacts=Path(__file__).resolve().parents[2]/'test-artifacts'
+        artifacts.mkdir(exist_ok=True)
+        page.screenshot(path=str(artifacts/f'lab-preparation-{theme}-{width}.png'),full_page=True)
         page.get_by_text('Minha hipótese para o próximo ciclo',exact=True).click()
         page.get_by_role('textbox',name='O que você espera observar?').fill('Observar a fila no próximo mês')
         page.get_by_role('button',name='Avançar ciclo',exact=True).click()
-        page.get_by_text('Observar a fila no próximo mês',exact=True).first.wait_for()
-        assert page.get_by_role('button',name='Exportar caderno CSV').is_visible()
+        notebook=page.locator('.st-key-lab-notebook')
+        notebook.get_by_text('Resultado do ciclo 1',exact=True).wait_for()
+        notebook.get_by_text('Observar a fila no próximo mês',exact=True).first.wait_for()
+        with page.expect_download() as downloaded:
+            notebook.get_by_text('Exportar caderno CSV',exact=True).click()
+        content=Path(downloaded.value.path()).read_text(encoding='utf-8-sig')
+        assert 'Observar a fila no próximo mês' in content
         artifacts=Path(__file__).resolve().parents[2]/'test-artifacts'
         artifacts.mkdir(exist_ok=True)
         page.screenshot(path=str(artifacts/f'lab-{theme}-{width}.png'),full_page=True)
