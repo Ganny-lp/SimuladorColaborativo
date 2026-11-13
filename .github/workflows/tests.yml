@@ -27,3 +27,9 @@ jobs:
       - run: python -m pytest tests/browser -q
         env:
           RUN_BROWSER_TESTS: '1'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-previews
+          path: test-artifacts/
+          if-no-files-found: ignore

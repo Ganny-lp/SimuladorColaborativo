@@ -128,3 +128,8 @@ As calculadoras CSV fornecem cabeçalho para download. Use UTF-8, vírgulas e de
 Para Nc, o importador espera Latin-1, separador `;`, 30 campos e nenhum cabeçalho conforme o layout oficial. Um fragmento nacional da base NÃO é um recorte municipal completo; a interface exige confirmação de cobertura. O código municipal da Receita não deve ser substituído pelo código IBGE. O endereço de download da RFB pode mudar; use a [página oficial de CNPJ](https://www.gov.br/receitafederal/pt-br/assuntos/orientacao-tributaria/cadastros/cnpj) para localizar os dados.
 
 Fonte setorial pública pesquisada: [Open Repair Alliance / ORDS](https://openrepair.org/open-data/open-standard/) publica tentativas e desfechos em eventos comunitários. Ela não oferece a exposição de toda a base instalada nem todas as variáveis econômicas deste simulador; por isso não foi usada para inventar Alfa, Beta ou efeitos de avaliações brasileiros. Fontes de referência não equivalem a valores calibrados.
+
+
+## Experiência de laboratório
+
+O painel de simulação organiza o trabalho em formular, experimentar e observar. O caderno opcional registra hipóteses por ciclo e permite exportar resultados em CSV; as notas ficam na sessão e são limpas ao reiniciar/recarregar. Fontes e calibração ficam em área técnica recolhida. A proposta visual, referências oficiais USP e critérios de responsividade estão em [design do laboratório](docs/design-laboratorio.md).
