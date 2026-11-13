@@ -222,3 +222,9 @@ hr{border-color:var(--border) !important;}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important;}}
 
 @media(max-width:480px){.lab-route li{flex-direction:column;align-items:center;text-align:center;}.lab-intro h1{overflow-wrap:anywhere;}}
+/* Keep all three destinations visible on narrow screens instead of cropping a tab. */
+@media(max-width:640px){
+  [role="tablist"]{gap:0;}
+  [role="tab"]{flex:1 1 0;min-width:0;padding:.65rem .3rem;gap:.25rem;}
+  [role="tab"] p,[role="tab"]{font-size:.76rem;}
+}

@@ -61,6 +61,11 @@ def test_real_app_header_and_kpi_alignment(app_url,width,theme):
         assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
         assert page.locator('.lab-intro').is_visible()
         assert page.locator('.lab-route li').count()==3
+        if width<=640:
+            bar=page.get_by_role('tablist').bounding_box()
+            for tab in page.get_by_role('tab').all():
+                box=tab.bounding_box()
+                assert box['x']>=bar['x']-1 and box['x']+box['width']<=bar['x']+bar['width']+1
         for card in page.locator('.pulse-item').all():
             assert card.evaluate('(e)=>e.scrollWidth<=e.clientWidth+1')
         if width<=480:
