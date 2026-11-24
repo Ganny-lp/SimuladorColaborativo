@@ -18,7 +18,7 @@ class KpiCards:
         return (
             ("Rentabilidade acumulada", formatters.thousands_currency(profit), "desembolso inicial + fluxo acumulado", tone),
             ("Receita do ciclo", formatters.currency(kpis.net_revenue), "receita líquida no ciclo atual", "neutral"),
-            ("Quantidade atendida", formatters.decimal_number(kpis.served_quantity), "serviços equivalentes concluídos", "neutral"),
+            ("Reparos concluídos (Qt)", formatters.decimal_number(kpis.served_quantity), "serviços equivalentes no ciclo", "neutral"),
             ("Captação estimada no ciclo", formatters.percent(kpis.market_share), "fração modelada de novos pedidos", "neutral"),
         )
 

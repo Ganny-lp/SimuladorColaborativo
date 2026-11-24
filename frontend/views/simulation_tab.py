@@ -9,7 +9,10 @@ from backend.application.use_cases.restart_simulation import RestartSimulationUs
 from frontend.compat import STRETCH, keyed_container
 from frontend.components.cycle_charts import CycleCharts
 from frontend.components.kpi_cards import KpiCards
-from frontend.components.lab_experience import render_intro,render_pulse,render_notebook
+from frontend.components.lab_experience import (
+    current_hypothesis, render_hypothesis, render_intro, render_notebook, render_pulse,
+)
+from frontend.components.market_context import render_market_context
 from frontend.components.price_slider import PriceSlider
 from frontend.components.section import SectionHeader
 from frontend.config import PRICE_VARIABLE
@@ -59,17 +62,15 @@ class SimulationTab(Tab):
         if changed:
             # o snapshot foi tirado antes de aplicar a decisão: recarrega para os KPIs não ficarem defasados
             st.rerun()
-        with st.expander("Minha hipótese para o próximo ciclo"):
-            st.text_area("O que você espera observar?",key="lab.hypothesis",max_chars=1200,placeholder="Ex.: quero observar a fila após aumentar a equipe, mantendo o preço.")
+        with st.expander("Inflação, fontes e calibração"):
+            if render_market_context(snapshot, self._apply_input, self._market_data, self._calibration):
+                st.rerun()
+        render_hypothesis()
         self._render_controls(snapshot)
 
         self._section.render("Evolução", hint="Histórico dos ciclos já simulados.")
         self._charts.render(snapshot.history)
         render_notebook(snapshot)
-        with st.expander("Fontes, premissas e calibração"):
-            from frontend.components.market_context import render_market_context
-            if render_market_context(snapshot,self._apply_input,self._market_data,self._calibration):
-                st.rerun()
 
     def _render_decision_context(self, snapshot: SimulationSnapshot) -> None:
         render_pulse(snapshot)
@@ -92,7 +93,10 @@ class SimulationTab(Tab):
         enabled = snapshot.variable("Simular_Abertura")
         if enabled:
             if snapshot.cycle == 0:
-                opening = st.toggle("Simular abertura da empresa?", value=bool(enabled.value))
+                opening = st.toggle(
+                    "Simular abertura da empresa?", value=bool(enabled.value),
+                    help="Inclui o investimento inicial e a contratação de crédito no primeiro ciclo.",
+                )
                 changed = self._apply_input("Simular_Abertura", float(opening)) or changed
             else:
                 opening = bool(enabled.value)
@@ -138,12 +142,13 @@ class SimulationTab(Tab):
                 except (SimulationError, ValueError) as exc:
                     st.error(f"O ciclo não foi aplicado: {exc}")
                 else:
-                    price=snapshot.variable("Pt")
-                    st.session_state.setdefault("lab.completed_notes",{})[str(snapshot.cycle+1)]={"hypothesis":st.session_state.get("lab.hypothesis", ""),"price":price.value if price else None}
+                    st.session_state.setdefault("lab.completed_notes", {})[str(snapshot.cycle + 1)] = {
+                        "hypothesis": current_hypothesis(),
+                    }
                     st.rerun()
         with restart_col:
             if st.button("Reiniciar", icon=":material/restart_alt:", **STRETCH):
                 self._restart.execute()
-                st.session_state.pop("lab.completed_notes",None)
-                st.session_state.pop("lab.hypothesis",None)
+                for key in ("lab.completed_notes", "lab.hypothesis", "lab.presets"):
+                    st.session_state.pop(key, None)
                 st.rerun()

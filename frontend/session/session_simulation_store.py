@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import MutableMapping, TYPE_CHECKING
 
+from frontend.session.ui_state import UiState
+
 from backend.application.ports.simulation_store import SimulationStore
 
 if TYPE_CHECKING:  # o adaptador só guarda o objeto; não conhece o seu conteúdo
@@ -25,8 +27,6 @@ class SessionStateSimulationStore(SimulationStore):
 
     def put(self, simulation: "Simulation") -> None:
         if self._state.get(self._VERSION_KEY) != self._app_version:
-            for key in list(self._state):
-                if key.startswith(("decision_", "pt_hidden_sync")):
-                    del self._state[key]
+            UiState(self._state).clear_decision_widgets()
         self._state[self._SIMULATION_KEY] = simulation
         self._state[self._VERSION_KEY] = self._app_version

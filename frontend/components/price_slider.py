@@ -57,9 +57,10 @@ class PriceSlider:
     def render(self, scale: PriceScaleDTO, current_value: float) -> float:
         from frontend.components.decision_control import scaled_number
         st.markdown('<div class="decision-eyebrow">SUA DECISÃO · R$/SERVIÇO</div>',unsafe_allow_html=True)
+        hint = "Valor cobrado por reparo. Digite o preço em reais ou ajuste pela escala."
         chosen = scaled_number("Preço praticado", current_value, self._sync_key,
-                               maximum=max(scale.maximum,current_value), step=1.0,
-                               hint="Arraste a escala ou digite o valor exato. A sugestão usa os custos da sua operação.")
+                               maximum=scale.maximum, step=0.01, number_format="%.2f", hint=hint)
+        st.caption(hint)
         self._legend.render(scale)
         return chosen
 

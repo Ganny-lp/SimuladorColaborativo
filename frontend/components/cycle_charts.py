@@ -8,6 +8,7 @@ import streamlit as st
 from backend.application.dto import CycleRecordDTO
 from frontend.branding import PALETTE
 from frontend.compat import STRETCH, keyed_container
+from frontend.formatters import currency, decimal_number
 
 _MARGIN = dict(l=8, r=8, t=8, b=8)
 _HOVER_FONT = dict(family="Open Sans, sans-serif", size=13)
@@ -41,6 +42,55 @@ class CycleCharts:
                 unsafe_allow_html=True,
             )
             st.plotly_chart(self.profit_chart(cycles, [r.profit for r in history]), **STRETCH)
+        self._render_cycle_details(history)
+
+    @staticmethod
+    def _render_cycle_details(history: Sequence[CycleRecordDTO]) -> None:
+        with st.expander("Reparos, receitas e fluxo de caixa por ciclo", expanded=True):
+            st.caption(
+                "Receita bruta = preço praticado × reparos concluídos (Qt). "
+                "A receita líquida desconta os tributos. Compras e consumo de peças ajustam "
+                "o resultado líquido para chegar ao fluxo de caixa."
+            )
+            if len(history) > 1:
+                previous, current = history[-2:]
+                if all(v is not None for v in (previous.net_revenue, current.net_revenue, previous.costs, current.costs)):
+                    delta_revenue = current.net_revenue - previous.net_revenue
+                    delta_costs = current.costs - previous.costs
+                    volumes = ""
+                    if previous.served_quantity is not None and current.served_quantity is not None:
+                        volumes = (
+                            f" Reparos concluídos de {decimal_number(previous.served_quantity)} "
+                            f"para {decimal_number(current.served_quantity)}."
+                        )
+                    st.caption(
+                        f"Do ciclo {previous.cycle} ao {current.cycle}, a receita líquida variou "
+                        f"{currency(delta_revenue)} e os custos variaram {currency(delta_costs)}."
+                        f"{volumes}"
+                    )
+            money = ("Preço praticado", "Receita bruta", "Receita líquida", "Custos", "Resultado líquido", "Fluxo de caixa")
+            st.dataframe(
+                [
+                    {
+                        "Ciclo": r.cycle,
+                        "Reparos (Qt)": r.served_quantity,
+                        "Preço praticado": r.price,
+                        "Receita bruta": r.gross_revenue,
+                        "Receita líquida": r.net_revenue,
+                        "Custos": r.costs,
+                        "Resultado líquido": r.profit,
+                        "Fluxo de caixa": r.cash_flow,
+                        "Inflação (%)": r.inflation * 100 if r.inflation is not None else None,
+                    }
+                    for r in reversed(history)
+                ],
+                column_config={
+                    **{name: st.column_config.NumberColumn(format="R$ %.2f") for name in money},
+                    "Reparos (Qt)": st.column_config.NumberColumn(format="%.2f"),
+                    "Inflação (%)": st.column_config.NumberColumn(format="%.2f%%"),
+                },
+                hide_index=True, **STRETCH,
+            )
 
     # ── figuras ────────────────────────────────────────────────────────────
     @classmethod

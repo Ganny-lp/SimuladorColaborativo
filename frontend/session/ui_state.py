@@ -51,7 +51,7 @@ class UiState:
         self._state[self._EPOCH] = self.diagram_epoch + 1
 
     def clear_decision_widgets(self) -> None:
-        for key in ("lab.completed_notes","lab.hypothesis"):
+        for key in ("lab.completed_notes", "lab.hypothesis", "lab.presets"):
             self._state.pop(key,None)
         for key in list(self._state):
             if key.startswith(("decision_", "pt_hidden_sync")):

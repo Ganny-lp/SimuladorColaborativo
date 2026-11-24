@@ -7,6 +7,28 @@ from frontend.compat import keyed_container
 from frontend.formatters import currency, decimal_number
 
 EVIDENCE_NAMES={'Inflacao','Nc','Carga_Tributaria','Alfa','Beta_1','Preco_Equipamento_Novo','Inovacao_Fabricantes','Influencia_Avaliacoes_Online'}
+HYPOTHESIS_PRESETS = (
+    "Comparar a receita e os reparos concluídos após mudar o preço.",
+    "Ver se aumentar a equipe reduz a fila de reparos.",
+    "Ver se aumentar o estoque de peças permite concluir mais reparos.",
+    "Comparar custos e fluxo de caixa com uma taxa de inflação diferente.",
+    "Acompanhar o efeito do treinamento na capacidade de atendimento.",
+)
+
+
+def render_hypothesis() -> None:
+    with st.expander("Minha hipótese para o próximo ciclo"):
+        st.multiselect("Hipóteses sugeridas", HYPOTHESIS_PRESETS, key="lab.presets")
+        st.text_area(
+            "O que você espera observar?", key="lab.hypothesis", max_chars=1200,
+            placeholder="Opcional. Escreva uma hipótese própria ou complemente as opções selecionadas.",
+        )
+
+
+def current_hypothesis() -> str:
+    presets = st.session_state.get("lab.presets", [])
+    custom = st.session_state.get("lab.hypothesis", "").strip()
+    return "\n".join([*presets, *([custom] if custom else [])])
 
 
 def evidence_count(snapshot):
@@ -46,13 +68,22 @@ def render_pulse(snapshot):
 
 def notebook_csv(snapshot,notes):
     buffer=io.StringIO();writer=csv.writer(buffer)
-    writer.writerow(['ciclo','resultado_mensal_brl','fluxo_acumulado_brl','hipotese','preco_decidido_brl'])
+    writer.writerow([
+        "ciclo", "resultado_mensal_brl", "fluxo_acumulado_brl", "hipotese", "preco_decidido_brl",
+        "reparos_concluidos", "receita_bruta_brl", "receita_liquida_brl",
+        "custos_brl", "fluxo_de_caixa_brl", "inflacao_pct",
+    ])
     # Only completed cycles are exported; unfinished hypotheses remain drafts.
     for record in snapshot.history:
         note=notes.get(str(record.cycle),{})
         text=note.get('hypothesis','')
         if text.lstrip().startswith(('=','+','-','@')) or text.startswith(('\t','\r','\n')):text="'"+text
-        writer.writerow([record.cycle,record.profit,record.accumulated_profitability,text,note.get('price','')])
+        writer.writerow([
+            record.cycle, record.profit, record.accumulated_profitability, text,
+            record.price if record.price is not None else note.get("price", ""),
+            record.served_quantity, record.gross_revenue, record.net_revenue, record.costs,
+            record.cash_flow, record.inflation * 100 if record.inflation is not None else None,
+        ])
     return buffer.getvalue()
 
 

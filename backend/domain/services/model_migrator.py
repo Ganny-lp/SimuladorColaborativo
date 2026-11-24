@@ -8,6 +8,11 @@ EXPRESSION_FIXES = {
     "Margem_Lucro": ("Rentabilidade/MAX(1,Receita Líquida)", "Resultado_Mensal/MAX(1,Receita Líquida)"),
 }
 
+_PREVIOUS_TEAM_EXPRESSIONS = {
+    "Nivel_Qualificacao_Tecnica": "MAX(0.3,MIN(1,Nivel_Qualificacao_Tecnica+(budget_training+Reinvestimento_Disponivel/3)/500000-0.01))-Nivel_Qualificacao_Tecnica",
+    "Experiencia_Acumulada": "MAX(0.1,MIN(10,Experiencia_Acumulada+0.05-Rotatividade_Tecnicos*Experiencia_Acumulada))-Experiencia_Acumulada",
+}
+
 
 class ModelMigrator:
     def __init__(self, engine: SimulationEngine, template: CausalSystem | None = None) -> None:
@@ -49,6 +54,13 @@ class ModelMigrator:
             system.nodes["Simular_Abertura"] = self._template.clone().node("Simular_Abertura")
             if system.has_node("Emprestimos_Mensal"):
                 system.node("Emprestimos_Mensal").expression = "Simular_Abertura*(" + system.node("Emprestimos_Mensal").expression + ")"
+        if self._template is not None and system.extras.get("schema_version") == 2:
+            for name, previous in _PREVIOUS_TEAM_EXPRESSIONS.items():
+                node = system.nodes.get(name)
+                updated = self._template.nodes.get(name)
+                if node and updated and node.is_state and node.expression == previous:
+                    node.expression = updated.expression
+                    node.description = updated.description
         self._engine.reset_state(system)
         self._engine.recompute_derived(system)
         return system

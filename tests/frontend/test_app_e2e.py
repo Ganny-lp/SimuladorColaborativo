@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 from streamlit.testing.v1 import AppTest
+from frontend.components.lab_experience import HYPOTHESIS_PRESETS
 
 APP = str(Path(__file__).resolve().parents[2] / "app.py")
 
@@ -71,6 +72,48 @@ def test_price_change_updates_model_and_restart_keeps_decision(app):
     _button(app,'Avançar').click().run()
     _button(app,'Reiniciar').click().run()
     assert next(n for n in app.number_input if n.label == 'Preço praticado').value == 200
+
+
+def test_price_scale_keeps_exact_value_when_next_cycle_changes_bounds(app):
+    key = "pt_hidden_sync_scale"
+    app.number_input(key="pt_hidden_sync_number").set_value(500.25).run()
+    _button(app, "Avançar").click().run()
+    original_maximum = app.slider(key=key).proto.max
+    _button(app, "Avançar").click().run()
+    assert not app.exception
+    assert app.slider(key=key).proto.max != original_maximum
+    assert app.slider(key=key).value == 500.25
+    app.slider(key=key).set_value(600.0).run()
+    assert app.number_input(key="pt_hidden_sync_number").value == 600.0
+
+
+def test_ipca_reference_and_cycle_inflation_are_independent(app, monkeypatch):
+    observation = {
+        "value": 0.0082, "reference": "2025-09-01", "retrieved_at": "2025-10-10",
+        "source": "https://api.bcb.gov.br/serie/433",
+    }
+    monkeypatch.setattr("backend.infrastructure.market_data.fetch_ipca", lambda: observation)
+    app.number_input(key="decision_Inflacao_number").set_value(-0.2).run()
+    app.multiselect(key="lab.presets").select(HYPOTHESIS_PRESETS[3]).run()
+    _button(app, "Avançar").click().run()
+    first = app.session_state["lumina.simulation"].history[0]
+    assert first.inflation == pytest.approx(-0.002)
+    assert first.profit == pytest.approx(first.net_revenue - first.costs)
+    assert app.session_state["lab.completed_notes"]["1"]["hypothesis"] == HYPOTHESIS_PRESETS[3]
+
+    _button(app, "Consultar IPCA oficial").click().run()
+    assert app.number_input(key="decision_Inflacao_number").value == -0.2
+    assert any(m.label == "IPCA oficial · 09/2025" for m in app.metric)
+    _button(app, "Usar IPCA").click().run()
+    assert app.number_input(key="decision_Inflacao_number").value == pytest.approx(0.82)
+    _button(app, "Avançar").click().run()
+    simulation = app.session_state["lumina.simulation"]
+    assert not app.exception
+    assert simulation.system.value_of("Mes_Operacao") == 2
+    assert [r.inflation for r in simulation.history] == pytest.approx([-0.002, 0.0082])
+    table = next(df.value for df in app.dataframe if "Reparos (Qt)" in df.value)
+    assert table.iloc[1]["Receita bruta"] == pytest.approx(first.price * first.served_quantity)
+    assert table.iloc[1]["Fluxo de caixa"] == pytest.approx(first.cash_flow)
 
 
 def test_locate_variable_connects_focus_to_diagram(app):

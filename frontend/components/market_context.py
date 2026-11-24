@@ -1,7 +1,56 @@
 import requests
 import streamlit as st
+from backend.application.dto import PersistenceOutcome
+from backend.application.use_cases.calibrate_input import OFFICIAL_SERIES_METHOD
+from frontend.components.decision_control import scaled_number
 from frontend.compat import keyed_container
 from frontend.formatters import percent
+
+
+def _render_inflation(snapshot, apply_input, query, calibration) -> bool:
+    inflation = snapshot.variable("Inflacao")
+    if inflation is None:
+        return False
+    hint = "Taxa mensal usada no próximo ciclo. Informe um valor negativo para simular deflação."
+    chosen = scaled_number(
+        "Inflação do próximo ciclo (%)", inflation.value * 100, "decision_Inflacao",
+        minimum=-99.0, maximum=100.0, step=0.01, hint=hint, suffix="%",
+        show_scale=False, number_format="%.2f",
+    )
+    st.caption(hint)
+    if chosen != inflation.value * 100:
+        return apply_input("Inflacao", chosen / 100)
+
+    if query and st.button("Consultar IPCA oficial"):
+        try:
+            st.session_state["market_ipca"] = query.execute()
+        except (requests.RequestException, ValueError, KeyError, TypeError):
+            st.warning("Fonte indisponível. A inflação do cenário foi mantida. Tente novamente.")
+    observation = st.session_state.get("market_ipca")
+    persisted = snapshot.model_payload.get("calibration", {}).get("Inflacao", {})
+    if not observation and persisted.get("method") == OFFICIAL_SERIES_METHOD:
+        observation = {**persisted, "retrieved_at": persisted.get("registered_at", "")}
+    if not observation:
+        st.caption("Consulte o IPCA para ver o último mês publicado pelo IBGE.")
+        return False
+
+    reference = observation["reference"]
+    st.metric(f"IPCA oficial · {reference[5:7]}/{reference[:4]}", percent(observation["value"]))
+    st.caption(f"IBGE / Banco Central · SGS 433 · consulta em {observation['retrieved_at'][:10]}")
+    if st.button("Usar IPCA no próximo ciclo", disabled=observation["value"] == inflation.value):
+        if not calibration:
+            return apply_input("Inflacao", observation["value"])
+        try:
+            outcome = calibration.execute(
+                "Inflacao", observation["value"], observation["source"], reference, OFFICIAL_SERIES_METHOD,
+            )
+        except ValueError as exc:
+            st.error(str(exc))
+            return False
+        if outcome is PersistenceOutcome.FAILED:
+            st.toast("IPCA aplicado nesta sessão. Não foi possível salvar na nuvem.", icon=":material/warning:")
+        return True
+    return False
 
 
 def render_market_context(snapshot,apply_input,query,calibration=None):
@@ -9,27 +58,7 @@ def render_market_context(snapshot,apply_input,query,calibration=None):
     with keyed_container("market-context"):
         st.markdown("### Contexto de mercado")
         st.caption("Referências externas e premissas do cenário — separadas das decisões do empreendedor")
-        ipca=snapshot.variable("Inflacao")
-        if ipca: st.metric("Inflação mensal usada",percent(ipca.value))
-        if query and st.button("Consultar IPCA oficial",disabled=snapshot.cycle>0):
-            try:
-                observation=query.execute()
-                if calibration:
-                    calibration.execute("Inflacao",observation["value"],observation["source"],observation["reference"],"Série oficial consultada")
-                    changed=True
-                else:
-                    changed=apply_input("Inflacao",observation["value"])
-                st.session_state["market_ipca"]=observation
-            except (requests.RequestException,ValueError,KeyError,TypeError) as exc:
-                st.warning("Fonte indisponível. O valor do cenário foi mantido; tente novamente.")
-        observation=st.session_state.get("market_ipca")
-        persisted=snapshot.model_payload.get("calibration",{}).get("Inflacao",{})
-        if not observation and persisted.get("method")=="Série oficial consultada":
-            observation={**persisted,"retrieved_at":persisted.get("registered_at","")}
-        if observation and ipca and abs(observation["value"]-ipca.value)<1e-10:
-            st.caption(f"IBGE / Banco Central · SGS 433 · referência {observation['reference']} · consulta {observation['retrieved_at'][:10]}")
-        else:
-            st.caption("Inflação ainda não consultada nesta sessão: premissa do cenário, não dado atualizado.")
+        changed = _render_inflation(snapshot, apply_input, query, calibration)
         st.markdown("[Fonte: IPCA mensal no SGS/BCB](https://www3.bcb.gov.br/sgspub/consultarValoresSeries.do?method=consultarSeries&series=433)")
         st.caption("O IPCA é referência macroeconômica, não índice exclusivo de assistências técnicas. Preço de equipamento, concorrentes e coeficientes de demanda continuam premissas até calibração local; não são estimativas oficiais.")
         from frontend.components.source_tools import render_source_tools
@@ -65,7 +94,6 @@ def render_market_context(snapshot,apply_input,query,calibration=None):
                     reference=st.date_input("Data de referência",value=date.today(),max_value=date.today())
                     method=st.selectbox("Método da evidência",["Observação local declarada","Estimativa empírica declarada"])
                     if st.form_submit_button("Aplicar evidência ao cenário"):
-                        from backend.application.dto import PersistenceOutcome
                         try:
                             status=calibration.execute(name,value,source,reference.isoformat(),method)
                             changed=True

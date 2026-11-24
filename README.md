@@ -29,7 +29,7 @@ Para executar sem ferramentas de desenvolvimento, instale `requirements.txt`. `s
 | Reiniciar | Reaplica a configuração inicial e limpa os resultados e o histórico. |
 | Simular abertura | Desativado por padrão. Ative antes de iniciar para configurar investimento e financiamento. |
 
-A quantidade atendida representa **serviços equivalentes** em um modelo contínuo: pode ser fracionária. Não representa contagem observada de ordens de serviço reais. A captação é uma fração calculada de novos pedidos, não uma participação de mercado empiricamente medida.
+Os **reparos concluídos (Qt)** representam serviços equivalentes e podem ser fracionários. A tabela de evolução mostra o volume, o preço, as receitas bruta e líquida, os custos, o resultado, o fluxo de caixa e a inflação de cada ciclo realizado. A captação é uma fração calculada de novos pedidos.
 
 Pt é o preço praticado, escolhido pelo participante. A sugestão de preço considera custos, volume e margem; não altera Pt automaticamente. Preço de equipamento novo representa a alternativa ao reparo, sem utilizar preços de outras assistências.
 
@@ -45,7 +45,7 @@ O programa não pode inferir parâmetros locais confiáveis apenas pelo tipo de 
 
 | Entrada | Evidência apropriada | Tratamento |
 |---|---|---|
-| Inflação | IPCA mensal IBGE, distribuído pelo BCB/SGS 433 | Consulta oficial antes de iniciar; converte porcentagem para fração, aceita deflação e registra referência/fonte. |
+| Inflação | IPCA mensal IBGE, distribuído pelo BCB/SGS 433 | Permite editar a taxa para cada ciclo, inclusive deflação, e consultar o IPCA com mês de referência. O participante pode aplicar o valor oficial ao próximo ciclo. |
 | Concorrentes | Estabelecimentos ativos por município e CNAE, base CNPJ | Contagem regional ainda exige apuração externa; registre fonte, recorte e data. |
 | Carga tributária | Tributos efetivos / receita no período e regime da empresa | Observação contábil declarada, não alíquota universal. |
 | Preço de equipamento | Cotações datadas de produtos comparáveis | Observação local declarada; explicitar amostra e critério de agregação. |
@@ -132,4 +132,4 @@ Fonte setorial pública pesquisada: [Open Repair Alliance / ORDS](https://openre
 
 ## Experiência de laboratório
 
-O painel de simulação organiza o trabalho em formular, experimentar e observar. O caderno opcional registra hipóteses por ciclo e permite exportar resultados em CSV; as notas ficam na sessão e são limpas ao reiniciar/recarregar. Fontes e calibração ficam em área técnica recolhida. A proposta visual, referências oficiais USP e critérios de responsividade estão em [design do laboratório](docs/design-laboratorio.md).
+O painel de simulação organiza o trabalho em formular, experimentar e observar. O caderno aceita hipóteses sugeridas e texto livre, registra as observações por ciclo e exporta os resultados em CSV. As notas ficam na sessão e são limpas ao reiniciar ou recarregar. A inflação do próximo ciclo e a consulta ao IPCA ficam em **Inflação, fontes e calibração**, acima do botão de avançar. A proposta visual, referências oficiais USP e critérios de responsividade estão em [design do laboratório](docs/design-laboratorio.md).
