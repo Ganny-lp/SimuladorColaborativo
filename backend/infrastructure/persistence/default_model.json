@@ -28,7 +28,7 @@
       "cat": "Equação",
       "val": 0,
       "expr": "MIN(Backlog_Servicos+Demanda_Captada,Cap,Capacidade_Operacional,Estoque_Pecas)",
-      "desc": "Serviços concluídos; limitados por capacidade, peças disponíveis e fila.",
+      "desc": "Reparos concluídos no ciclo (serviços equivalentes). O volume é limitado pelos pedidos na fila, pela capacidade e pelas peças disponíveis.",
       "x": 363.31292779267227,
       "y": 326.47688905118434
     },
@@ -435,16 +435,16 @@
     "Nivel_Qualificacao_Tecnica": {
       "cat": "Estado",
       "val": 0.6,
-      "expr": "MAX(0.3,MIN(1,Nivel_Qualificacao_Tecnica+(budget_training+Reinvestimento_Disponivel/3)/500000-0.01))-Nivel_Qualificacao_Tecnica",
-      "desc": "Nível de qualificação técnica — cresce com budget_training e sofre atrito natural (0.01/ciclo), limitado a [0.3,1.5].",
+      "expr": "MAX(0.3,MIN(1,Nivel_Qualificacao_Tecnica+(budget_training+Reinvestimento_Disponivel/3)/500000-(Nivel_Qualificacao_Tecnica-0.6)*0.05))-Nivel_Qualificacao_Tecnica",
+      "desc": "Treinamento e reinvestimento melhoram a qualificação. Sem investimento, ela tende gradualmente ao nível básico da equipe (0,6), dentro da faixa [0,3; 1].",
       "x": -291.70445330676756,
       "y": 593.8916999003783
     },
     "Experiencia_Acumulada": {
       "cat": "Estado",
       "val": 1,
-      "expr": "MAX(0.1,MIN(10,Experiencia_Acumulada+0.05-Rotatividade_Tecnicos*Experiencia_Acumulada))-Experiencia_Acumulada",
-      "desc": "Experiência acumulada (anos) — cresce 0.05/ciclo, corroída pela Rotatividade_Tecnicos. Antes travada em 1 pra sempre (elo morto); agora reage de verdade.",
+      "expr": "MAX(0.1,MIN(10,Experiencia_Acumulada+1/12-Rotatividade_Tecnicos*MAX(0,Experiencia_Acumulada-1)))-Experiencia_Acumulada",
+      "desc": "Experiência média em anos. A equipe ganha um mês por ciclo, e a rotatividade reduz a experiência acima da referência de um ano para as novas contratações.",
       "x": -324.25177260604545,
       "y": 882.0425425450907
     },

@@ -4,11 +4,11 @@ A pergunta “Simular abertura da empresa?” inicia desativada. Somente quando 
 
 Ao abrir uma empresa, o investimento inicial é descontado da rentabilidade no primeiro ciclo, uma única vez. O caixa operacional já parte da reserva; o empréstimo é recebido no primeiro ciclo uma única vez. Os ativos e estoque iniciais são financiados pelo aporte de abertura contabilizado no investimento inicial. Parcelas são obrigações mensais e permanecem até o prazo contratado. Não se cobra novamente o principal integral. Reiniciar cria uma nova execução. Configurações iniciais não podem ser alteradas no meio da execução.
 
-A tela prioriza preço, técnicos, estoque alvo e quatro orçamentos mensais. Demais ajustes operacionais ficam recolhidos. Mercado e ambiente são contexto, sem uma lista de decisões editáveis. Cards têm altura mínima uniforme no desktop e altura livre em celulares. O orçamento fica em painel com faixa proporcional única e legenda com valores e percentuais. Variáveis têm visão geral, filtros e ficha com descrição completa/equação.
+A tela prioriza preço, técnicos, estoque alvo e quatro orçamentos mensais. Demais ajustes operacionais ficam recolhidos. A taxa de inflação editável fica em **Inflação, fontes e calibração**. Cards têm altura mínima uniforme no desktop e altura livre em celulares. O orçamento fica em painel com faixa proporcional única e legenda com valores e percentuais. Variáveis têm visão geral, filtros e ficha com descrição completa/equação.
 
 ## Dados observados e hipóteses
 
-IPCA: fonte IBGE distribuída pelo Banco Central, série SGS 433 (variação mensal percentual). A consulta usa https://api.bcb.gov.br/dados/serie/bcdata.sgs.433/dados/ultimos/1?formato=json e converte porcentagem para fração. Data de referência e instante de consulta são mostrados. Consulta é explícita antes de iniciar e não avança estados. Falha de rede não substitui o cenário por zero nem inventa observações. IPCA negativo é aceito. Não se usa Selic como se fosse taxa contratual de empréstimo.
+O IPCA oficial é consultado na série SGS 433 do Banco Central, que divulga a variação mensal do IBGE. A consulta exibe o último mês publicado e preserva a taxa do cenário. Use o botão **Usar IPCA no próximo ciclo** para aplicar a referência ou digite sua própria taxa em porcentagem. O campo aceita deflação. A alteração vale para o próximo ciclo, e o histórico registra a taxa usada em cada mês simulado. A fonte da consulta é https://api.bcb.gov.br/dados/serie/bcdata.sgs.433/dados/ultimos/1?formato=json.
 
 Referência oficial da série: https://www3.bcb.gov.br/sgspub/consultarValoresSeries.do?method=consultarSeries&series=433
 

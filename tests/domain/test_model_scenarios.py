@@ -62,3 +62,15 @@ def test_positive_result_funds_next_cycle_training(migrated_system,engine):
         engine.advance_cycle(migrated_system);engine.advance_cycle(no_reinvestment)
     assert migrated_system.value_of('Reinvestimento_Disponivel') > 0
     assert migrated_system.value_of('Nivel_Qualificacao_Tecnica') > no_reinvestment.value_of('Nivel_Qualificacao_Tecnica')
+
+
+def test_stable_team_can_sustain_repairs_without_inflation(migrated_system, engine):
+    migrated_system.set_value("Pt", 3000)
+    migrated_system.set_value("Inflacao", 0)
+    engine.advance_cycle(migrated_system)
+    first_volume = migrated_system.value_of("Qt")
+    first_result = migrated_system.value_of("Resultado_Mensal")
+    for _ in range(29):
+        engine.advance_cycle(migrated_system)
+    assert migrated_system.value_of("Qt") >= first_volume
+    assert migrated_system.value_of("Resultado_Mensal") >= first_result

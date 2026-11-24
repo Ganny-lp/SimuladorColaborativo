@@ -40,6 +40,18 @@ class CycleRecordDTO:
     cycle: int
     profit: float
     accumulated_profitability: float
+    price: float | None = None
+    served_quantity: float | None = None
+    net_revenue: float | None = None
+    costs: float | None = None
+    cash_flow: float | None = None
+    inflation: float | None = None
+
+    @property
+    def gross_revenue(self) -> float | None:
+        if self.price is None or self.served_quantity is None:
+            return None
+        return self.price * self.served_quantity
 
 
 @dataclass(frozen=True)

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from backend.domain.constants import NodeNames
 from backend.domain.entities.causal_system import CausalSystem
 from backend.domain.entities.cycle_record import CycleRecord
 
@@ -31,7 +32,15 @@ class Simulation:
     def register_cycle(self, profit: float, accumulated_profitability: float) -> CycleRecord:
         self.completed_values = self.system.values()
         self.cycle += 1
-        record = CycleRecord(self.cycle, profit, accumulated_profitability)
+        record = CycleRecord(
+            self.cycle, profit, accumulated_profitability,
+            price=self.completed_values.get(NodeNames.PRECO),
+            served_quantity=self.completed_values.get(NodeNames.QUANTIDADE),
+            net_revenue=self.completed_values.get(NodeNames.RECEITA_LIQUIDA),
+            costs=self.completed_values.get(NodeNames.CUSTOS),
+            cash_flow=self.completed_values.get("Fluxo_Caixa"),
+            inflation=self.completed_values.get("Inflacao"),
+        )
         self.history.append(record)
         return record
 

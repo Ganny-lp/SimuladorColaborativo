@@ -10,7 +10,7 @@ Cada ciclo representa um mês. As taxas são calculadas com os estoques do iníc
 | Crescimento e investimento | Receita → resultado → reinvestimento no mês seguinte → treinamento/tecnologia → capacidade/qualidade → satisfação → reputação → demanda. Reinvestimento só usa resultado positivo e caixa disponível. |
 | Estoque e fornecedor | Estoque → disponibilidade → prazo → satisfação → demanda → receita → caixa → reposição → estoque. Prazo do fornecedor limita reposição e aumenta espera. |
 | Capital imobilizado | Estoque é pago na compra, reduz caixa e limita reposição futura. Fluxo de caixa adiciona de volta o consumo contábil de peças e deduz compras; não cobra duas vezes. |
-| Técnicos e motivação | Número de técnicos afeta capacidade e folha. Qualificação, treinamento e carga afetam motivação, que afeta capacidade e rotatividade. |
+| Técnicos e motivação | Número de técnicos afeta capacidade e folha. Sem treinamento, a qualificação converge para o nível básico da equipe (0,6). A experiência média aumenta um mês por ciclo e a rotatividade reduz a experiência acima da referência de um ano para novas contratações. Carga de trabalho e motivação continuam afetando capacidade e rotatividade. |
 | Abertura | Infraestrutura/reforma, marketing inicial, tecnologia e mobiliário são desembolsos iniciais. Reserva é capital de giro, não despesa recorrente. Orçamentos mensais são decisões distintas. Estoque inicial integra o desembolso de abertura. |
 | Tributos | Receita líquida = preço × serviços concluídos × (1 − carga tributária). |
 | Concorrentes locais | Nc é contagem regional informada pelo participante. Não há integração com uma base municipal no projeto. Nenhuma equação usa preço de outras assistências. |

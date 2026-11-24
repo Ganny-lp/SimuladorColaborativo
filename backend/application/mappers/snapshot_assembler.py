@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import asdict
+
 from backend.application.dto import (
     CycleRecordDTO,
     KpiDTO,
@@ -41,7 +43,7 @@ class SnapshotAssembler:
                 stops=tuple(PriceStopDTO(s.value, s.color, s.label) for s in scale.stops),
             ),
             history=tuple(
-                CycleRecordDTO(r.cycle, r.profit, r.accumulated_profitability)
+                CycleRecordDTO(**asdict(r))
                 for r in simulation.history
             ),
             model_payload=self._model_mapper.to_dict(system),
